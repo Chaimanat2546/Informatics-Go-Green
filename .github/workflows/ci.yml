@@ -1,0 +1,133 @@
+# CI Pipeline - ตรวจสอบคุณภาพโค้ดอัตโนมัติ
+# Runs on: push, pull request to main/develop branches
+
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  # ==================== LINT ====================
+  # ตรวจสอบ code style และ best practices
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: |
+            frontend/package-lock.json
+            backend/package-lock.json
+
+      - name: Install Frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Install Backend dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Lint Frontend (NextJS)
+        working-directory: ./frontend
+        run: npm run lint
+
+      - name: Lint Backend (NestJS)
+        working-directory: ./backend
+        run: npm run lint
+
+  # ==================== TEST ====================
+  # รัน unit tests และ integration tests
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: lint # รันหลังจาก lint สำเร็จ
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: |
+            frontend/package-lock.json
+            backend/package-lock.json
+
+      - name: Install Frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Install Backend dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Test Frontend
+        working-directory: ./frontend
+        run: npm run test --if-present
+
+      - name: Test Backend
+        working-directory: ./backend
+        run: npm run test
+
+  # ==================== BUILD WEB (NextJS) ====================
+  # ทดสอบว่า Frontend build สำเร็จ
+  build-web:
+    name: Build Web (NextJS)
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Build NextJS
+        working-directory: ./frontend
+        run: npm run build
+        env:
+          # ป้องกัน TypeScript errors ระหว่าง build
+          CI: true
+
+  # ==================== BUILD API (NestJS) ====================
+  # ทดสอบว่า Backend build สำเร็จ
+  build-api:
+    name: Build API (NestJS)
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Build NestJS
+        working-directory: ./backend
+        run: npm run build
