@@ -1,36 +1,218 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎨 Frontend Application
 
-## Getting Started
+Next.js Frontend สำหรับโปรเจค Informatics Go Green
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 📋 Table of Contents
+
+- [Tech Stack](#-tech-stack)
+- [Folder Structure](#-folder-structure)
+- [Getting Started](#-getting-started)
+- [Available Scripts](#-available-scripts)
+- [Environment Variables](#-environment-variables)
+- [Component Guidelines](#-component-guidelines)
+
+---
+
+## 🛠 Tech Stack
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| Next.js | 14+ | React Framework (App Router) |
+| TypeScript | 5+ | Type Safety |
+| React | 18+ | UI Library |
+| Tailwind CSS | 3+ | Styling (optional) |
+
+---
+
+## 📁 Folder Structure
+
+```
+frontend/
+├── app/                        # Next.js App Router
+│   ├── auth/                  # Authentication Pages
+│   │   ├── login/            # Login Page
+│   │   │   └── page.tsx
+│   │   ├── register/         # Register Page
+│   │   │   └── page.tsx
+│   │   └── dashboard/        # User Dashboard
+│   │       └── page.tsx
+│   │
+│   ├── layout.tsx             # Root Layout (HTML, fonts, providers)
+│   ├── page.tsx               # Home Page (/)
+│   └── globals.css            # Global Styles
+│
+├── public/                     # Static Assets
+│   ├── images/               # Image files
+│   └── icons/                # Icon files
+│
+├── next.config.ts             # Next.js Configuration
+├── tsconfig.json              # TypeScript Configuration
+├── package.json               # Dependencies
+├── Dockerfile.dev             # Development Image
+└── Dockerfile.prod            # Production Image
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🚀 Getting Started
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### With Docker (แนะนำ)
 
-## Learn More
+```bash
+# จาก root directory ของโปรเจค
+docker-compose -f docker-compose.dev.yml up --build -d frontend
+```
 
-To learn more about Next.js, take a look at the following resources:
+### Local Development
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+# Install dependencies
+npm install
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Start development server
+npm run dev
 
-## Deploy on Vercel
+# Open http://localhost:3000
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📝 Available Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run dev` | Start development server (port 3000) |
+| `npm run build` | Build production bundle |
+| `npm run start` | Start production server |
+| `npm run lint` | Run ESLint |
+
+---
+
+## 🔧 Environment Variables
+
+สร้างไฟล์ `.env.local` หรือใช้ค่าจาก Docker:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `NEXT_PUBLIC_API_URL` | Backend API URL | `http://localhost:3001` |
+| `WATCHPACK_POLLING` | Enable polling for Docker | `true` |
+
+---
+
+## 🧩 Component Guidelines
+
+### Server Components (Default)
+
+ใช้สำหรับ pages และ layouts ที่ไม่ต้องการ interactivity:
+
+```tsx
+// app/page.tsx - Server Component (default)
+export default function HomePage() {
+  return <h1>Welcome</h1>;
+}
+```
+
+### Client Components
+
+เติม `'use client'` เมื่อต้องการ hooks หรือ browser APIs:
+
+```tsx
+// app/components/Counter.tsx
+'use client';
+
+import { useState } from 'react';
+
+export default function Counter() {
+  const [count, setCount] = useState(0);
+  return <button onClick={() => setCount(c => c + 1)}>{count}</button>;
+}
+```
+
+### When to Use Client Components
+
+| Use Case | Component Type |
+|----------|---------------|
+| Display static content | Server |
+| Fetch data on server | Server |
+| Form inputs, buttons | Client |
+| useState, useEffect | Client |
+| Browser APIs (localStorage) | Client |
+
+---
+
+## 🎨 Styling Guidelines
+
+### CSS Modules (Scoped)
+
+```tsx
+// app/components/Button.module.css
+.button {
+  background: blue;
+  padding: 8px 16px;
+}
+
+// app/components/Button.tsx
+import styles from './Button.module.css';
+export default function Button() {
+  return <button className={styles.button}>Click</button>;
+}
+```
+
+### Global Styles
+
+```css
+/* app/globals.css */
+:root {
+  --primary-color: #10b981;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+```
+
+---
+
+## 🔗 API Integration
+
+### Fetching Data (Server Component)
+
+```tsx
+// app/users/page.tsx
+async function getUsers() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users`);
+  return res.json();
+}
+
+export default async function UsersPage() {
+  const users = await getUsers();
+  return <ul>{users.map(u => <li key={u.id}>{u.name}</li>)}</ul>;
+}
+```
+
+### Fetching Data (Client Component)
+
+```tsx
+'use client';
+import { useEffect, useState } from 'react';
+
+export default function Users() {
+  const [users, setUsers] = useState([]);
+  
+  useEffect(() => {
+    fetch('/api/users')
+      .then(res => res.json())
+      .then(setUsers);
+  }, []);
+
+  return <ul>{users.map(u => <li key={u.id}>{u.name}</li>)}</ul>;
+}
+```
+
+---
+
+<p align="center">
+  ดูเอกสารเพิ่มเติมที่ <a href="../README.md">README หลัก</a> หรือ <a href="../DEVELOPER_GUIDE.md">Developer Guide</a>
+</p>

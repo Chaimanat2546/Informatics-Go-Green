@@ -1,89 +1,320 @@
 # 💻 Developer Guide
 
-คู่มือสำหรับนักพัฒนาในการร่วมโปรเจค Informatics Go Green เพื่อให้โค้ดเป็นไปในทิศทางเดียวกันและง่ายต่อการดูแลรักษา
-
-## 🗂️ Folder Structure
-
-### Backend (`/backend`)
-โครงสร้างตามมาตรฐาน NestJS:
-- `src/`
-  - `auth/`: ระบบ Authentication ทั้งหมด (Controller, Service, Strategies, Guards)
-  - `users/`: ระบบจัดการผู้ใช้ (Entity, Service)
-  - `main.ts`: Entry point (CORS, Validation Pipe config)
-  - `app.module.ts`: Root Module
-
-### Frontend (`/frontend`)
-โครงสร้างตามมาตรฐาน Next.js App Router:
-- `app/`
-  - `auth/`: Authentication Pages (`login`, `register`, `dashboard`)
-  - `layout.tsx`: Root Layout
-  - `page.tsx`: Home Page
-- `public/`: Static files
+คู่มือสำหรับ Developer ในการร่วมพัฒนาโปรเจค Informatics Go Green
 
 ---
 
-## 🛠️ Development Workflow
+## 📋 Table of Contents
 
-### 1. การเริ่มงานใหม่ (New Feature)
-1. **Pull latest changes**: `git pull origin develop`
-2. **Create Branch**: สร้าง branch ใหม่ตามฟีเจอร์ที่ทำ
-   - Feature: `feature/feature-name`
-   - Bugfix: `fix/bug-name`
-3. **Run Dev Environment**:
-   ```bash
-   docker-compose -f docker-compose.dev.yml up -d
-   ```
+- [Onboarding Checklist](#-onboarding-checklist)
+- [Architecture Overview](#-architecture-overview)
+- [Folder Structure](#-folder-structure)
+- [Development Workflow](#-development-workflow)
+- [Coding Standards](#-coding-standards)
+- [Git Conventions](#-git-conventions)
+- [Testing Guidelines](#-testing-guidelines)
+- [API Documentation](#-api-documentation)
 
-### 2. การเพิ่ม Dependency ใหม่
-เนื่องจากเรารันผ่าน Docker:
-1. **Frontend**:
-   - `cd frontend`
-   - `npm install package-name`
-   - Rebuild Container: `docker-compose -f docker-compose.dev.yml up --build -d frontend`
-2. **Backend**:
-   - `cd backend`
-   - `npm install package-name`
-   - Rebuild Container: `docker-compose -f docker-compose.dev.yml up --build -d backend`
+---
 
-### 3. Database Migration
-เมื่อมีการแก้ไข Entity ใน Backend:
-1. NestJS (TypeORM) ของเราตั้งค่า `synchronize: true` สำหรับ Dev mode
-2. เพียงแค่ save ไฟล์ entity, database จะถูก update อัตโนมัติ
+## ✅ Onboarding Checklist
+
+สำหรับ Developer ที่เข้าร่วมโปรเจคใหม่:
+
+- [ ] Clone repository และ setup environment
+- [ ] อ่าน README.md และ DOCKER.md
+- [ ] ติดตั้ง Docker Desktop
+- [ ] รัน `docker-compose -f docker-compose.dev.yml up --build -d`
+- [ ] ทดสอบเข้า http://localhost:3000 และ http://localhost:3001/api
+- [ ] ติดตั้ง VS Code Extensions (ESLint, Prettier, Docker)
+- [ ] ทำความเข้าใจ folder structure
+- [ ] อ่าน Coding Standards ในเอกสารนี้
+
+---
+
+## 🏗 Architecture Overview
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                         Client (Browser)                          │
+└───────────────────────────────┬──────────────────────────────────┘
+                                │
+                                ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                    Frontend (Next.js 14+)                         │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐               │
+│  │ App Router  │  │ Server      │  │ Client      │               │
+│  │ (pages)     │  │ Components  │  │ Components  │               │
+│  └─────────────┘  └─────────────┘  └─────────────┘               │
+└───────────────────────────────┬──────────────────────────────────┘
+                                │ REST API
+                                ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                     Backend (NestJS 10+)                          │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐               │
+│  │ Controllers │  │ Services    │  │ Guards      │               │
+│  │ (routes)    │  │ (logic)     │  │ (auth)      │               │
+│  └─────────────┘  └─────────────┘  └─────────────┘               │
+│  ┌─────────────┐  ┌─────────────┐                                │
+│  │ DTOs        │  │ Entities    │                                │
+│  │ (validation)│  │ (database)  │                                │
+│  └─────────────┘  └─────────────┘                                │
+└───────────────────────────────┬──────────────────────────────────┘
+                                │ TypeORM
+                                ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                     PostgreSQL Database                           │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📁 Folder Structure
+
+### Backend (`/backend`)
+
+```
+backend/
+├── src/
+│   ├── auth/                   # Authentication Module
+│   │   ├── dto/               # Data Transfer Objects
+│   │   ├── guards/            # JWT & OAuth Guards
+│   │   ├── strategies/        # Passport Strategies
+│   │   ├── auth.controller.ts # Routes
+│   │   ├── auth.service.ts    # Business Logic
+│   │   └── auth.module.ts     # Module Definition
+│   │
+│   ├── users/                  # User Management Module
+│   │   ├── entities/          # TypeORM Entities
+│   │   ├── users.service.ts   # User Operations
+│   │   └── users.module.ts    # Module Definition
+│   │
+│   ├── app.module.ts          # Root Module
+│   ├── app.controller.ts      # Health Check
+│   └── main.ts                # Entry Point (Bootstrap)
+│
+├── test/                       # E2E Tests
+├── Dockerfile.dev             # Development Image
+└── Dockerfile.prod            # Production Image
+```
+
+### Frontend (`/frontend`)
+
+```
+frontend/
+├── app/                        # Next.js App Router
+│   ├── auth/                  # Auth Pages
+│   │   ├── login/            # Login Page
+│   │   ├── register/         # Register Page
+│   │   └── dashboard/        # User Dashboard
+│   │
+│   ├── layout.tsx             # Root Layout
+│   ├── page.tsx               # Home Page
+│   └── globals.css            # Global Styles
+│
+├── public/                     # Static Assets
+├── Dockerfile.dev             # Development Image
+└── Dockerfile.prod            # Production Image
+```
+
+---
+
+## 🔄 Development Workflow
+
+### 1. Starting New Work
+
+```bash
+# 1. Pull latest changes
+git checkout develop
+git pull origin develop
+
+# 2. Create feature branch
+git checkout -b feature/your-feature-name
+
+# 3. Start development environment
+docker-compose -f docker-compose.dev.yml up --build --watch
+```
+
+### 2. Adding Dependencies
+
+| Action | Command |
+|--------|---------|
+| **Frontend** | `cd frontend && npm install <package>` |
+| **Backend** | `cd backend && npm install <package>` |
+| **Rebuild Container** | `docker-compose -f docker-compose.dev.yml up --build -d <service>` |
+
+> **Note**: หลังเพิ่ม dependency ต้อง rebuild container ด้วย `--build`
+
+### 3. Database Changes
+
+- TypeORM ตั้งค่า `synchronize: true` สำหรับ Development
+- เมื่อแก้ไข Entity, database schema จะ update อัตโนมัติ
+- **Production**: ใช้ migrations แทน (จะ implement เพิ่มเติม)
 
 ---
 
 ## 📝 Coding Standards
 
 ### Naming Conventions
-- **Variables/Functions**: `camelCase` (e.g., `getUserById`, `isActive`)
-- **Classes/Interfaces**: `PascalCase` (e.g., `UserService`, `UserInterface`)
-- **Files**: `kebab-case` (e.g., `user.service.ts`, `auth-guard.ts`)
-- **Database Tables**: `snake_case` (handled by TypeORM mostly)
+
+| Type | Convention | Example |
+|------|------------|---------|
+| Variables/Functions | `camelCase` | `getUserById`, `isActive` |
+| Classes/Interfaces | `PascalCase` | `UserService`, `AuthGuard` |
+| Files | `kebab-case` | `user.service.ts`, `auth-guard.ts` |
+| Database Tables | `snake_case` | `user_profiles` |
+| Constants | `SCREAMING_SNAKE_CASE` | `MAX_RETRIES` |
 
 ### Backend Best Practices
-- **DTOs**: **ต้อง**สร้าง DTO (Data Transfer Object) พร้อม Validation (`class-validator`) สำหรับทุก API Endpoint ที่รับข้อมูล
-- **Environment Variables**: ห้าม Hardcode ค่า config/secret ให้ใช้ `ConfigService` ดึงจาก `.env` เสมอ
-- **Async/Await**: ใช้ `async/await` เสมอแทน Promise chains
+
+| Rule | Description |
+|------|-------------|
+| **Use DTOs** | สร้าง DTO สำหรับทุก API ที่รับข้อมูล พร้อม `class-validator` |
+| **No Hardcode** | ใช้ `ConfigService` ดึงค่าจาก `.env` เสมอ |
+| **Async/Await** | ใช้ `async/await` แทน Promise chains |
+| **Error Handling** | ใช้ NestJS Exception Filters |
+| **Logging** | ใช้ NestJS Logger สำหรับ log |
 
 ### Frontend Best Practices
-- **App Router**: ใช้ Server Components เป็น default (`page.tsx`, `layout.tsx`) และเติม `'use client'` เฉพาะไฟล์ที่ต้องการ interaction/hooks
-- **Tailwind**: ใช้ Utility classes ในการจัด layout และ style
+
+| Rule | Description |
+|------|-------------|
+| **Server Components** | ใช้เป็น default, เติม `'use client'` เฉพาะเมื่อจำเป็น |
+| **Type Safety** | ใช้ TypeScript interfaces สำหรับ props และ API responses |
+| **Styling** | ใช้ CSS Modules หรือ Tailwind utility classes |
+| **API Calls** | Centralize API calls ในโฟลเดอร์ `lib/` หรือ `services/` |
 
 ---
 
-## 🔄 Git Commit Message Convention
+## 🔀 Git Conventions
 
-ใช้รูปแบบ: `type(scope): subject`
+### Branch Naming
 
-**Types:**
-- `feat`: ฟีเจอร์ใหม่
-- `fix`: แก้ไขบั๊ก
-- `docs`: แก้ไขเอกสาร
-- `style`: ปรับแต่ง format, space (ไม่มีผลกับ logic)
-- `refactor`: แก้ไขโค้ดแต่ไม่ได้เพิ่มฟีเจอร์หรือแก้บั๊ก (จัดระเบียบ)
-- `chore`: งานจิปาถะ (build process, tools)
+| Type | Format | Example |
+|------|--------|---------|
+| Feature | `feature/<name>` | `feature/user-profile` |
+| Bugfix | `fix/<name>` | `fix/login-error` |
+| Hotfix | `hotfix/<name>` | `hotfix/security-patch` |
+| Documentation | `docs/<name>` | `docs/api-guide` |
 
-**ตัวอย่าง:**
-- `feat(auth): add google login strategy`
-- `fix(user): resolve soft delete issue`
-- `docs: update readme with docker instructions`
+### Commit Message Format
+
+```
+type(scope): subject
+
+# Types:
+# feat     - New feature
+# fix      - Bug fix
+# docs     - Documentation only
+# style    - Formatting, no code change
+# refactor - Code restructure, no feature change
+# test     - Adding tests
+# chore    - Build process, tools
+```
+
+### Examples
+
+```bash
+feat(auth): add Google OAuth login
+fix(user): resolve password reset token expiry
+docs: update README with Docker instructions
+refactor(api): extract validation to middleware
+test(auth): add unit tests for JWT service
+```
+
+### Pull Request Flow
+
+```
+feature/xxx ──▶ develop ──▶ main
+                  │
+              PR Review
+                  │
+              Merge after approval
+```
+
+---
+
+## 🧪 Testing Guidelines
+
+### Backend Tests
+
+```bash
+# Run all tests
+cd backend
+npm run test
+
+# Run specific test file
+npm run test -- auth.service.spec.ts
+
+# Run e2e tests
+npm run test:e2e
+
+# Generate coverage report
+npm run test:cov
+```
+
+### Test Structure
+
+```
+backend/
+├── src/
+│   └── auth/
+│       ├── auth.service.ts
+│       └── auth.service.spec.ts    # Unit test
+└── test/
+    └── app.e2e-spec.ts              # E2E test
+```
+
+---
+
+## 📖 API Documentation
+
+### Authentication Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/auth/register` | Register new user |
+| `POST` | `/api/auth/login` | Login with email/password |
+| `GET` | `/api/auth/google` | Initiate Google OAuth |
+| `GET` | `/api/auth/google/callback` | Google OAuth callback |
+| `POST` | `/api/auth/forgot-password` | Request password reset |
+| `POST` | `/api/auth/reset-password` | Reset password with token |
+| `GET` | `/api/auth/profile` | Get current user profile |
+
+### Request/Response Examples
+
+#### Register User
+
+```http
+POST /api/auth/register
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "SecurePassword123",
+  "name": "John Doe"
+}
+```
+
+#### Login
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "SecurePassword123"
+}
+
+Response:
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+---
+
+<p align="center">
+  Questions? Open an issue or contact the team.
+</p>

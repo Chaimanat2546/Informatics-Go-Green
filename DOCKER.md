@@ -1,84 +1,189 @@
-# 🐳 Docker Guide for Informatics Go Green
+# 🐳 Docker Guide
 
-คู่มือการใช้งาน Docker สำหรับโปรเจคนี้ ครอบคลุมการรันสำหรับ Development, Production และการแก้ไขปัญหาทั่วไป
+คู่มือการใช้งาน Docker สำหรับโปรเจค Informatics Go Green
 
-## 🛠️ Development Mode (แนะนำ)
+---
 
-ใช้ไฟล์ `docker-compose.dev.yml` ซึ่งออกแบบมาเพื่อการพัฒนา (Hot Reload + Volume Mounting)
+## 📋 Table of Contents
 
-### คำสั่งพื้นฐาน
+- [Architecture Overview](#-architecture-overview)
+- [Development Mode](#-development-mode)
+- [Production Mode](#-production-mode)
+- [Useful Commands](#-useful-commands)
+- [Environment Variables](#-environment-variables)
+- [Troubleshooting](#-troubleshooting)
+- [Configuration Files](#-configuration-files)
+
+---
+
+## 🏗 Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Docker Network                           │
+│                                                             │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐     │
+│  │  Frontend   │───▶│   Backend   │───▶│  PostgreSQL │     │
+│  │  (Next.js)  │    │  (NestJS)   │    │    (DB)     │     │
+│  │  Port:3000  │    │  Port:3001  │    │  Port:5432  │     │
+│  └─────────────┘    └─────────────┘    └─────────────┘     │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+| Service | Container Name | Port | Image |
+|---------|---------------|------|-------|
+| Frontend | `informatics-go-green-frontend-dev` | 3000 | node:20-alpine |
+| Backend | `informatics-go-green-backend-dev` | 3001 | node:20-alpine |
+| Database | `informatics-go-green-db-dev` | 5432 | postgres:16-alpine |
+
+---
+
+## 🛠 Development Mode
+
+ใช้ไฟล์ `docker-compose.dev.yml` สำหรับการพัฒนา — รองรับ **Hot Reload** และ **Volume Mounting**
+
+### Start Development Environment
 
 ```bash
-# 1. Start Containers (ครั้งแรก หรือเมื่อมีการแก้ package.json ให้เพิ่ม --build)
+# Start ครั้งแรก หรือหลังแก้ไข package.json
 docker-compose -f docker-compose.dev.yml up --build -d
 
-# 2. Start Containers (ปกติ)
+# Start ปกติ
 docker-compose -f docker-compose.dev.yml up -d
 
-# 3. Stop Containers
-docker-compose -f docker-compose.dev.yml down
-
-# 4. View Logs (Real-time)
-docker-compose -f docker-compose.dev.yml logs -f
-
-# 5. Restart Backend (เช่น เมื่อแก้ไฟล์ .env หรือ code backend ค้าง)
-docker-compose -f docker-compose.dev.yml restart backend
+# Start พร้อม Hot Reload Watch Mode (แนะนำ)
+docker-compose -f docker-compose.dev.yml up --build --watch
 ```
 
-### การเชื่อมต่อ Database
+### Hot Reload Configuration
 
-```bash
-docker-compose -f docker-compose.dev.yml exec postgres psql -U postgres -d informatics_go_green
-```
+ระบบรองรับ Hot Reload เมื่อ save ไฟล์:
+
+| Service | Method | Files |
+|---------|--------|-------|
+| **Frontend** | Next.js Fast Refresh | `frontend/app/**/*` |
+| **Backend** | NestJS Watch Mode | `backend/src/**/*` |
+
+> **Tip**: ใช้ `--watch` flag เพื่อให้ Docker Compose Watch sync ไฟล์อัตโนมัติ
 
 ---
 
 ## 🚢 Production Mode
 
-ใช้ไฟล์ `docker-compose.yml` สำหรับการ Test เสมือนจริง หรือ Deploy (ไม่มี Hot Reload)
+ใช้ไฟล์ `docker-compose.prod.yml` สำหรับ Production — optimized build ไม่มี Hot Reload
 
 ```bash
+# Build และ Start Production
+docker-compose -f docker-compose.prod.yml up --build -d
+
+# หรือใช้ docker-compose.yml (default)
 docker-compose up --build -d
 ```
 
 ---
 
-## ⚠️ Troubleshooting (ปัญหาที่พบบ่อย)
+## 📝 Useful Commands
 
-### 1. `bcrypt` / `bcryptjs` Error (Exec format error)
-**อาการ**: Container Backend รันไม่ขึ้น มี error เกี่ยวกับ `bcrypt_lib.node`
-**สาเหตุ**: `bcrypt` ที่ compile บน Windows ไม่สามารถรันบน Linux Container ได้
-**วิธีแกั**:
-- เราได้เปลี่ยนมาใช้ `bcryptjs` (pure JS) แทน `bcrypt` แล้ว
-- หากยังเจอ ให้ลองลบ `node_modules` และ `package-lock.json` ในเครื่อง local แล้วรัน `npm install` ใหม่ (ถ้า environment local ไม่ตรง) **แต่ดีที่สุดคือรันผ่าน Docker**
-- สั่ง rebuild: `docker-compose -f docker-compose.dev.yml up --build -d backend`
+### Container Management
 
-### 2. Dependency Conflict (`npm ci` failed)
-**อาการ**: Build Docker ไม่ผ่าน ขึ้น error ERESOLVE เกี่ยวกับ dependency conflicts
-**วิธีแก้**:
-- ใน `Dockerfile.dev` เราใช้ `npm install --legacy-peer-deps` แทน `npm ci` แล้วเพื่อป้องกันปัญหานี้
-- ถ้าแก้ไข `package.json` แล้ว build ไม่ผ่าน ให้เช็ค version ของ library ที่เพิ่มเข้าไป
+| Command | Description |
+|---------|-------------|
+| `docker-compose -f docker-compose.dev.yml up -d` | Start containers (background) |
+| `docker-compose -f docker-compose.dev.yml up --build -d` | Rebuild และ start |
+| `docker-compose -f docker-compose.dev.yml down` | Stop และลบ containers |
+| `docker-compose -f docker-compose.dev.yml restart` | Restart ทุก containers |
+| `docker-compose -f docker-compose.dev.yml restart backend` | Restart เฉพาะ backend |
 
-### 3. Hot Reload ไม่ทำงาน
-**สาเหตุ**: Volume mounting อาจมีปัญหาใน Windows (Docker Desktop)
-**วิธีเช็ค**:
-- ตรวจสอบว่าใน `docker-compose.dev.yml` มีการ mount volumes ถูกต้อง:
-  ```yaml
-  volumes:
-    - ./backend/src:/app/src:ro  # Backend
-    - ./frontend/app:/app/app:ro # Frontend
-  ```
-- ถ้ายังไม่ได้ ให้ลอง restart Docker Desktop
+### Logs & Debugging
 
-### 4. Database Connection Refused
-**สาเหตุ**: Container `postgres` ยังไม่พร้อมใช้งานตอนที่ backend พยายาม connect (แม้จะมี depends_on)
-**วิธีแก้**:
-- ระบบมี Healthcheck configured แล้ว แต่ถ้ารอนานผิดปกติ ให้: `docker-compose -f docker-compose.dev.yml restart backend`
+| Command | Description |
+|---------|-------------|
+| `docker-compose -f docker-compose.dev.yml logs -f` | ดู logs ทั้งหมด (real-time) |
+| `docker-compose -f docker-compose.dev.yml logs -f backend` | ดู logs เฉพาะ backend |
+| `docker-compose -f docker-compose.dev.yml logs -f frontend` | ดู logs เฉพาะ frontend |
+| `docker-compose -f docker-compose.dev.yml ps` | แสดง status ของ containers |
+
+### Database Operations
+
+| Command | Description |
+|---------|-------------|
+| `docker-compose -f docker-compose.dev.yml exec postgres psql -U postgres -d informatics_go_green` | เข้า PostgreSQL CLI |
+| `docker-compose -f docker-compose.dev.yml exec postgres pg_dump -U postgres informatics_go_green > backup.sql` | Backup database |
+
+### Container Access
+
+| Command | Description |
+|---------|-------------|
+| `docker-compose -f docker-compose.dev.yml exec backend sh` | เข้า shell ใน backend |
+| `docker-compose -f docker-compose.dev.yml exec frontend sh` | เข้า shell ใน frontend |
 
 ---
 
-## ⚙️ Docker Configuration Files
+## 🔧 Environment Variables
 
-- **`docker-compose.dev.yml`**: ไฟล์หลักสำหรับ Dev มีการ mount source code และใช้ `Dockerfile.dev`
-- **`backend/Dockerfile.dev`**: ใช้ Image `node:20-alpine`, ติดตั้ง dependencies และรัน `npm run start:dev`
-- **`frontend/Dockerfile.dev`**: ใช้ Image `node:20-alpine`, ติดตั้ง dependencies และรัน `npm run dev`
+### Required Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `POSTGRES_USER` | Database username | `postgres` |
+| `POSTGRES_PASSWORD` | Database password | `postgres` |
+| `POSTGRES_DB` | Database name | `informatics_go_green` |
+| `JWT_SECRET` | Secret key for JWT | - |
+
+### Optional Variables (OAuth)
+
+| Variable | Description |
+|----------|-------------|
+| `GOOGLE_CLIENT_ID` | Google OAuth Client ID |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret |
+| `GOOGLE_CALLBACK_URL` | OAuth Callback URL |
+
+> Copy `.env.example` เป็น `.env` และแก้ไขค่าตามต้องการ
+
+---
+
+## ⚠️ Troubleshooting
+
+### Common Issues
+
+| Problem | Cause | Solution |
+|---------|-------|----------|
+| **bcrypt Error** | `bcrypt` compiled on Windows ไม่ทำงานบน Linux Container | ใช้ `bcryptjs` แทน (แก้ไขแล้ว) หรือ rebuild: `docker-compose -f docker-compose.dev.yml up --build -d backend` |
+| **Dependency Conflict** | npm ci failed เนื่องจาก version conflict | ใช้ `npm install --legacy-peer-deps` (ตั้งค่าใน Dockerfile.dev แล้ว) |
+| **Hot Reload ไม่ทำงาน** | Volume mounting มีปัญหาบน Windows | ลอง restart Docker Desktop หรือใช้ `--watch` flag |
+| **Database Connection Refused** | PostgreSQL ยังไม่พร้อม | รอสักครู่หรือ `docker-compose -f docker-compose.dev.yml restart backend` |
+| **Port Already in Use** | Port 3000/3001/5432 ถูกใช้งานอยู่ | หยุด process ที่ใช้ port นั้น หรือเปลี่ยน port ใน docker-compose |
+
+### Reset Everything
+
+```bash
+# Stop ทั้งหมด
+docker-compose -f docker-compose.dev.yml down
+
+# ลบ volumes (ระวัง: ลบข้อมูล database ด้วย!)
+docker-compose -f docker-compose.dev.yml down -v
+
+# Rebuild จาก scratch
+docker-compose -f docker-compose.dev.yml up --build -d
+```
+
+---
+
+## ⚙️ Configuration Files
+
+| File | Purpose |
+|------|---------|
+| `docker-compose.dev.yml` | Development config (Hot Reload, Volume Mount) |
+| `docker-compose.prod.yml` | Production config (Optimized Build) |
+| `docker-compose.yml` | Default/Legacy config |
+| `backend/Dockerfile.dev` | Backend Dev image |
+| `backend/Dockerfile.prod` | Backend Production image |
+| `frontend/Dockerfile.dev` | Frontend Dev image |
+| `frontend/Dockerfile.prod` | Frontend Production image |
+
+---
+
+<p align="center">
+  Need help? Check the <a href="DEVELOPER_GUIDE.md">Developer Guide</a> or open an issue.
+</p>
