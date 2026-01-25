@@ -22,7 +22,10 @@ Next.js Frontend สำหรับโปรเจค Informatics Go Green
 | Next.js | 14+ | React Framework (App Router) |
 | TypeScript | 5+ | Type Safety |
 | React | 18+ | UI Library |
-| Tailwind CSS | 3+ | Styling (optional) |
+| Tailwind CSS | 3+ | Utility-first CSS Framework |
+| shadcn/ui | latest | UI Component Library |
+| Radix UI | latest | Headless UI Primitives (ใช้โดย shadcn) |
+| Lucide React | latest | Icon Library |
 
 ---
 
@@ -41,12 +44,23 @@ frontend/
 │   │
 │   ├── layout.tsx             # Root Layout (HTML, fonts, providers)
 │   ├── page.tsx               # Home Page (/)
-│   └── globals.css            # Global Styles
+│   └── globals.css            # Global Styles + Tailwind + shadcn
+│
+├── components/                 # Shared Components
+│   └── ui/                    # shadcn/ui Components
+│       ├── button.tsx
+│       ├── input.tsx
+│       ├── card.tsx
+│       └── ...
+│
+├── lib/                        # Utility Functions
+│   └── utils.ts               # cn() helper สำหรับ className
 │
 ├── public/                     # Static Assets
 │   ├── images/               # Image files
 │   └── icons/                # Icon files
 │
+├── components.json            # shadcn/ui Configuration
 ├── next.config.ts             # Next.js Configuration
 ├── tsconfig.json              # TypeScript Configuration
 ├── package.json               # Dependencies
@@ -142,36 +156,137 @@ export default function Counter() {
 
 ---
 
-## 🎨 Styling Guidelines
+## 🎨 shadcn/ui Setup & Usage
 
-### CSS Modules (Scoped)
+### การติดตั้ง shadcn/ui
+
+```bash
+# Initialize shadcn/ui (เลือก style, color, และ config)
+npx shadcn-ui@latest init
+
+# เพิ่ม components ที่ต้องการ
+npx shadcn-ui@latest add button
+npx shadcn-ui@latest add input
+npx shadcn-ui@latest add card
+npx shadcn-ui@latest add form
+```
+
+### การใช้งาน Components
 
 ```tsx
-// app/components/Button.module.css
-.button {
-  background: blue;
-  padding: 8px 16px;
-}
+// ตัวอย่างการใช้ Button
+import { Button } from "@/components/ui/button";
 
-// app/components/Button.tsx
-import styles from './Button.module.css';
-export default function Button() {
-  return <button className={styles.button}>Click</button>;
+export default function MyPage() {
+  return (
+    <div className="space-y-4">
+      <Button>Default Button</Button>
+      <Button variant="destructive">Delete</Button>
+      <Button variant="outline">Outline</Button>
+      <Button variant="ghost">Ghost</Button>
+    </div>
+  );
 }
 ```
 
-### Global Styles
+### การใช้งาน Form Components
+
+```tsx
+'use client';
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+export default function LoginForm() {
+  return (
+    <Card className="w-full max-w-md">
+      <CardHeader>
+        <CardTitle>เข้าสู่ระบบ</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input id="email" type="email" placeholder="email@example.com" />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <Input id="password" type="password" />
+        </div>
+        <Button className="w-full">Login</Button>
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+### cn() Utility Function
+
+ใช้สำหรับ merge Tailwind classes อย่างปลอดภัย:
+
+```tsx
+// lib/utils.ts
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+// การใช้งาน
+import { cn } from "@/lib/utils";
+
+export function MyComponent({ className }: { className?: string }) {
+  return (
+    <div className={cn("p-4 rounded-lg bg-primary", className)}>
+      Content
+    </div>
+  );
+}
+```
+
+### Theme Customization
+
+ปรับแต่ง theme ใน `globals.css`:
 
 ```css
 /* app/globals.css */
-:root {
-  --primary-color: #10b981;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-body {
-  font-family: 'Inter', sans-serif;
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --primary: 142.1 76.2% 36.3%;  /* สีเขียว Go Green */
+    --primary-foreground: 355.7 100% 97.3%;
+    /* ... เพิ่มสีอื่นๆ ตามต้องการ */
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --primary: 142.1 70.6% 45.3%;
+    /* ... เพิ่มสีสำหรับ dark mode */
+  }
 }
 ```
+
+### Components ที่แนะนำ
+
+| Component | Use Case |
+|-----------|----------|
+| `button` | Buttons, Links ที่ต้องการ action |
+| `input` | Text inputs, Search bars |
+| `card` | Container สำหรับ content |
+| `form` | Form validation (with react-hook-form) |
+| `dialog` | Modal popups |
+| `dropdown-menu` | Navigation menus |
+| `toast` | Notifications |
+| `avatar` | User profile images |
+| `badge` | Status indicators |
 
 ---
 
