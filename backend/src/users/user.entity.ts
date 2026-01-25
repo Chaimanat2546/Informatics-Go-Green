@@ -15,7 +15,7 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column()
+  @Column({ nullable: true })
   password: string;
 
   @Column()
@@ -38,6 +38,22 @@ export class User {
 
   @Column({ default: 'user' })
   role: string;
+
+  // === Authentication Provider Fields ===
+
+  @Column({ default: 'local' })
+  provider: string; // 'local', 'google', 'facebook'
+
+  @Column({ nullable: true })
+  providerId: string; // ID from OAuth provider
+
+  // === Password Reset Fields ===
+
+  @Column({ nullable: true })
+  resetPasswordToken: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  resetPasswordExpires: Date | null;
 
   // === PDPA Compliance Fields ===
 

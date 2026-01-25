@@ -35,6 +35,23 @@ services:
       DATABASE_USER: ${POSTGRES_USER:-postgres}
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       DATABASE_NAME: ${POSTGRES_DB:-informatics_go_green}
+      # JWT
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-key}
+      JWT_EXPIRES_IN_SECONDS: ${JWT_EXPIRES_IN_SECONDS:-604800}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      # Google OAuth
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL:-http://localhost:3001/api/auth/google/callback}
+      # Facebook OAuth
+      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID:-}
+      FACEBOOK_APP_SECRET: ${FACEBOOK_APP_SECRET:-}
+      FACEBOOK_CALLBACK_URL: ${FACEBOOK_CALLBACK_URL:-http://localhost:3001/api/auth/facebook/callback}
+      # SMTP (optional)
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
     ports:
       - "3001:3001"
     depends_on:
@@ -72,13 +89,16 @@ services:
       - ./frontend/app:/app/app:ro
       - ./frontend/public:/app/public:ro
       # ไม่ mount node_modules และ .next - ให้ใช้ใน container
-    develop:
-      watch:
-        - action: sync
-          path: ./frontend/app
-          target: /app/app
-        - action: rebuild
-          path: ./frontend/package.json
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    # develop:
+    #   watch:
+    #     - action: sync
+    #       path: ./frontend/app
+    #       target: /app/app
+    #     - action: rebuild
+    #       path: ./frontend/package.json
 
 volumes:
   postgres_data_dev:

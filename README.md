@@ -1,93 +1,67 @@
-# Informatics Go Green
+# 🌿 Informatics Go Green
 
-Full-Stack application with NextJS, NestJS, PostgreSQL, and Docker.
+Web Application สำหรับโครงการ Informatics Go Green พัฒนาด้วย Next.js และ NestJS ภายใต้สถาปัตยกรรม Microservices-ready ด้วย Docker Container
 
-## 🚀 Quick Start
+## 📋 Technology Stack
 
-### Prerequisites
-- Node.js 20+
-- Docker & Docker Compose
-- npm
+- **Frontend**: Next.js 14+ (App Directory), TypeScript, TailwindCSS (optional)
+- **Backend**: NestJS, TypeORM, TypeScript
+- **Database**: PostgreSQL 16
+- **Infrastructure**: Docker & Docker Compose
+- **Authentication**: JWT, Google OAuth
 
-### Development Setup
+---
 
-#### Option 1: Run with Docker (Recommended)
+## 🚀 Quick Start (สำหรับ Developer)
 
-```bash
-# Copy environment file
-cp .env.example .env
+วิธีที่ง่ายที่สุดในการรันโปรเจคคือการใช้ Docker Compose ในโหมด Development:
 
-# Start all services
-docker-compose up -d
+1. **Clone & Setup Env**:
+   ```bash
+   git clone https://github.com/Chaimanat2546/Informatics-Go-Green.git
+   cd Informatics-Go-Green
+   cp .env.example .env
+   ```
+   > 📝 **Note**: ถ้าต้องการใช้ Social Login (Google) ให้แก้ไขค่า `GOOGLE_CLIENT_ID` และ `GOOGLE_CLIENT_SECRET` ในไฟล์ `.env`
 
-# View logs
-docker-compose logs -f
-```
+2. **Run with Docker (Dev Mode)**:
+   ```bash
+   docker-compose -f docker-compose.dev.yml up --build -d
+   ```
 
-**Services:**
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:3001
-- PostgreSQL: localhost:5432
+3. **Access Application**:
+   - 🏠 Frontend: http://localhost:3000
+   - 🔌 Backend API: http://localhost:3001/api
+   - 👤 Login Page: http://localhost:3000/auth/login
 
-#### Option 2: Run Locally
+---
 
-```bash
-# Start PostgreSQL only
-docker-compose up -d postgres
+## 🔑 Authentication System
 
-# Frontend (in terminal 1)
-cd frontend
-npm install
-npm run dev
+ระบบ Login รองรับ:
+1. **Local Login**: Email + Password (สมัครสมาชิกได้ที่ `/auth/register`)
+2. **Google OAuth**: Login ผ่าน Google Account
+3. **Password Reset**: รองรับการขอเปลี่ยนรหัสผ่านผ่าน Email (จำลองด้วย Nodemailer)
 
-# Backend (in terminal 2)
-cd backend
-npm install
-npm run start:dev
-```
+---
 
 ## 📁 Project Structure
 
 ```
-├── frontend/          # NextJS 14+ application
-├── backend/           # NestJS application
-├── docker-compose.yml # Docker orchestration
-├── .env.example       # Environment template
-└── README.md
+Informatics-Go-Green/
+├── backend/                # NestJS Backend API
+│   ├── src/auth/           # Authentication Module (JWT, OAuth)
+│   ├── src/users/          # Users Module
+│   └── Dockerfile.dev      # Dockerfile for Development
+├── frontend/               # Next.js Frontend
+│   ├── app/auth/           # Auth Pages (Login, Register, Dashboard)
+│   └── Dockerfile.dev      # Dockerfile for Development
+├── docker-compose.dev.yml  # Docker Compose for Development (Recommended)
+├── docker-compose.yml      # Docker Compose for Production
+└── .env.example            # Environment Variables Template
 ```
 
-## 🔧 Environment Variables
+## 📚 Documentation
 
-Copy `.env.example` to `.env` and configure:
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `POSTGRES_USER` | Database user | postgres |
-| `POSTGRES_PASSWORD` | Database password | postgres |
-| `POSTGRES_DB` | Database name | informatics_go_green |
-| `NEXT_PUBLIC_API_URL` | Backend API URL | http://localhost:3001 |
-
-## 📜 Scripts
-
-### Frontend
-```bash
-npm run dev      # Development server
-npm run build    # Production build
-npm run start    # Production server
-```
-
-### Backend
-```bash
-npm run start:dev   # Development with hot-reload
-npm run start:prod  # Production server
-npm run test        # Run tests
-```
-
-## 🐳 Docker Commands
-
-```bash
-docker-compose up -d          # Start all services
-docker-compose down           # Stop all services
-docker-compose logs -f        # View logs
-docker-compose exec postgres psql -U postgres  # Connect to DB
-```
+- [📖 Docker Guide](DOCKER.md) - คู่มือการใช้ Docker ขั้นสูงและการแก้ปัญหา
+- [💻 Developer Guide](DEVELOPER_GUIDE.md) - คู่มือการพัฒนา, Git Workflow, และ Coding Standards
