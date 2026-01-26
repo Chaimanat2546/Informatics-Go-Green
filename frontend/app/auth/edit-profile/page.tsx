@@ -1,0 +1,375 @@
+'use client';
+
+import { useState, useEffect, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { THAI_PROVINCES } from './thai-provinces';
+
+interface User {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber?: string;
+  province?: string;
+  profilePicture?: string;
+  provider?: string;
+  createdAt: string;
+}
+
+function EditProfileContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  
+  // Form state
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [province, setProvince] = useState('');
+  const [profilePicture, setProfilePicture] = useState('');
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+
+  useEffect(() => {
+    let ignore = false;
+
+    const tokenFromUrl = searchParams.get('token');
+    if (tokenFromUrl) {
+      localStorage.setItem('token', tokenFromUrl);
+      window.history.replaceState({}, document.title, '/auth/edit-profile');
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.push('/auth/login');
+      return;
+    }
+
+    const fetchUserProfile = async () => {
+      try {
+        const response = await fetch(`${API_URL}/auth/me`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const data = await response.json();
+
+        if (ignore) return;
+
+        if (response.ok) {
+          setUser(data);
+          setFirstName(data.firstName || '');
+          setLastName(data.lastName || '');
+          setPhoneNumber(data.phoneNumber || '');
+          setProvince(data.province || '');
+          setProfilePicture(data.profilePicture || '');
+          setLoading(false);
+        } else {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          router.push('/auth/login');
+        }
+      } catch {
+        if (!ignore) {
+          setError('Network error. Please try again.');
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchUserProfile();
+
+    return () => {
+      ignore = true;
+    };
+  }, [router, searchParams, API_URL]);
+
+  const handleImageClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.match(/^image\/(jpeg|png|gif|webp)$/)) {
+      setError('กรุณาเลือกไฟล์รูปภาพ (JPEG, PNG, GIF, WEBP)');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('ขนาดไฟล์ต้องไม่เกิน 5MB');
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.push('/auth/login');
+      return;
+    }
+
+    setUploading(true);
+    setError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(`${API_URL}/upload/profile-picture`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setProfilePicture(data.url);
+        setMessage('อัปโหลดรูปโปรไฟล์สำเร็จ');
+      } else {
+        setError(data.message || 'ไม่สามารถอัปโหลดรูปได้');
+      }
+    } catch {
+      setError('เกิดข้อผิดพลาดในการอัปโหลด');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '');
+    setPhoneNumber(value);
+  };
+
+  const validateForm = (): boolean => {
+    if (!firstName.trim()) {
+      setError('กรุณากรอกชื่อ');
+      return false;
+    }
+    if (!lastName.trim()) {
+      setError('กรุณากรอกนามสกุล');
+      return false;
+    }
+    if (phoneNumber && !/^[0-9]{9,10}$/.test(phoneNumber)) {
+      setError('เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก');
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.push('/auth/login');
+      return;
+    }
+
+    setSaving(true);
+    setMessage('');
+    setError('');
+
+    try {
+      const response = await fetch(`${API_URL}/auth/profile`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          phoneNumber: phoneNumber || undefined,
+          province: province || undefined,
+          profilePicture: profilePicture || undefined,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage('บันทึกข้อมูลสำเร็จ!');
+        setUser(data);
+      } else {
+        if (Array.isArray(data.message)) {
+          setError(data.message.join(', '));
+        } else {
+          setError(data.message || 'ไม่สามารถบันทึกข้อมูลได้');
+        }
+      }
+    } catch {
+      setError('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col justify-center items-center">
+        <p>กำลังโหลด...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen p-8">
+      <div className="max-w-md mx-auto">
+        <h1 className="text-2xl font-bold text-center mb-6">แก้ไขโปรไฟล์</h1>
+
+        {/* Profile Picture Section */}
+        <div className="flex flex-col items-center mb-6">
+          <div 
+            className="relative w-28 h-28 rounded-full overflow-hidden cursor-pointer border-4 border-blue-500"
+            onClick={handleImageClick}
+          >
+            {profilePicture ? (
+              <img
+                src={profilePicture}
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-blue-500 flex justify-center items-center">
+                <span className="text-4xl text-white font-bold">
+                  {firstName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || '?'}
+                </span>
+              </div>
+            )}
+            <div className="absolute bottom-0 left-0 right-0 h-8 bg-black/60 flex justify-center items-center">
+              <span>📷</span>
+            </div>
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            onChange={handleImageUpload}
+            className="hidden"
+          />
+          <p className="mt-2 text-sm text-gray-500">
+            {uploading ? 'กำลังอัปโหลด...' : 'คลิกเพื่อเปลี่ยนรูปโปรไฟล์'}
+          </p>
+        </div>
+
+        {/* Messages */}
+        {message && <div className="bg-green-100 text-green-800 p-3 rounded mb-4 text-center">{message}</div>}
+        {error && <div className="bg-red-100 text-red-800 p-3 rounded mb-4 text-center">{error}</div>}
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">ชื่อ</label>
+              <input
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className="w-full p-2 border rounded"
+                placeholder="ชื่อ"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">นามสกุล</label>
+              <input
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className="w-full p-2 border rounded"
+                placeholder="นามสกุล"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">เบอร์โทรศัพท์</label>
+            <input
+              type="tel"
+              value={phoneNumber}
+              onChange={handlePhoneChange}
+              className="w-full p-2 border rounded"
+              placeholder="0xxxxxxxxx"
+              maxLength={10}
+            />
+            <p className="text-xs text-gray-500 mt-1">เบอร์โทรศัพท์ 9-10 หลัก (เฉพาะตัวเลข)</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">จังหวัด</label>
+            <select
+              value={province}
+              onChange={(e) => setProvince(e.target.value)}
+              className="w-full p-2 border rounded"
+            >
+              <option value="">เลือกจังหวัด</option>
+              {THAI_PROVINCES.map((prov) => (
+                <option key={prov} value={prov}>
+                  {prov}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">อีเมล</label>
+            <input
+              type="email"
+              value={user?.email || ''}
+              className="w-full p-2 border rounded bg-gray-100 cursor-not-allowed"
+              disabled
+            />
+            <p className="text-xs text-gray-500 mt-1">ไม่สามารถแก้ไขอีเมลได้</p>
+          </div>
+
+          <div className="flex gap-4 pt-4">
+            <button
+              type="button"
+              onClick={() => router.push('/auth/dashboard')}
+              className="flex-1 p-2 border rounded hover:bg-gray-100"
+            >
+              ยกเลิก
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+            >
+              {saving ? 'กำลังบันทึก...' : 'บันทึก'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default function EditProfilePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex flex-col justify-center items-center">
+        <p>กำลังโหลด...</p>
+      </div>
+    }>
+      <EditProfileContent />
+    </Suspense>
+  );
+}

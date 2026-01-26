@@ -2,6 +2,8 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
+  Delete,
   Body,
   Param,
   UseGuards,
@@ -10,7 +12,16 @@ import {
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
-import { RegisterDto, LoginDto, ForgotPasswordDto, ResetPasswordDto } from './dto';
+import {
+  RegisterDto,
+  LoginDto,
+  ForgotPasswordDto,
+  ResetPasswordDto,
+  UpdateProfileDto,
+  ChangeEmailDto,
+  DeleteAccountDto,
+  ChangePasswordDto,
+} from './dto';
 import { JwtAuthGuard, GoogleAuthGuard } from './guards';
 import { User } from '../users/user.entity';
 import { ConfigService } from '@nestjs/config';
@@ -58,19 +69,57 @@ export class AuthController {
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
-  async googleAuthCallback(@Req() req: RequestWithUser, @Res() res: Response) {
+  googleAuthCallback(@Req() req: RequestWithUser, @Res() res: Response) {
     const token = this.authService.generateJwtToken(req.user);
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:3001');
-    
+    const frontendUrl = this.configService.get<string>(
+      'FRONTEND_URL',
+      'http://localhost:3001',
+    );
+
     // Redirect to frontend with token
     res.redirect(`${frontendUrl}/auth/dashboard?token=${token}`);
   }
-
-
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
   async getProfile(@Req() req: RequestWithUser) {
     return this.authService.getProfile(req.user.id);
   }
+
+  @Patch('profile')
+  @UseGuards(JwtAuthGuard)
+  async updateProfile(
+    @Req() req: RequestWithUser,
+    @Body() updateProfileDto: UpdateProfileDto,
+  ) {
+    return this.authService.updateProfile(req.user.id, updateProfileDto);
+  }
+
+  @Patch('email')
+  @UseGuards(JwtAuthGuard)
+  async changeEmail(
+    @Req() req: RequestWithUser,
+    @Body() changeEmailDto: ChangeEmailDto,
+  ) {
+    return this.authService.changeEmail(req.user.id, changeEmailDto);
+  }
+
+  @Delete('account')
+  @UseGuards(JwtAuthGuard)
+  async deleteAccount(
+    @Req() req: RequestWithUser,
+    @Body() deleteAccountDto: DeleteAccountDto,
+  ) {
+    return this.authService.deleteAccount(req.user.id, deleteAccountDto);
+  }
+
+  @Patch('password')
+  @UseGuards(JwtAuthGuard)
+  async changePassword(
+    @Req() req: RequestWithUser,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    return this.authService.changePassword(req.user.id, changePasswordDto);
+  }
 }
+

@@ -11,7 +11,16 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
 import { User } from '../users/user.entity';
-import { RegisterDto, LoginDto, ForgotPasswordDto, ResetPasswordDto } from './dto';
+import {
+  RegisterDto,
+  LoginDto,
+  ForgotPasswordDto,
+  ResetPasswordDto,
+  UpdateProfileDto,
+  ChangeEmailDto,
+  DeleteAccountDto,
+  ChangePasswordDto,
+} from './dto';
 import { EmailService } from './services/email.service';
 
 export interface OAuthUserData {
@@ -62,7 +71,9 @@ export class AuthService {
     return { message: 'Registration successful' };
   }
 
-  async login(loginDto: LoginDto): Promise<{ accessToken: string; user: Partial<User> }> {
+  async login(
+    loginDto: LoginDto,
+  ): Promise<{ accessToken: string; user: Partial<User> }> {
     const { email, password } = loginDto;
 
     // Find user by email
@@ -98,7 +109,27 @@ export class AuthService {
     const accessToken = this.jwtService.sign(payload);
 
     // Return token and user data (without password)
-    const { password: _, resetPasswordToken: __, resetPasswordExpires: ___, ...userWithoutSensitiveData } = user;
+    const userWithoutSensitiveData: Omit<
+      User,
+      'password' | 'resetPasswordToken' | 'resetPasswordExpires'
+    > = {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      phoneNumber: user.phoneNumber,
+      province: user.province,
+      profilePicture: user.profilePicture,
+      provider: user.provider,
+      providerId: user.providerId,
+      role: user.role,
+      isActive: user.isActive,
+      deletedAt: user.deletedAt,
+      deletionRequestedAt: user.deletionRequestedAt,
+      anonymizedAt: user.anonymizedAt,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
 
     return {
       accessToken,
@@ -106,7 +137,9 @@ export class AuthService {
     };
   }
 
-  async forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<{ message: string }> {
+  async forgotPassword(
+    forgotPasswordDto: ForgotPasswordDto,
+  ): Promise<{ message: string }> {
     const { email } = forgotPasswordDto;
 
     const user = await this.userRepository.findOne({
@@ -115,12 +148,18 @@ export class AuthService {
 
     if (!user) {
       // Don't reveal if email exists or not for security
-      return { message: 'If your email is registered, you will receive a password reset link' };
+      return {
+        message:
+          'If your email is registered, you will receive a password reset link',
+      };
     }
 
     // Generate reset token
     const resetToken = crypto.randomBytes(32).toString('hex');
-    const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+    const resetTokenHash = crypto
+      .createHash('sha256')
+      .update(resetToken)
+      .digest('hex');
 
     // Set token expiry (1 hour)
     user.resetPasswordToken = resetTokenHash;
@@ -136,13 +175,21 @@ export class AuthService {
       user.resetPasswordToken = undefined as unknown as string;
       user.resetPasswordExpires = null;
       await this.userRepository.save(user);
-      throw new BadRequestException('Failed to send reset email. Please try again.');
+      throw new BadRequestException(
+        'Failed to send reset email. Please try again.',
+      );
     }
 
-    return { message: 'If your email is registered, you will receive a password reset link' };
+    return {
+      message:
+        'If your email is registered, you will receive a password reset link',
+    };
   }
 
-  async resetPassword(token: string, resetPasswordDto: ResetPasswordDto): Promise<{ message: string }> {
+  async resetPassword(
+    token: string,
+    resetPasswordDto: ResetPasswordDto,
+  ): Promise<{ message: string }> {
     const { password } = resetPasswordDto;
 
     // Hash the token to compare with stored hash
@@ -175,14 +222,12 @@ export class AuthService {
   }
 
   async validateOAuthUser(userData: OAuthUserData): Promise<User> {
-    const { email, firstName, lastName, profilePicture, provider, providerId } = userData;
+    const { email, firstName, lastName, profilePicture, provider, providerId } =
+      userData;
 
     // Check if user exists
     let user = await this.userRepository.findOne({
-      where: [
-        { email },
-        { provider, providerId },
-      ],
+      where: [{ email }, { provider, providerId }],
     });
 
     if (user) {
@@ -226,7 +271,176 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
 
-    const { password: _, resetPasswordToken: __, resetPasswordExpires: ___, ...userWithoutSensitiveData } = user;
+    const userWithoutSensitiveData: Omit<
+      User,
+      'password' | 'resetPasswordToken' | 'resetPasswordExpires'
+    > = {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      phoneNumber: user.phoneNumber,
+      province: user.province,
+      profilePicture: user.profilePicture,
+      provider: user.provider,
+      providerId: user.providerId,
+      role: user.role,
+      isActive: user.isActive,
+      deletedAt: user.deletedAt,
+      deletionRequestedAt: user.deletionRequestedAt,
+      anonymizedAt: user.anonymizedAt,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
     return userWithoutSensitiveData;
+  }
+
+  async updateProfile(
+    userId: string,
+    updateProfileDto: UpdateProfileDto,
+  ): Promise<Partial<User>> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Update only provided fields
+    if (updateProfileDto.firstName !== undefined) {
+      user.firstName = updateProfileDto.firstName;
+    }
+    if (updateProfileDto.lastName !== undefined) {
+      user.lastName = updateProfileDto.lastName;
+    }
+    if (updateProfileDto.phoneNumber !== undefined) {
+      user.phoneNumber = updateProfileDto.phoneNumber;
+    }
+    if (updateProfileDto.province !== undefined) {
+      user.province = updateProfileDto.province;
+    }
+    if (updateProfileDto.profilePicture !== undefined) {
+      user.profilePicture = updateProfileDto.profilePicture;
+    }
+
+    await this.userRepository.save(user);
+
+    // Return updated user without sensitive data
+    return this.getProfile(userId);
+  }
+
+  async changeEmail(
+    userId: string,
+    changeEmailDto: ChangeEmailDto,
+  ): Promise<{ message: string; user: Partial<User> }> {
+    const { newEmail, password } = changeEmailDto;
+
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('ไม่พบผู้ใช้');
+    }
+
+    // Check if user has password (local account)
+    if (!user.password) {
+      throw new BadRequestException(
+        'บัญชีนี้ใช้ Google Login ไม่สามารถเปลี่ยนอีเมลได้',
+      );
+    }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('รหัสผ่านไม่ถูกต้อง');
+    }
+
+    // Check if new email is already in use
+    const existingUser = await this.userRepository.findOne({
+      where: { email: newEmail },
+    });
+
+    if (existingUser && existingUser.id !== userId) {
+      throw new ConflictException('อีเมลนี้ถูกใช้งานแล้ว');
+    }
+
+    // Update email
+    user.email = newEmail;
+    await this.userRepository.save(user);
+
+    const updatedUser = await this.getProfile(userId);
+    return {
+      message: 'เปลี่ยนอีเมลสำเร็จ',
+      user: updatedUser,
+    };
+  }
+
+  async deleteAccount(
+    userId: string,
+    deleteAccountDto: DeleteAccountDto,
+  ): Promise<{ message: string }> {
+    const { password } = deleteAccountDto;
+
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('ไม่พบผู้ใช้');
+    }
+
+    // For OAuth users, allow deletion without password
+    if (user.password) {
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('รหัสผ่านไม่ถูกต้อง');
+      }
+    }
+
+    // Soft delete - set deletionRequestedAt and deletedAt
+    user.deletionRequestedAt = new Date();
+    await this.userRepository.softRemove(user);
+
+    return { message: 'ลบบัญชีสำเร็จ' };
+  }
+
+  async changePassword(
+    userId: string,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<{ message: string }> {
+    const { currentPassword, newPassword } = changePasswordDto;
+
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('ไม่พบผู้ใช้');
+    }
+
+    // Check if user has password (local account)
+    if (!user.password) {
+      throw new BadRequestException(
+        'บัญชีนี้ใช้ Google Login ไม่สามารถเปลี่ยนรหัสผ่านได้',
+      );
+    }
+
+    // Verify current password
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('รหัสผ่านปัจจุบันไม่ถูกต้อง');
+    }
+
+    // Hash new password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    // Update password
+    user.password = hashedPassword;
+    await this.userRepository.save(user);
+
+    return { message: 'เปลี่ยนรหัสผ่านสำเร็จ' };
   }
 }
