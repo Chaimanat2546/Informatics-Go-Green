@@ -2,6 +2,8 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
+  Delete,
   Body,
   Param,
   UseGuards,
@@ -15,6 +17,10 @@ import {
   LoginDto,
   ForgotPasswordDto,
   ResetPasswordDto,
+  UpdateProfileDto,
+  ChangeEmailDto,
+  DeleteAccountDto,
+  ChangePasswordDto,
 } from './dto';
 import { JwtAuthGuard, GoogleAuthGuard } from './guards';
 import { User } from '../users/user.entity';
@@ -79,4 +85,41 @@ export class AuthController {
   async getProfile(@Req() req: RequestWithUser) {
     return this.authService.getProfile(req.user.id);
   }
+
+  @Patch('profile')
+  @UseGuards(JwtAuthGuard)
+  async updateProfile(
+    @Req() req: RequestWithUser,
+    @Body() updateProfileDto: UpdateProfileDto,
+  ) {
+    return this.authService.updateProfile(req.user.id, updateProfileDto);
+  }
+
+  @Patch('email')
+  @UseGuards(JwtAuthGuard)
+  async changeEmail(
+    @Req() req: RequestWithUser,
+    @Body() changeEmailDto: ChangeEmailDto,
+  ) {
+    return this.authService.changeEmail(req.user.id, changeEmailDto);
+  }
+
+  @Delete('account')
+  @UseGuards(JwtAuthGuard)
+  async deleteAccount(
+    @Req() req: RequestWithUser,
+    @Body() deleteAccountDto: DeleteAccountDto,
+  ) {
+    return this.authService.deleteAccount(req.user.id, deleteAccountDto);
+  }
+
+  @Patch('password')
+  @UseGuards(JwtAuthGuard)
+  async changePassword(
+    @Req() req: RequestWithUser,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    return this.authService.changePassword(req.user.id, changePasswordDto);
+  }
 }
+
