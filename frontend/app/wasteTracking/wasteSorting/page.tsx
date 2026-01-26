@@ -15,6 +15,7 @@ import {
     DialogFooter,
     DialogClose,
 } from "@/components/ui/dialog";
+import Image from "next/image";
 
 interface WasteItem {
     id: number;
@@ -28,16 +29,16 @@ export default function WasteSortingPage() {
 
     // Mock Data
     const wasteTypes = [
-        { id: 1, name: 'กระดาษกล่อง', category: 'กระดาษ', src: 'https://placehold.co/150/png?text=Box' },
-        { id: 2, name: 'หนังสือเก่า', category: 'กระดาษ', src: 'https://placehold.co/150/png?text=Book' },
-        { id: 3, name: 'ขวดพลาสติกใส (PET)', category: 'พลาสติก', src: 'https://placehold.co/150/png?text=PET' },
-        { id: 4, name: 'ฝาพลาสติกรวม', category: 'พลาสติก', src: 'https://placehold.co/150/png?text=Caps' },
-        { id: 5, name: 'หลอดพลาสติก', category: 'พลาสติก', src: 'https://placehold.co/150/png?text=Straw' },
-        { id: 6, name: 'กระป๋องอลูมิเนียม', category: 'โลหะ', src: 'https://placehold.co/150/png?text=Can' },
-        { id: 7, name: 'แก้วพลาสติก (PET)', category: 'พลาสติก', src: 'https://placehold.co/150/png?text=Cup' },
-        { id: 8, name: 'โฟม', category: 'อื่นๆ', src: 'https://placehold.co/150/png?text=Foam' },
-        { id: 9, name: 'แก้วน้ำ', category: 'แก้ว', src: 'https://placehold.co/150/png?text=Glass' },
-        { id: 10, name: 'เศษเหล็ก', category: 'เหล็ก', src: 'https://placehold.co/150/png?text=Steel' },
+        { id: 1, name: 'กระดาษกล่อง', category: 'กระดาษ', src: "" },
+        { id: 2, name: 'หนังสือเก่า', category: 'กระดาษ', src: "" },
+        { id: 3, name: 'ขวดพลาสติกใส (PET)', category: 'พลาสติก', src: "" },
+        { id: 4, name: 'ฝาพลาสติกรวม', category: 'พลาสติก', src: "" },
+        { id: 5, name: 'หลอดพลาสติก', category: 'พลาสติก', src: "" },
+        { id: 6, name: 'กระป๋องอลูมิเนียม', category: 'โลหะ', src: "" },
+        { id: 7, name: 'แก้วพลาสติก (PET)', category: 'พลาสติก', src: "" },
+        { id: 8, name: 'โฟม', category: 'อื่นๆ', src: "" },
+        { id: 9, name: 'แก้วน้ำ', category: 'แก้ว', src: "" },
+        { id: 10, name: 'เศษเหล็ก', category: 'เหล็ก', src: "" },
     ];
 
     const categories = ["ทั้งหมด", "พลาสติก", "กระดาษ", "โลหะ", "แก้ว", "เหล็ก", "อื่นๆ"];
@@ -70,7 +71,7 @@ export default function WasteSortingPage() {
         setCurrentPage(1);
     };
 
-    const handleCardClick = (item: any) => {
+    const handleCardClick = (item: WasteItem) => {
         setSelectedItem(item);
         setWeightInput("");
         setIsDialogOpen(true);
@@ -81,7 +82,7 @@ export default function WasteSortingPage() {
             toast.warning("เกิดข้อผิดพลาด", {
                 description: "กรุณากรอกน้ำหนักก่อนกดยืนยัน",
             })
-            return; 
+            return;
         }
         console.log(`บันทึก: ${selectedItem?.name}, น้ำหนัก: ${weightInput} กก.`);
         setIsDialogOpen(false);
@@ -96,11 +97,14 @@ export default function WasteSortingPage() {
                     <DialogHeader className="flex flex-col items-center gap-4">
                         {selectedItem && (
                             <div className="w-48 h-48 bg-gray-100 rounded-lg overflow-hidden shadow-sm">
-                                <img
+                                {selectedItem.src === "" ? (<></>) : (
+                                <Image
                                     src={selectedItem.src}
                                     alt={selectedItem.name}
-                                    className="w-full h-full object-cover"
-                                />
+                                    fill
+                                    sizes="192px"
+                                    className="object-cover"
+                                />)}
                             </div>
                         )}
                         <DialogTitle className="text-lg font-bold text-gray-800 text-center">
@@ -189,7 +193,15 @@ export default function WasteSortingPage() {
                                 className="bg-[#E6F9EE] rounded-xl p-3 flex flex-col items-center gap-2 cursor-pointer hover:shadow-md transition-all active:scale-95"
                             >
                                 <div className="w-full aspect-square bg-white rounded-lg overflow-hidden relative pointer-events-none">
-                                    <img src={item.src} alt={item.name} className="w-full h-full object-cover" />
+                                    {item.src === "" ? (<></>) : (  
+                                    <Image
+                                        src={item.src}
+                                        alt={item.name}
+                                        fill
+                                        width={200}
+                                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 200px"
+                                        className="object-cover"
+                                    />)}
                                 </div>
                                 <span className="text-xs font-semibold text-green-900 text-center pointer-events-none">
                                     {item.name}

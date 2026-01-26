@@ -53,13 +53,13 @@ export default function ScanBarcodePage() {
                     await html5QrCode.start(
                         { facingMode: "environment" }, 
                         config,
-                        (decodedText, _decodedResult) => {
+                        (decodedText) => {
                             console.log("Scan Success:", decodedText);
                             handleStop(); 
                             alert(`สแกนได้แล้ว! รหัส: ${decodedText}`);
                             router.push('/wasteTracking/wasteSorting/carbonSummary');
                         },
-                        (_errorMessage) => {
+                        () => {
                         }
                     );
                     isStartedRef.current = true; 

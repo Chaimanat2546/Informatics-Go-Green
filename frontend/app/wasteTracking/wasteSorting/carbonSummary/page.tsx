@@ -13,6 +13,7 @@ import {
   DialogDescription,
   DialogClose,
 } from "@/components/ui/dialog"; 
+import Image from "next/image";
 
 export default function CarbonSummaryPage() {
     const router = useRouter();
@@ -21,7 +22,7 @@ export default function CarbonSummaryPage() {
     // Mock Data 
     const summaryData = {
         name: 'ขวดพลาสติกใส (PET)',
-        image: 'https://placehold.co/400/png?text=PET+Bottle',
+        image: '',
         points: 100,
         category: 'พลาสติก',
         weight: 1.2,
@@ -88,11 +89,13 @@ export default function CarbonSummaryPage() {
                 <div className="bg-white rounded-[30px] p-6 shadow-xl min-h-150 flex flex-col">
 
                     <div className="w-full aspect-square bg-gray-100 rounded-2xl overflow-hidden mb-5 shadow-inner">
-                        <img
+                        
+                        {summaryData.image === "" ? (<></>) : (
+                        <Image
                             src={summaryData.image}
                             alt={summaryData.name}
                             className="w-full h-full object-cover mix-blend-multiply"
-                        />
+                        />)}
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2 mb-4">
