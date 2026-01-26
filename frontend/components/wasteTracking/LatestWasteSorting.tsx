@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useRef } from "react";
 
 export default function LatestWasteSorting() {
@@ -48,7 +49,7 @@ export default function LatestWasteSorting() {
                             className="min-w-[calc(50%-0.5rem)] bg-white rounded-lg shadow-sm overflow-hidden flex flex-col snap-start"
                         >
                             <div className="h-32 bg-white p-4 flex justify-center items-center">
-                                <img
+                                <Image
                                     src={item.image}
                                     alt={item.title}
                                     className="h-full object-contain"

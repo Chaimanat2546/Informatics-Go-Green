@@ -16,8 +16,8 @@ export default function DashboardPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [message, setMessage] = useState('');
+    // const [loading, setLoading] = useState(true);
+    // const [message, setMessage] = useState('');
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
@@ -46,7 +46,7 @@ export default function DashboardPage() {
                 if (ignore) return;
                 if (response.ok) {
                     setUser(data);
-                    setLoading(false);
+                    // setLoading(false);
                 } else {
                     localStorage.removeItem('token');
                     localStorage.removeItem('user');
@@ -54,8 +54,8 @@ export default function DashboardPage() {
                 }
             } catch {
                 if (!ignore) {
-                    setMessage('Network error. Please try again.');
-                    setLoading(false);
+                    // setMessage('Network error. Please try again.');
+                    // setLoading(false);
                 }
             }
         };

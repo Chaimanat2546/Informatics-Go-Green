@@ -11,6 +11,19 @@ export default function ScanBarcodePage() {
     const [scanError, setScanError] = useState<string | null>(null);
     const scannerRef = useRef<Html5Qrcode | null>(null);
     const isStartedRef = useRef(false); 
+    const handleStop = async () => {
+        if (scannerRef.current) {
+            try {
+                if (scannerRef.current.isScanning) {
+                    await scannerRef.current.stop();
+                }
+                scannerRef.current.clear();
+                isStartedRef.current = false;
+            } catch (err) {
+                console.error("Failed to stop scanner", err);
+            }
+        }
+    };
     useEffect(() => {
         
         const formatsToSupport = [
@@ -40,13 +53,13 @@ export default function ScanBarcodePage() {
                     await html5QrCode.start(
                         { facingMode: "environment" }, 
                         config,
-                        (decodedText, decodedResult) => {
+                        (decodedText, _decodedResult) => {
                             console.log("Scan Success:", decodedText);
                             handleStop(); 
                             alert(`สแกนได้แล้ว! รหัส: ${decodedText}`);
                             router.push('/wasteTracking/wasteSorting/carbonSummary');
                         },
-                        (errorMessage) => {
+                        (_errorMessage) => {
                         }
                     );
                     isStartedRef.current = true; 
@@ -65,21 +78,9 @@ export default function ScanBarcodePage() {
                 handleStop();
             }
         };
-    }, []);
+    }, [router]);
 
-    const handleStop = async () => {
-        if (scannerRef.current) {
-            try {
-                if (scannerRef.current.isScanning) {
-                    await scannerRef.current.stop();
-                }
-                scannerRef.current.clear();
-                isStartedRef.current = false;
-            } catch (err) {
-                console.error("Failed to stop scanner", err);
-            }
-        }
-    };
+    
 
     return (
         <div className="relative h-screen w-full bg-black overflow-hidden flex flex-col">

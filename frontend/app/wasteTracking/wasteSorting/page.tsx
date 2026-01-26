@@ -16,6 +16,13 @@ import {
     DialogClose,
 } from "@/components/ui/dialog";
 
+interface WasteItem {
+    id: number;
+    name: string;
+    category: string;
+    src: string;
+}
+
 export default function WasteSortingPage() {
     const router = useRouter();
 
@@ -40,12 +47,12 @@ export default function WasteSortingPage() {
     const [selectedCategory, setSelectedCategory] = useState("ทั้งหมด");
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [selectedItem, setSelectedItem] = useState<any>(null);
+    const [selectedItem, setSelectedItem] = useState<WasteItem | null>(null);
     const [weightInput, setWeightInput] = useState("");
 
     const itemsPerPage = 6;
 
-    const filteredItems = wasteTypes.filter(item => {
+    const filteredItems = wasteTypes.filter((item: WasteItem) => {
         if (selectedCategory === "ทั้งหมด") return true;
         return item.category === selectedCategory;
     });
@@ -76,7 +83,7 @@ export default function WasteSortingPage() {
             })
             return; 
         }
-        console.log(`บันทึก: ${selectedItem.name}, น้ำหนัก: ${weightInput} กก.`);
+        console.log(`บันทึก: ${selectedItem?.name}, น้ำหนัก: ${weightInput} กก.`);
         setIsDialogOpen(false);
         router.push('/wasteTracking/wasteSorting/carbonSummary')
     };
