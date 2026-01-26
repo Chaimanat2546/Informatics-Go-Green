@@ -26,32 +26,32 @@ interface User {
 export default function HomePage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    
+
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
     useEffect(() => {
-        let ignore = false;
-
         const tokenFromUrl = searchParams.get('token');
         if (tokenFromUrl) {
             localStorage.setItem('token', tokenFromUrl);
             window.history.replaceState({}, document.title, '/wasteTracking/home');
         }
-
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
             try {
                 setUser(JSON.parse(storedUser));
-                setLoading(false); 
+
             } catch (e) {
                 console.error("Parse error", e);
             }
         }
-
+    }, [searchParams]);
+    useEffect(() => {
+        let ignore = false;
         const token = localStorage.getItem('token');
+
         if (!token) {
             router.push('/auth/login');
             return;
@@ -71,17 +71,17 @@ export default function HomePage() {
 
                 if (response.ok) {
                     const data = await response.json();
-                    setUser(data); // อัปเดตข้อมูลล่าสุดจาก Server
-                    localStorage.setItem('user', JSON.stringify(data)); // บันทึกลงเครื่องไว้ใช้ครั้งหน้า
-                    setLoading(false);
+                    setUser(data);
+                    localStorage.setItem('user', JSON.stringify(data));
                 } else {
-                    // Token หมดอายุ
                     localStorage.removeItem('token');
                     localStorage.removeItem('user');
                     router.push('/auth/login');
                 }
             } catch (error) {
                 console.error("Fetch error:", error);
+            } finally {
+                if (!ignore) setLoading(false);
             }
         };
 
@@ -90,11 +90,8 @@ export default function HomePage() {
         return () => {
             ignore = true;
         };
-    }, [router, searchParams, API_URL]);
+    }, [router, API_URL]);
 
-    // --- ส่วนแสดงผล ---
-    
-    // ถ้าไม่มีข้อมูลใน LocalStorage และกำลังโหลด API
     if (loading && !user) {
         return <div className="p-6 text-center">กำลังโหลดข้อมูล...</div>;
     }
@@ -157,19 +154,19 @@ export default function HomePage() {
                 </div>
             </div>
             <div className="mt-6 px-6 w-full flex justify-between items-center gap-3">
-                <div onClick={()=>{router.push('/wasteTracking/wasteScaner')}} className="h-25 flex-1 bg-white rounded-xl shadow-lg flex flex-col justify-center items-center gap-2 cursor-pointer hover:shadow-md transition-all">
-                    <ScanLine size={40} className="text-green-700" strokeWidth={2}/>
+                <div onClick={() => { router.push('/wasteTracking/wasteScaner') }} className="h-25 flex-1 bg-white rounded-xl shadow-lg flex flex-col justify-center items-center gap-2 cursor-pointer hover:shadow-md transition-all">
+                    <ScanLine size={40} className="text-green-700" strokeWidth={2} />
                     <p className="text-black text-xs font-semibold text-center leading-tight">
                         สแกนบาร์โค้ดขยะ
                     </p>
                 </div>
-                <div onClick={()=>{router.push('/wasteTracking/wasteSorting')}} className="h-25 flex-1 bg-white rounded-xl shadow-lg flex flex-col justify-center items-center gap-2 cursor-pointer hover:shadow-md transition-all">
+                <div onClick={() => { router.push('/wasteTracking/wasteSorting') }} className="h-25 flex-1 bg-white rounded-xl shadow-lg flex flex-col justify-center items-center gap-2 cursor-pointer hover:shadow-md transition-all">
                     <Recycle size={40} className="text-green-700" strokeWidth={2} />
                     <p className="text-black text-xs font-semibold text-center leading-tight">
                         คัดแยกขยะ
                     </p>
                 </div>
-                <div onClick={()=>{router.push('/wasteTracking/wasteHistory')}} className="h-25 flex-1 bg-white rounded-xl shadow-lg flex flex-col justify-center items-center gap-2 cursor-pointer hover:shadow-md transition-all">
+                <div onClick={() => { router.push('/wasteTracking/wasteHistory') }} className="h-25 flex-1 bg-white rounded-xl shadow-lg flex flex-col justify-center items-center gap-2 cursor-pointer hover:shadow-md transition-all">
                     <History size={40} className="text-green-700" strokeWidth={2} />
                     <p className="text-black text-xs font-semibold text-center leading-tight">
                         ประวัติการคัดแยก
