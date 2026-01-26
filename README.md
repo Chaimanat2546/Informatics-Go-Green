@@ -1,93 +1,197 @@
-# Informatics Go Green
+# 🌿 Informatics Go Green
 
-Full-Stack application with NextJS, NestJS, PostgreSQL, and Docker.
+ระบบ Web Application สำหรับโครงการ Informatics Go Green พัฒนาด้วยสถาปัตยกรรม Full-Stack Modern บน Docker Container
+
+---
+
+## 📋 Table of Contents
+
+- [Overview](#-overview)
+- [Tech Stack](#-tech-stack)
+- [Prerequisites](#-prerequisites)
+- [Quick Start](#-quick-start)
+- [Project Structure](#-project-structure)
+- [Authentication](#-authentication)
+- [Documentation](#-documentation)
+- [Contributing](#-contributing)
+
+---
+
+## 🎯 Overview
+
+**Informatics Go Green** เป็นโปรเจคเว็บแอปพลิเคชันที่พัฒนาขึ้นเพื่อสนับสนุนการดำเนินงานด้านสิ่งแวดล้อม โดยใช้เทคโนโลยีสมัยใหม่และมีโครงสร้างที่พร้อมขยายเป็น Microservices
+
+### Key Features
+
+| Feature | Description |
+|---------|-------------|
+| 🔐 Authentication | รองรับ Local Login, Google OAuth, Password Reset |
+| 👤 User Management | ระบบจัดการผู้ใช้งานแบบครบวงจร |
+| 🐳 Docker Ready | พร้อม Deploy ทั้ง Development และ Production |
+| ⚡ Hot Reload | รองรับ Live reload ระหว่าง Development |
+
+---
+
+## 🛠 Tech Stack
+
+| Layer | Technology | Version |
+|-------|------------|---------|
+| **Frontend** | Next.js (App Router) | 14+ |
+| **Backend** | NestJS | 10+ |
+| **Database** | PostgreSQL | 16 |
+| **ORM** | TypeORM | 0.3+ |
+| **Language** | TypeScript | 5+ |
+| **Container** | Docker & Docker Compose | Latest |
+| **Auth** | JWT, Passport.js, OAuth 2.0 | - |
+
+---
+
+## 📦 Prerequisites
+
+ก่อนเริ่มต้นพัฒนา ตรวจสอบว่าเครื่องมีโปรแกรมต่อไปนี้:
+
+| Software | Version | Download |
+|----------|---------|----------|
+| **Docker Desktop** | Latest | [docker.com](https://www.docker.com/products/docker-desktop/) |
+| **Git** | 2.40+ | [git-scm.com](https://git-scm.com/) |
+| **Node.js** (optional) | 20+ | [nodejs.org](https://nodejs.org/) |
+| **VS Code** (recommended) | Latest | [code.visualstudio.com](https://code.visualstudio.com/) |
+
+> **Note**: Node.js จำเป็นเฉพาะกรณีที่ต้อง run บน Local โดยไม่ใช้ Docker
+
+---
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- Node.js 20+
-- Docker & Docker Compose
-- npm
-
-### Development Setup
-
-#### Option 1: Run with Docker (Recommended)
+### Option 1: Docker (แนะนำ)
 
 ```bash
-# Copy environment file
+# 1. Clone repository
+git clone https://github.com/Chaimanat2546/Informatics-Go-Green.git
+cd Informatics-Go-Green
+
+# 2. Setup environment
 cp .env.example .env
 
-# Start all services
-docker-compose up -d
+# 3. Start development containers
+docker-compose -f docker-compose.dev.yml up --build -d
 
-# View logs
-docker-compose logs -f
+# 4. (Optional) Start with Hot Reload Watch Mode
+docker-compose -f docker-compose.dev.yml up --build --watch
 ```
 
-**Services:**
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:3001
-- PostgreSQL: localhost:5432
-
-#### Option 2: Run Locally
+### Option 2: Local Development (ไม่ใช้ Docker)
 
 ```bash
-# Start PostgreSQL only
-docker-compose up -d postgres
+# 1. Clone & Setup
+git clone https://github.com/Chaimanat2546/Informatics-Go-Green.git
+cd Informatics-Go-Green
+cp .env.example .env
 
-# Frontend (in terminal 1)
+# 2. Start PostgreSQL (ต้องมี PostgreSQL ติดตั้งอยู่)
+# หรือใช้ Docker สำหรับ Database เท่านั้น:
+docker-compose -f docker-compose.dev.yml up -d postgres
+
+# 3. Install & Run Backend
+cd backend
+npm install --legacy-peer-deps
+npm run start:dev
+
+# 4. Install & Run Frontend (new terminal)
 cd frontend
 npm install
 npm run dev
-
-# Backend (in terminal 2)
-cd backend
-npm install
-npm run start:dev
 ```
+
+### Access Application
+
+| Service | URL | Description |
+|---------|-----|-------------|
+| 🏠 Frontend | http://localhost:3000 | Next.js Application |
+| 🔌 Backend API | http://localhost:3001/api | NestJS REST API |
+| 🗄️ Database | localhost:5432 | PostgreSQL |
+
+---
 
 ## 📁 Project Structure
 
 ```
-├── frontend/          # NextJS 14+ application
-├── backend/           # NestJS application
-├── docker-compose.yml # Docker orchestration
-├── .env.example       # Environment template
-└── README.md
+Informatics-Go-Green/
+├── 📂 backend/                  # NestJS Backend
+│   ├── src/
+│   │   ├── auth/               # Authentication Module
+│   │   ├── users/              # User Management Module
+│   │   ├── app.module.ts       # Root Module
+│   │   └── main.ts             # Entry Point
+│   ├── Dockerfile.dev          # Dev Dockerfile
+│   └── Dockerfile.prod         # Production Dockerfile
+│
+├── 📂 frontend/                 # Next.js Frontend
+│   ├── app/
+│   │   ├── auth/               # Auth Pages
+│   │   ├── layout.tsx          # Root Layout
+│   │   └── page.tsx            # Home Page
+│   ├── Dockerfile.dev          # Dev Dockerfile
+│   └── Dockerfile.prod         # Production Dockerfile
+│
+├── 📄 docker-compose.dev.yml   # Development Compose
+├── 📄 docker-compose.prod.yml  # Production Compose
+├── 📄 .env.example             # Environment Template
+├── 📄 DOCKER.md                # Docker Guide
+└── 📄 DEVELOPER_GUIDE.md       # Developer Guide
 ```
 
-## 🔧 Environment Variables
+---
 
-Copy `.env.example` to `.env` and configure:
+## 🔑 Authentication
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `POSTGRES_USER` | Database user | postgres |
-| `POSTGRES_PASSWORD` | Database password | postgres |
-| `POSTGRES_DB` | Database name | informatics_go_green |
-| `NEXT_PUBLIC_API_URL` | Backend API URL | http://localhost:3001 |
+ระบบรองรับการ Authentication หลายรูปแบบ:
 
-## 📜 Scripts
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| **Local Register** | `/auth/register` | สมัครสมาชิกด้วย Email/Password |
+| **Local Login** | `/auth/login` | เข้าสู่ระบบด้วย Email/Password |
+| **Google OAuth** | `/auth/google` | เข้าสู่ระบบผ่าน Google Account |
+| **Password Reset** | `/auth/forgot-password` | ขอ Reset Password ผ่าน Email |
 
-### Frontend
-```bash
-npm run dev      # Development server
-npm run build    # Production build
-npm run start    # Production server
+> **Setup OAuth**: แก้ไข `GOOGLE_CLIENT_ID` และ `GOOGLE_CLIENT_SECRET` ในไฟล์ `.env`
+
+---
+
+## 📚 Documentation
+
+| Document | Description |
+|----------|-------------|
+| [📖 DOCKER.md](DOCKER.md) | คู่มือการใช้งาน Docker, Commands, Troubleshooting |
+| [💻 DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) | คู่มือการพัฒนา, Git Workflow, Coding Standards |
+| [🔧 backend/README.md](backend/README.md) | เอกสาร Backend API |
+| [🎨 frontend/README.md](frontend/README.md) | เอกสาร Frontend Application |
+
+---
+
+## 🤝 Contributing
+
+### Git Branch Convention
+
+| Type | Format | Example |
+|------|--------|---------|
+| Feature | `feature/<name>` | `feature/user-profile` |
+| Bugfix | `fix/<name>` | `fix/login-error` |
+| Hotfix | `hotfix/<name>` | `hotfix/security-patch` |
+
+### Commit Message Format
+
+```
+type(scope): subject
+
+# Examples:
+feat(auth): add Google OAuth login
+fix(user): resolve password reset issue
+docs: update README with Docker guide
 ```
 
-### Backend
-```bash
-npm run start:dev   # Development with hot-reload
-npm run start:prod  # Production server
-npm run test        # Run tests
-```
+---
 
-## 🐳 Docker Commands
-
-```bash
-docker-compose up -d          # Start all services
-docker-compose down           # Stop all services
-docker-compose logs -f        # View logs
-docker-compose exec postgres psql -U postgres  # Connect to DB
-```
+<p align="center">
+  <strong>Informatics Go Green</strong> — Built with ❤️ by the Team
+</p>
