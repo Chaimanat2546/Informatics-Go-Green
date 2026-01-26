@@ -10,7 +10,12 @@ import {
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
-import { RegisterDto, LoginDto, ForgotPasswordDto, ResetPasswordDto } from './dto';
+import {
+  RegisterDto,
+  LoginDto,
+  ForgotPasswordDto,
+  ResetPasswordDto,
+} from './dto';
 import { JwtAuthGuard, GoogleAuthGuard } from './guards';
 import { User } from '../users/user.entity';
 import { ConfigService } from '@nestjs/config';
@@ -58,15 +63,16 @@ export class AuthController {
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
-  async googleAuthCallback(@Req() req: RequestWithUser, @Res() res: Response) {
+  googleAuthCallback(@Req() req: RequestWithUser, @Res() res: Response) {
     const token = this.authService.generateJwtToken(req.user);
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:3001');
-    
+    const frontendUrl = this.configService.get<string>(
+      'FRONTEND_URL',
+      'http://localhost:3001',
+    );
+
     // Redirect to frontend with token
     res.redirect(`${frontendUrl}/auth/dashboard?token=${token}`);
   }
-
-
 
   @Get('me')
   @UseGuards(JwtAuthGuard)

@@ -11,7 +11,12 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
 import { User } from '../users/user.entity';
-import { RegisterDto, LoginDto, ForgotPasswordDto, ResetPasswordDto } from './dto';
+import {
+  RegisterDto,
+  LoginDto,
+  ForgotPasswordDto,
+  ResetPasswordDto,
+} from './dto';
 import { EmailService } from './services/email.service';
 
 export interface OAuthUserData {
@@ -62,7 +67,9 @@ export class AuthService {
     return { message: 'Registration successful' };
   }
 
-  async login(loginDto: LoginDto): Promise<{ accessToken: string; user: Partial<User> }> {
+  async login(
+    loginDto: LoginDto,
+  ): Promise<{ accessToken: string; user: Partial<User> }> {
     const { email, password } = loginDto;
 
     // Find user by email
@@ -98,7 +105,21 @@ export class AuthService {
     const accessToken = this.jwtService.sign(payload);
 
     // Return token and user data (without password)
-    const { password: _, resetPasswordToken: __, resetPasswordExpires: ___, ...userWithoutSensitiveData } = user;
+    const userWithoutSensitiveData: Omit<
+      User,
+      'password' | 'resetPasswordToken' | 'resetPasswordExpires'
+    > = {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      profilePicture: user.profilePicture,
+      provider: user.provider,
+      providerId: user.providerId,
+      isActive: user.isActive,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
 
     return {
       accessToken,
@@ -106,7 +127,9 @@ export class AuthService {
     };
   }
 
-  async forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<{ message: string }> {
+  async forgotPassword(
+    forgotPasswordDto: ForgotPasswordDto,
+  ): Promise<{ message: string }> {
     const { email } = forgotPasswordDto;
 
     const user = await this.userRepository.findOne({
@@ -115,12 +138,18 @@ export class AuthService {
 
     if (!user) {
       // Don't reveal if email exists or not for security
-      return { message: 'If your email is registered, you will receive a password reset link' };
+      return {
+        message:
+          'If your email is registered, you will receive a password reset link',
+      };
     }
 
     // Generate reset token
     const resetToken = crypto.randomBytes(32).toString('hex');
-    const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+    const resetTokenHash = crypto
+      .createHash('sha256')
+      .update(resetToken)
+      .digest('hex');
 
     // Set token expiry (1 hour)
     user.resetPasswordToken = resetTokenHash;
@@ -136,13 +165,21 @@ export class AuthService {
       user.resetPasswordToken = undefined as unknown as string;
       user.resetPasswordExpires = null;
       await this.userRepository.save(user);
-      throw new BadRequestException('Failed to send reset email. Please try again.');
+      throw new BadRequestException(
+        'Failed to send reset email. Please try again.',
+      );
     }
 
-    return { message: 'If your email is registered, you will receive a password reset link' };
+    return {
+      message:
+        'If your email is registered, you will receive a password reset link',
+    };
   }
 
-  async resetPassword(token: string, resetPasswordDto: ResetPasswordDto): Promise<{ message: string }> {
+  async resetPassword(
+    token: string,
+    resetPasswordDto: ResetPasswordDto,
+  ): Promise<{ message: string }> {
     const { password } = resetPasswordDto;
 
     // Hash the token to compare with stored hash
@@ -175,14 +212,12 @@ export class AuthService {
   }
 
   async validateOAuthUser(userData: OAuthUserData): Promise<User> {
-    const { email, firstName, lastName, profilePicture, provider, providerId } = userData;
+    const { email, firstName, lastName, profilePicture, provider, providerId } =
+      userData;
 
     // Check if user exists
     let user = await this.userRepository.findOne({
-      where: [
-        { email },
-        { provider, providerId },
-      ],
+      where: [{ email }, { provider, providerId }],
     });
 
     if (user) {
@@ -226,7 +261,21 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
 
-    const { password: _, resetPasswordToken: __, resetPasswordExpires: ___, ...userWithoutSensitiveData } = user;
+    const userWithoutSensitiveData: Omit<
+      User,
+      'password' | 'resetPasswordToken' | 'resetPasswordExpires'
+    > = {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      profilePicture: user.profilePicture,
+      provider: user.provider,
+      providerId: user.providerId,
+      isActive: user.isActive,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
     return userWithoutSensitiveData;
   }
 }
