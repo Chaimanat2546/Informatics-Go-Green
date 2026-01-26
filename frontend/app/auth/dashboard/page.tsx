@@ -28,11 +28,16 @@ function DashboardContent() {
     if (tokenFromUrl) {
       localStorage.setItem('token', tokenFromUrl);
       // Remove token from URL
-      window.history.replaceState({}, document.title, '/auth/dashboard');
+      
+      // *****edit route and return *****
+      // window.history.replaceState({}, document.title, '/auth/dashboard');
+      router.push('/wasteTracking/home');
+      return;
     }
 
     const token = localStorage.getItem('token');
     if (!token) {
+      
       router.push('/auth/login');
       return;
     }
@@ -58,6 +63,7 @@ function DashboardContent() {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           router.push('/auth/login');
+          
         }
       } catch {
         if (!ignore) {
