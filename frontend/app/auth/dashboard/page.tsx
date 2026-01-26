@@ -21,6 +21,8 @@ function DashboardContent() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
   useEffect(() => {
+    let ignore = false;
+
     // Check for token in URL (from OAuth callback)
     const tokenFromUrl = searchParams.get('token');
     if (tokenFromUrl) {
@@ -35,34 +37,42 @@ function DashboardContent() {
       return;
     }
 
-    fetchUserProfile(token);
-  }, [router, searchParams]);
+    const fetchUserProfile = async () => {
+      try {
+        const response = await fetch(`${API_URL}/auth/me`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
 
-  const fetchUserProfile = async (token: string) => {
-    try {
-      const response = await fetch(`${API_URL}/auth/me`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+        const data = await response.json();
 
-      const data = await response.json();
+        if (ignore) return;
 
-      if (response.ok) {
-        setUser(data);
-        setLoading(false);
-      } else {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        router.push('/auth/login');
+        if (response.ok) {
+          setUser(data);
+          setLoading(false);
+        } else {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          router.push('/auth/login');
+        }
+      } catch {
+        if (!ignore) {
+          setMessage('Network error. Please try again.');
+          setLoading(false);
+        }
       }
-    } catch {
-      setMessage('Network error. Please try again.');
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchUserProfile();
+
+    return () => {
+      ignore = true;
+    };
+  }, [router, searchParams, API_URL]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');

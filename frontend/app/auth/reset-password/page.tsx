@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 function ResetPasswordForm() {
@@ -8,21 +8,15 @@ function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
 
-  const [message, setMessage] = useState('');
-  const [isError, setIsError] = useState(false);
+  // Initialize error state based on token presence
+  const [message, setMessage] = useState(!token ? 'Invalid reset link. No token provided.' : '');
+  const [isError, setIsError] = useState(!token);
   const [formData, setFormData] = useState({
     password: '',
     confirmPassword: '',
   });
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-
-  useEffect(() => {
-    if (!token) {
-      setMessage('Invalid reset link. No token provided.');
-      setIsError(true);
-    }
-  }, [token]);
 
   const showMessage = (text: string, error = false) => {
     setMessage(text);
