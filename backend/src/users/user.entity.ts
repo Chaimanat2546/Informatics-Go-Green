@@ -28,7 +28,7 @@ export class User {
   phoneNumber: string;
 
   @Column({ nullable: true })
-  county: string;
+  province: string;
 
   @Column({ nullable: true })
   profilePicture: string;
