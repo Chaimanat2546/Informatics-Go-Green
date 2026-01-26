@@ -14,19 +14,95 @@ import {
     InputGroupAddon,
     InputGroupInput,
 } from "@/components/ui/input-group"
-import { useRouter } from "next/navigation";
-type Props = {
-    firstname?: string;
-    lastname?: string;
-};
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from 'react';
 
-export default function Home({ firstname, }: Props) {
+interface User {
+    firstName: string;
+    lastName: string;
+    email: string;
+}
+
+export default function HomePage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+
+    useEffect(() => {
+        let ignore = false;
+
+        const tokenFromUrl = searchParams.get('token');
+        if (tokenFromUrl) {
+            localStorage.setItem('token', tokenFromUrl);
+            window.history.replaceState({}, document.title, '/wasteTracking/home');
+        }
+
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            try {
+                setUser(JSON.parse(storedUser));
+                setLoading(false); 
+            } catch (e) {
+                console.error("Parse error", e);
+            }
+        }
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+            router.push('/auth/login');
+            return;
+        }
+
+        const fetchUserProfile = async () => {
+            try {
+                const response = await fetch(`${API_URL}/auth/me`, {
+                    method: 'GET',
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (ignore) return;
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setUser(data); // อัปเดตข้อมูลล่าสุดจาก Server
+                    localStorage.setItem('user', JSON.stringify(data)); // บันทึกลงเครื่องไว้ใช้ครั้งหน้า
+                    setLoading(false);
+                } else {
+                    // Token หมดอายุ
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    router.push('/auth/login');
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+            }
+        };
+
+        fetchUserProfile();
+
+        return () => {
+            ignore = true;
+        };
+    }, [router, searchParams, API_URL]);
+
+    // --- ส่วนแสดงผล ---
+    
+    // ถ้าไม่มีข้อมูลใน LocalStorage และกำลังโหลด API
+    if (loading && !user) {
+        return <div className="p-6 text-center">กำลังโหลดข้อมูล...</div>;
+    }
     return (
         <main className="min-h-screen bg-[#EAF6F1] overflow-y-auto overflow-x-hidden font-sans">
             <header className="bg-green-600 px-6 pt-10 pb-24 rounded-b-[50px] relative z-0">
                 <div className="flex justify-between items-center">
-                    <div className=" leading-9 font text-3xl font-semibold text-white">สวัสดี {firstname}</div>
+                    <div className=" leading-9 font text-3xl font-semibold text-white">สวัสดี {user?.firstName}</div>
                     <div className="bg-white h-12.5 w-12.5 rounded-2xl flex justify-center items-center">
                         <Leaf className="text-green-700" size={40} strokeWidth={4} />
                     </div>
