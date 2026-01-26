@@ -18,19 +18,17 @@ import { EmailService } from './services/email.service';
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET', 'your-secret-key'),
         signOptions: {
-          expiresIn: configService.get<number>('JWT_EXPIRES_IN_SECONDS', 604800), // 7 days in seconds
+          expiresIn: configService.get<number>(
+            'JWT_EXPIRES_IN_SECONDS',
+            604800,
+          ), // 7 days in seconds
         },
       }),
       inject: [ConfigService],
     }),
   ],
   controllers: [AuthController],
-  providers: [
-    AuthService,
-    EmailService,
-    JwtStrategy,
-    GoogleStrategy,
-  ],
+  providers: [AuthService, EmailService, JwtStrategy, GoogleStrategy],
   exports: [AuthService, JwtStrategy, PassportModule],
 })
 export class AuthModule {}
