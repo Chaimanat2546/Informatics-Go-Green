@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Input, InputField } from "@/components/ui/input";
+import { InputField } from "@/components/ui/input";
 import { Button, ButtonWithIcon } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 

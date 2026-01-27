@@ -89,7 +89,7 @@ export default function WasteSortingPage() {
         router.push('/wasteTracking/wasteSorting/carbonSummary')
     };
     return (
-        <div className="min-h-screen bg-[#EAF6F1] font-sans relative">
+        <div className="min-h-screen bg-background font-sans relative">
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="sm:max-w-xs rounded-2xl p-6 bg-white [&>button]:hidden">
