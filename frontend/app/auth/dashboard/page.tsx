@@ -47,11 +47,17 @@ function DashboardContent() {
     const tokenFromUrl = searchParams.get('token');
     if (tokenFromUrl) {
       localStorage.setItem('token', tokenFromUrl);
-      window.history.replaceState({}, document.title, '/auth/dashboard');
+      // Remove token from URL
+      
+      // *****edit route and return *****
+      // window.history.replaceState({}, document.title, '/auth/dashboard');
+      router.push('/wasteTracking/home');
+      return;
     }
 
     const token = localStorage.getItem('token');
     if (!token) {
+      
       router.push('/auth/login');
       return;
     }
@@ -77,6 +83,7 @@ function DashboardContent() {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           router.push('/auth/login');
+          
         }
       } catch {
         if (!ignore) {
