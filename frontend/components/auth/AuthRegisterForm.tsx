@@ -71,6 +71,11 @@ export default function AuthRegisterForm({
       if (response.ok) {
         showMessage("สมัครสมาชิกสำเร็จ! กำลังไปหน้าเข้าสู่ระบบ...");
         setTimeout(() => onNavigate("login"), 2000);
+      } else if (response.status === 500) {
+        showMessage(
+          "เกิดข้อผิดพลาดจากเซิร์ฟเวอร์ (Internal Server Error) กรุณาลองใหม่อีกครั้งภายหลัง",
+          true,
+        );
       } else {
         showMessage(
           Array.isArray(data.message)

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { THAI_PROVINCES } from "./thai-provinces";
-import { Card } from "@/components/ui/card";
+import { CardContentLarge } from "@/components/ui/card";
 import { InputField } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
 import {
@@ -242,13 +242,13 @@ function EditProfileContent() {
   }
 
   return (
-    <div className="min-h-screen p-6">
-      <Card className="p-6">
+    <div>
+      <CardContentLarge className="p-6">
         <div className="max-w-md mx-auto">
           {/* Profile Picture Section */}
           <div className="flex flex-col items-center mb-6">
             <div
-              className="relative w-28 h-28 rounded-full overflow-hidden cursor-pointer border-4 border-blue-500"
+              className="relative w-28 h-28 rounded-full overflow-hidden cursor-pointer border-4 "
               onClick={handleImageClick}
             >
               {profilePicture ? (
@@ -258,7 +258,7 @@ function EditProfileContent() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-blue-500 flex justify-center items-center">
+                <div className="w-full h-full bg-background flex justify-center items-center">
                   <span className="text-4xl text-white font-bold">
                     {firstName?.[0]?.toUpperCase() ||
                       user?.email?.[0]?.toUpperCase() ||
@@ -366,7 +366,7 @@ function EditProfileContent() {
             </div>
           </form>
         </div>
-      </Card>
+      </CardContentLarge>
     </div>
   );
 }
