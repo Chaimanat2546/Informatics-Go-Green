@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
+import { Field, FieldLabel } from "@/components/ui/field"
 
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
@@ -18,4 +19,21 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   )
 }
 
-export { Input }
+interface InputFieldProps extends React.ComponentProps<"input"> {
+  label: string;
+  labelExtra?: React.ReactNode;
+}
+
+function InputField({ label, labelExtra, className, type, ...props }: InputFieldProps) {
+  return (
+    <Field>
+      <div className="flex flex-row justify-between items-center">
+        <FieldLabel htmlFor={props.id}>{label}</FieldLabel>
+        {labelExtra}
+      </div>
+      <Input type={type} className={className} {...props}/>
+    </Field>
+  )
+}
+
+export { Input, InputField }

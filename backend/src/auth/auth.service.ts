@@ -16,6 +16,10 @@ import {
   LoginDto,
   ForgotPasswordDto,
   ResetPasswordDto,
+  UpdateProfileDto,
+  ChangeEmailDto,
+  DeleteAccountDto,
+  ChangePasswordDto,
 } from './dto';
 import { EmailService } from './services/email.service';
 
@@ -114,7 +118,7 @@ export class AuthService {
       firstName: user.firstName,
       lastName: user.lastName,
       phoneNumber: user.phoneNumber,
-      county: user.county,
+      province: user.province,
       profilePicture: user.profilePicture,
       provider: user.provider,
       providerId: user.providerId,
@@ -276,7 +280,7 @@ export class AuthService {
       firstName: user.firstName,
       lastName: user.lastName,
       phoneNumber: user.phoneNumber,
-      county: user.county,
+      province: user.province,
       profilePicture: user.profilePicture,
       provider: user.provider,
       providerId: user.providerId,
@@ -289,5 +293,154 @@ export class AuthService {
       updatedAt: user.updatedAt,
     };
     return userWithoutSensitiveData;
+  }
+
+  async updateProfile(
+    userId: string,
+    updateProfileDto: UpdateProfileDto,
+  ): Promise<Partial<User>> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Update only provided fields
+    if (updateProfileDto.firstName !== undefined) {
+      user.firstName = updateProfileDto.firstName;
+    }
+    if (updateProfileDto.lastName !== undefined) {
+      user.lastName = updateProfileDto.lastName;
+    }
+    if (updateProfileDto.phoneNumber !== undefined) {
+      user.phoneNumber = updateProfileDto.phoneNumber;
+    }
+    if (updateProfileDto.province !== undefined) {
+      user.province = updateProfileDto.province;
+    }
+    if (updateProfileDto.profilePicture !== undefined) {
+      user.profilePicture = updateProfileDto.profilePicture;
+    }
+
+    await this.userRepository.save(user);
+
+    // Return updated user without sensitive data
+    return this.getProfile(userId);
+  }
+
+  async changeEmail(
+    userId: string,
+    changeEmailDto: ChangeEmailDto,
+  ): Promise<{ message: string; user: Partial<User> }> {
+    const { newEmail, password } = changeEmailDto;
+
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('ไม่พบผู้ใช้');
+    }
+
+    // Check if user has password (local account)
+    if (!user.password) {
+      throw new BadRequestException(
+        'บัญชีนี้ใช้ Google Login ไม่สามารถเปลี่ยนอีเมลได้',
+      );
+    }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('รหัสผ่านไม่ถูกต้อง');
+    }
+
+    // Check if new email is already in use
+    const existingUser = await this.userRepository.findOne({
+      where: { email: newEmail },
+    });
+
+    if (existingUser && existingUser.id !== userId) {
+      throw new ConflictException('อีเมลนี้ถูกใช้งานแล้ว');
+    }
+
+    // Update email
+    user.email = newEmail;
+    await this.userRepository.save(user);
+
+    const updatedUser = await this.getProfile(userId);
+    return {
+      message: 'เปลี่ยนอีเมลสำเร็จ',
+      user: updatedUser,
+    };
+  }
+
+  async deleteAccount(
+    userId: string,
+    deleteAccountDto: DeleteAccountDto,
+  ): Promise<{ message: string }> {
+    const { password } = deleteAccountDto;
+
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('ไม่พบผู้ใช้');
+    }
+
+    // For OAuth users, allow deletion without password
+    if (user.password) {
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('รหัสผ่านไม่ถูกต้อง');
+      }
+    }
+
+    // Soft delete - set deletionRequestedAt and deletedAt
+    user.deletionRequestedAt = new Date();
+    await this.userRepository.softRemove(user);
+
+    return { message: 'ลบบัญชีสำเร็จ' };
+  }
+
+  async changePassword(
+    userId: string,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<{ message: string }> {
+    const { currentPassword, newPassword } = changePasswordDto;
+
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('ไม่พบผู้ใช้');
+    }
+
+    // Check if user has password (local account)
+    if (!user.password) {
+      throw new BadRequestException(
+        'บัญชีนี้ใช้ Google Login ไม่สามารถเปลี่ยนรหัสผ่านได้',
+      );
+    }
+
+    // Verify current password
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('รหัสผ่านปัจจุบันไม่ถูกต้อง');
+    }
+
+    // Hash new password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    // Update password
+    user.password = hashedPassword;
+    await this.userRepository.save(user);
+
+    return { message: 'เปลี่ยนรหัสผ่านสำเร็จ' };
   }
 }
