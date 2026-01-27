@@ -58,7 +58,7 @@ export default function LoginPage() {
         localStorage.setItem("token", data.accessToken);
         localStorage.setItem("user", JSON.stringify(data.user));
         showMessage("เข้าสู่ระบบสำเร็จ! กำลังเปลี่ยนหน้า...");
-        setTimeout(() => router.push("/auth/dashboard"), 1000);
+        setTimeout(() => router.push("/wasteTracking/home"), 1000);
       } else {
         // Handle specific error status codes
         if (response.status === 401) {
