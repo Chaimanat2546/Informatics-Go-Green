@@ -81,6 +81,25 @@ function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+function CardContentLarge({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div className="px-5  -mt-10 relative z-10 pb-10">
+      <div
+        data-slot="card-content-large"
+        className={cn(
+          "bg-white rounded-4xl p-5  shadow-lg min-h-178 flex flex-col",
+          className
+        )}
+        {...props}
+      />
+    </div>
+  )
+    //How to use
+    // <CardContentLarge CardContentLarge >
+    //   <div className=""> ... </div>
+    // </CardContentLarge >
+}
+
 export {
   Card,
   CardHeader,
@@ -89,4 +108,5 @@ export {
   CardAction,
   CardDescription,
   CardContent,
+  CardContentLarge
 }

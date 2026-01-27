@@ -10,7 +10,7 @@ type props = {
 };
 export default function MenuBar({ activeTab: initialActiveTab }: props) {
     const [activeTab, setActiveTab] = useState(initialActiveTab || 'home');
-    const [isMenuOpen, setIsMenuOpen] = useState(false); // 1. State สำหรับเปิด/ปิดเมนู
+    const [isMenuOpen, setIsMenuOpen] = useState(false); 
     const router = useRouter();
     const menuItems = [
         { id: 'home', label: 'หน้าหลัก', icon: Home },
@@ -24,22 +24,24 @@ export default function MenuBar({ activeTab: initialActiveTab }: props) {
         setActiveTab(id);
         if (id === 'recycle') {
             setIsMenuOpen(!isMenuOpen);
+        } else if (id === 'profile') {
+            setIsMenuOpen(false);
+            router.push('/auth/dashboard');
         } else {
-            setIsMenuOpen(false); 
+            setIsMenuOpen(false);
             router.push(`/wasteTracking/${id}`);
         }
     };
-
     return (
         <>
             {isMenuOpen && (
                 <>
                     <div
                         className="fixed inset-0 bg-gray-900/60 z-40 transition-opacity"
-                        onClick={() => setIsMenuOpen(false)} // กดที่ว่างเพื่อปิด
+                        onClick={() => setIsMenuOpen(false)} 
                     ></div>
 
-                    {/* Popup Buttons */}
+                    
                     <div className="fixed bottom-20 left-0 right-0 z-50 animate-in slide-in-from-bottom-5 fade-in duration-200">
                         <div className="bg-white rounded-t-[30px] p-6 shadow-[0_-5px_20px_rgba(0,0,0,0.1)] flex flex-col gap-3">
                             <Button onClick={() => router.push('/wasteTracking/wasteScaner')} className="w-full h-12 bg-green-700 hover:bg-green-800 active:scale-95 transition-all text-white py-3 rounded-lg flex items-center justify-center gap-2 font-semibold">
@@ -48,7 +50,7 @@ export default function MenuBar({ activeTab: initialActiveTab }: props) {
 
                             </Button>
 
-                            {/* ปุ่ม 2: บันทึกการคัดแยก */}
+                            
                             <Button onClick={() => router.push('/wasteTracking/wasteSorting')} className="w-full h-12 bg-green-700 hover:bg-green-800 active:scale-95 transition-all text-white py-3 rounded-lg flex items-center justify-center gap-2 font-semibold">
                                 <ClipboardList size={20} />
                                 บันทึกการคัดแยกขยะ (กิโลกรัม)
@@ -59,7 +61,6 @@ export default function MenuBar({ activeTab: initialActiveTab }: props) {
                 </>
             )}
 
-            {/* --- ส่วน Navigation Bar เดิม --- */}
             <div className="fixed bottom-0 left-0 h-20 w-full bg-green-100 z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
                 <div className="flex justify-between content-center items-center align-middle px-6 pb-6 pt-8 h-full">
                     {menuItems.map((item) => {
