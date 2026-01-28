@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Home, Recycle, History, User, Camera, ClipboardList, BarChart3 } from "lucide-react";
+import { Home, BarChart2, Recycle, History, User, Camera, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button"
 import { useRouter } from 'next/navigation';
 
@@ -14,7 +14,7 @@ export default function MenuBar({ activeTab: initialActiveTab }: props) {
     const router = useRouter();
     const menuItems = [
         { id: 'home', label: 'หน้าหลัก', icon: Home },
-        { id: 'wasteStats', label: 'สถิติ', icon: BarChart3 },
+        { id: 'stats', label: 'สถิติ', icon: BarChart2 },
         { id: 'recycle', label: 'คัดแยก', icon: Recycle },
         { id: 'wasteHistory', label: 'ประวัติ', icon: History },
         { id: 'profile', label: 'โปรไฟล์', icon: User },

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Filter, Search, Check } from "lucide-react";
+import { ChevronLeft, Filter, Leaf, Search, Check } from "lucide-react";
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,6 @@ import {
     DialogClose,
 } from "@/components/ui/dialog";
 import Image from "next/image";
-import { CardContentLarge } from "@/components/ui/card";
 
 interface WasteItem {
     id: number;
@@ -90,7 +89,7 @@ export default function WasteSortingPage() {
         router.push('/wasteTracking/wasteSorting/carbonSummary')
     };
     return (
-        < >
+        <div className="min-h-screen bg-background font-sans relative">
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="sm:max-w-xs rounded-2xl p-6 bg-white [&>button]:hidden">
@@ -99,13 +98,13 @@ export default function WasteSortingPage() {
                         {selectedItem && (
                             <div className="w-48 h-48 bg-gray-100 rounded-lg overflow-hidden shadow-sm">
                                 {selectedItem.src === "" ? (<></>) : (
-                                    <Image
-                                        src={selectedItem.src}
-                                        alt={selectedItem.name}
-                                        fill
-                                        sizes="192px"
-                                        className="object-cover"
-                                    />)}
+                                <Image
+                                    src={selectedItem.src}
+                                    alt={selectedItem.name}
+                                    fill
+                                    sizes="192px"
+                                    className="object-cover"
+                                />)}
                             </div>
                         )}
                         <DialogTitle className="text-lg font-bold text-gray-800 text-center">
@@ -148,40 +147,53 @@ export default function WasteSortingPage() {
             </Dialog>
 
 
-
-
-            <CardContentLarge className="">
-                <div className="flex gap-3 mb-6 relative z-20">
-                    <div className="flex-1 relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                        <input type="text" placeholder="กรุณาระบุ" className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-green-500 transition-colors" />
-                    </div>
-                    <div className="relative">
-                        <button onClick={() => setIsFilterOpen(!isFilterOpen)} className={`p-2.5 border rounded-xl transition-colors ${isFilterOpen ? 'bg-green-50 border-green-500' : 'border-gray-200 hover:bg-gray-50'}`}>
-                            <Filter size={20} className={isFilterOpen ? "text-green-600" : "text-gray-600"} />
-                        </button>
-                        {isFilterOpen && (
-                            <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-30 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
-                                <div className="py-1">
-                                    {categories.map((cat) => (
-                                        <button key={cat} onClick={() => handleSelectCategory(cat)} className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 flex items-center justify-between">
-                                            {cat} {selectedCategory === cat && <Check size={16} className="text-green-600" />}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+            <div className="bg-green-600 h-34.5 rounded-b-[50px] px-6 pt-8 pb-4 relative z-0">
+                <div className="flex justify-between items-center text-white">
+                    <button onClick={() => router.back()} className="p-1">
+                        <ChevronLeft size={32} />
+                    </button>
+                    <h1 className="text-2xl font-bold">คัดแยกขยะ</h1>
+                    <div className="bg-white h-12.5 w-12.5 rounded-2xl flex justify-center items-center">
+                        <Leaf className="text-green-700" size={40} strokeWidth={4} />
                     </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                    {currentItems.map((item) => (
-                        <div
-                            key={item.id}
-                            onClick={() => handleCardClick(item)}
-                            className="bg-[#E6F9EE] rounded-xl p-3 flex flex-col items-center gap-2 cursor-pointer hover:shadow-md transition-all active:scale-95"
-                        >
-                            <div className="w-full aspect-square bg-white rounded-lg overflow-hidden relative pointer-events-none">
-                                {item.src === "" ? (<></>) : (
+            </div>
+
+            <div className="px-5 -mt-10 relative z-10 pb-10">
+                <div className="bg-white rounded-4xl p-5 shadow-lg min-h-150 flex flex-col">
+
+                    <div className="flex gap-3 mb-6 relative z-20">
+                        <div className="flex-1 relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                            <input type="text" placeholder="กรุณาระบุ" className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-green-500 transition-colors" />
+                        </div>
+                        <div className="relative">
+                            <button onClick={() => setIsFilterOpen(!isFilterOpen)} className={`p-2.5 border rounded-xl transition-colors ${isFilterOpen ? 'bg-green-50 border-green-500' : 'border-gray-200 hover:bg-gray-50'}`}>
+                                <Filter size={20} className={isFilterOpen ? "text-green-600" : "text-gray-600"} />
+                            </button>
+                            {isFilterOpen && (
+                                <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-30 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                                    <div className="py-1">
+                                        {categories.map((cat) => (
+                                            <button key={cat} onClick={() => handleSelectCategory(cat)} className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 flex items-center justify-between">
+                                                {cat} {selectedCategory === cat && <Check size={16} className="text-green-600" />}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                        {currentItems.map((item) => (
+                            <div
+                                key={item.id}
+                                onClick={() => handleCardClick(item)}
+                                className="bg-[#E6F9EE] rounded-xl p-3 flex flex-col items-center gap-2 cursor-pointer hover:shadow-md transition-all active:scale-95"
+                            >
+                                <div className="w-full aspect-square bg-white rounded-lg overflow-hidden relative pointer-events-none">
+                                    {item.src === "" ? (<></>) : (  
                                     <Image
                                         src={item.src}
                                         alt={item.name}
@@ -190,33 +202,35 @@ export default function WasteSortingPage() {
                                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 200px"
                                         className="object-cover"
                                     />)}
+                                </div>
+                                <span className="text-xs font-semibold text-green-900 text-center pointer-events-none">
+                                    {item.name}
+                                </span>
                             </div>
-                            <span className="text-xs font-semibold text-green-900 text-center pointer-events-none">
-                                {item.name}
-                            </span>
-                        </div>
-                    ))}
-                </div>
-                <div className="mt-auto flex justify-between items-center pt-4 border-t border-gray-100">
-                    <Button
-                        variant="ghost"
-                        onClick={handlePrevPage}
-                        disabled={currentPage === 1}
-                        className="text-gray-600 disabled:text-gray-300"
-                    >
-                        หน้าก่อนหน้า
-                    </Button>
-                    <span className="text-xs text-gray-400">หน้า {currentPage} จาก {totalPages}</span>
-                    <Button
-                        onClick={handleNextPage}
-                        disabled={currentPage === totalPages}
-                        className={`bg-[#5EA500] hover:bg-green-700 text-white ${currentPage === totalPages ? 'opacity-50' : ''}`}
-                    >
-                        หน้าถัดไป
-                    </Button>
-                </div>
+                        ))}
+                    </div>
 
-            </CardContentLarge>
-        </>
+                    <div className="mt-auto flex justify-between items-center pt-4 border-t border-gray-100">
+                        <Button
+                            variant="ghost"
+                            onClick={handlePrevPage}
+                            disabled={currentPage === 1}
+                            className="text-gray-600 disabled:text-gray-300"
+                        >
+                            หน้าก่อนหน้า
+                        </Button>
+                        <span className="text-xs text-gray-400">หน้า {currentPage} จาก {totalPages}</span>
+                        <Button
+                            onClick={handleNextPage}
+                            disabled={currentPage === totalPages}
+                            className={`bg-[#5EA500] hover:bg-green-700 text-white ${currentPage === totalPages ? 'opacity-50' : ''}`}
+                        >
+                            หน้าถัดไป
+                        </Button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
     );
 }
