@@ -20,11 +20,13 @@ export type WasteRecord = {
     badgeColor: string;
     textColor: string;
     details?: WasteDetails; // เพิ่มตรงนี้ (Optional)
+    barcode: number; // เพิ่มตรงนี้ (Optional)
 };
 
 export const wasteHistoryData: WasteRecord[] = [
     {
         id: 1,
+        barcode: 1234567890123,
         category: "พลาสติก",
         title: "ขวดพลาสติกใส (PET)",
         date: "23 ม.ค. 2026 • 14:20 น.",
@@ -64,6 +66,7 @@ export const wasteHistoryData: WasteRecord[] = [
     },
     {
         id: 2,
+        barcode: 1234567890456,
         category: "พลาสติก",
         title: "ขวดพลาสติกใส (PET)",
         date: "23 ม.ค. 2026 • 14:20 น.",
@@ -103,6 +106,7 @@ export const wasteHistoryData: WasteRecord[] = [
     },
     {
         id: 3,
+        barcode: 8857125056151,
         category: "พลาสติก",
         title: "ขวดแก้ว ",
         date: "23 ม.ค. 2026 • 14:20 น.",
