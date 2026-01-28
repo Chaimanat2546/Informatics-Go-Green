@@ -2,14 +2,13 @@
 
 import { Card } from "@/components/ui/card";
 import MenuBar from "@/components/wasteTracking/MenuBar";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { CheckCircle2, Leaf, } from "lucide-react";
 import { wasteHistoryData } from "@/data/wasteHistoryData"; 
 import Image from "next/image";
 
 export default function WasteHistoryDetail() {
     const params = useParams();
-    const router = useRouter();
 
     const wasteId = Number(params.id);
     const wasteItem = wasteHistoryData.find(item => item.id === wasteId);

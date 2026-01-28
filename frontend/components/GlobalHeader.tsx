@@ -14,11 +14,6 @@ const pageConfig: Record<
   string,
   { title: string; icon?: LucideIcon; showBack?: boolean }
 > = {
-//   "/wasteTracking/wasteScaner": {
-//     title: "คัดแยก",
-//     icon: Recycle,
-//     showBack: true,
-//   },
   "/wasteTracking/wasteSorting": {
     title: "การคัดแยก",
     icon: undefined,
@@ -29,8 +24,16 @@ const pageConfig: Record<
     icon: History,
     showBack: false,
   },
-  "/wasteTracking/wasteSorting/carbonSummary": { title: "การคัดแยก", icon: undefined, showBack: true },
-  "/wasteTracking/wasteStats": { title: "สถิติ", icon: BarChart3, showBack: false },
+  "/wasteTracking/wasteSorting/carbonSummary": {
+    title: "การคัดแยก",
+    icon: undefined,
+    showBack: true,
+  },
+  "/wasteTracking/wasteStats": {
+    title: "สถิติ",
+    icon: BarChart3,
+    showBack: false,
+  },
   "/auth/edit-profile": { title: "แก้ไขโปรไฟล์", icon: User },
   "/auth/dashboard": { title: "โปรไฟล์", icon: User },
 };
@@ -39,15 +42,31 @@ export default function GlobalHeader() {
   const router = useRouter();
   const pathname = usePathname();
 
-  const currentPage = pageConfig[pathname] || {
-    title: "Waste Tracking",
-    showBack: true,
-  };
+  let currentPage = pageConfig[pathname];
+
+  if (!currentPage) {
+    if (pathname.startsWith("/wasteTracking/wasteHistory/")) {
+      currentPage = {
+        title: "ประวัติการคัดแยก", 
+        showBack: false,     
+        icon: History,
+      };
+    } 
+  }
+
+  if (!currentPage) {
+    return null; 
+  }
+  
   const Icon = currentPage.icon;
 
-    if (pathname === "/auth/login" || pathname === "/wasteTracking/home"
-        || pathname === "/wasteTracking/wasteScaner"
-    ) return null;
+  if (
+    pathname === "/auth/login" ||
+    pathname === "/wasteTracking/home" ||
+    pathname === "/wasteTracking/wasteScaner" 
+
+  )
+    return null;
 
   return (
     <div
