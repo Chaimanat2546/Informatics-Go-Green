@@ -17,7 +17,7 @@ import {
     DialogDescription,
     DialogClose,
 } from "@/components/ui/dialog"; 
-export default function wasteDetailPage() {
+export default function WasteDetailPage() {
     const params = useParams();
 
     const rawId = decodeURIComponent(params.id as string);

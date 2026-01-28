@@ -34,7 +34,7 @@ export default function ScanBarcodePage() {
                 const controls = await codeReader.decodeFromVideoDevice(
                     selectedDeviceId,
                     videoRef.current,
-                    (result: Result | undefined | null, error: any) => {
+                    (result: Result | undefined | null, error: unknown) => {
                         if (result && mounted) {
                             const currentText = result.getText();
                             
