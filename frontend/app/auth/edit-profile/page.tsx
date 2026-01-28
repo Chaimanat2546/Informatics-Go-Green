@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 import { THAI_PROVINCES } from "./thai-provinces";
 import { CardContentLarge } from "@/components/ui/card";
 import { InputField } from "@/components/ui/input";
@@ -252,10 +253,11 @@ function EditProfileContent() {
               onClick={handleImageClick}
             >
               {profilePicture ? (
-                <img
+                <Image
                   src={profilePicture}
                   alt="Profile"
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
                 />
               ) : (
                 <div className="w-full h-full bg-background flex justify-center items-center">

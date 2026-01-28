@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { InputField } from "@/components/ui/input";
 import { Button, ButtonWithIcon } from "@/components/ui/button";
 
@@ -75,7 +76,13 @@ export default function AuthLoginForm({
 
   return (
     <div className="max-w-md w-full animate-in fade-in duration-500">
-      <img src="/leaf.png" alt="Logo" className="w-16 mx-auto mb-6" />
+      <Image
+        src="/leaf.png"
+        alt="Logo"
+        width={64}
+        height={64}
+        className="mx-auto mb-6"
+      />
       <h1 className="text-2xl font-semibold text-center mb-2">ยินดีต้อนรับ</h1>
       <p className="text-sm font-regular text-center mb-6 text-muted-foreground">
         เข้าสู่ระบบด้วยบัญชีของคุณ

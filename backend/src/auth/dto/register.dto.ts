@@ -16,7 +16,8 @@ export class RegisterDto {
   @MinLength(6, { message: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' })
   @MaxLength(32, { message: 'รหัสผ่านต้องไม่เกิน 32 ตัวอักษร' })
   @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/, {
-    message: 'รหัสผ่านต้องมีตัวพิมพ์เล็ก ตัวพิมพ์ใหญ่ และตัวเลขอย่างน้อยอย่างละ 1 ตัว',
+    message:
+      'รหัสผ่านต้องมีตัวพิมพ์เล็ก ตัวพิมพ์ใหญ่ และตัวเลขอย่างน้อยอย่างละ 1 ตัว',
   })
   password: string;
 
@@ -41,4 +42,3 @@ export class RegisterDto {
   @IsString()
   province?: string;
 }
-

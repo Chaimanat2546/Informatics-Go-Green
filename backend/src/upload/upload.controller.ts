@@ -13,7 +13,12 @@ import { memoryStorage } from 'multer';
 import { UploadService } from './upload.service';
 import { JwtAuthGuard } from '../auth/guards';
 
-const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+const ALLOWED_MIME_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+];
 
 @Controller('upload')
 export class UploadController {
@@ -59,4 +64,3 @@ export class UploadController {
     };
   }
 }
-

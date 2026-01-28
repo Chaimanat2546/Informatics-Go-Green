@@ -6,3 +6,4 @@ export * from './update-profile.dto';
 export * from './change-email.dto';
 export * from './delete-account.dto';
 export * from './change-password.dto';
+export * from './recover-account.dto';

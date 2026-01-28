@@ -44,13 +44,38 @@ export class AuthService {
   async register(registerDto: RegisterDto): Promise<{ message: string }> {
     const { email, password, firstName, lastName } = registerDto;
 
-    // Check if user already exists
+    // Check if user already exists (including soft-deleted users)
     const existingUser = await this.userRepository.findOne({
       where: { email },
     });
 
     if (existingUser) {
       throw new ConflictException('Email already registered');
+    }
+
+    // Check if there's a soft-deleted user with this email
+    const deletedUser = await this.userRepository.findOne({
+      where: { email },
+      withDeleted: true,
+    });
+
+    if (deletedUser && deletedUser.deletedAt) {
+      // Recover the soft-deleted user
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+      deletedUser.password = hashedPassword;
+      deletedUser.firstName = firstName;
+      deletedUser.lastName = lastName;
+      deletedUser.deletedAt = null;
+      deletedUser.deletionRequestedAt = null;
+      deletedUser.anonymizedAt = null;
+      deletedUser.isActive = true;
+      deletedUser.provider = 'local';
+
+      await this.userRepository.save(deletedUser);
+
+      return { message: 'Account recovered and updated successfully' };
     }
 
     // Hash password
@@ -76,7 +101,19 @@ export class AuthService {
   ): Promise<{ accessToken: string; user: Partial<User> }> {
     const { email, password } = loginDto;
 
-    // Find user by email
+    // Find user by email (check if deleted first)
+    const deletedUser = await this.userRepository.findOne({
+      where: { email },
+      withDeleted: true,
+    });
+
+    if (deletedUser && deletedUser.deletedAt) {
+      throw new UnauthorizedException(
+        'บัญชีนี้ถูกลบแล้ว กรุณาสมัครสมาชิกใหม่เพื่อกู้คืนบัญชี',
+      );
+    }
+
+    // Find active user by email
     const user = await this.userRepository.findOne({
       where: { email },
     });
@@ -137,6 +174,81 @@ export class AuthService {
     };
   }
 
+  /**
+   * Recover a soft-deleted account by email
+   * User needs to provide email and new password
+   */
+  async recoverAccount(
+    email: string,
+    password: string,
+  ): Promise<{ message: string; canRecover: boolean }> {
+    // Check if there's a soft-deleted user with this email
+    const deletedUser = await this.userRepository.findOne({
+      where: { email },
+      withDeleted: true,
+    });
+
+    if (!deletedUser) {
+      throw new NotFoundException('ไม่พบบัญชีที่ใช้อีเมลนี้');
+    }
+
+    if (!deletedUser.deletedAt) {
+      throw new BadRequestException(
+        'บัญชีนี้ยังใช้งานได้ปกติ สามารถเข้าสู่ระบบได้เลย',
+      );
+    }
+
+    // Check if account is anonymized (can't recover)
+    if (deletedUser.anonymizedAt) {
+      throw new BadRequestException('บัญชีนี้ถูกลบถาวรแล้ว ไม่สามารถกู้คืนได้');
+    }
+
+    // Recover the account
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    deletedUser.password = hashedPassword;
+    deletedUser.deletedAt = null;
+    deletedUser.deletionRequestedAt = null;
+    deletedUser.isActive = true;
+
+    await this.userRepository.save(deletedUser);
+
+    return {
+      message: 'กู้คืนบัญชีสำเร็จ สามารถเข้าสู่ระบบได้แล้ว',
+      canRecover: true,
+    };
+  }
+
+  /**
+   * Check if an email belongs to a recoverable account
+   */
+  async checkRecoverableAccount(
+    email: string,
+  ): Promise<{ isRecoverable: boolean; message: string }> {
+    const deletedUser = await this.userRepository.findOne({
+      where: { email },
+      withDeleted: true,
+    });
+
+    if (!deletedUser) {
+      return { isRecoverable: false, message: 'ไม่พบบัญชีที่ใช้อีเมลนี้' };
+    }
+
+    if (!deletedUser.deletedAt) {
+      return { isRecoverable: false, message: 'บัญชีนี้ยังใช้งานได้ปกติ' };
+    }
+
+    if (deletedUser.anonymizedAt) {
+      return { isRecoverable: false, message: 'บัญชีนี้ถูกลบถาวรแล้ว' };
+    }
+
+    return {
+      isRecoverable: true,
+      message: 'บัญชีนี้สามารถกู้คืนได้',
+    };
+  }
+
   async forgotPassword(
     forgotPasswordDto: ForgotPasswordDto,
   ): Promise<{ message: string }> {
@@ -149,8 +261,7 @@ export class AuthService {
     if (!user) {
       // Don't reveal if email exists or not for security
       return {
-        message:
-          'If your email is registered, you will receive a password reset link',
+        message: 'หากอีเมลของคุณลงทะเบียนไว้ คุณจะได้รับลิงก์รีเซ็ตรหัสผ่าน',
       };
     }
 
@@ -175,14 +286,11 @@ export class AuthService {
       user.resetPasswordToken = undefined as unknown as string;
       user.resetPasswordExpires = null;
       await this.userRepository.save(user);
-      throw new BadRequestException(
-        'Failed to send reset email. Please try again.',
-      );
+      throw new BadRequestException('ส่งอีเมลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
     }
 
     return {
-      message:
-        'If your email is registered, you will receive a password reset link',
+      message: 'หากอีเมลของคุณลงทะเบียนไว้ คุณจะได้รับลิงก์รีเซ็ตรหัสผ่าน',
     };
   }
 
@@ -225,7 +333,7 @@ export class AuthService {
     const { email, firstName, lastName, profilePicture, provider, providerId } =
       userData;
 
-    // Check if user exists
+    // Check if user exists (active users only)
     let user = await this.userRepository.findOne({
       where: [{ email }, { provider, providerId }],
     });
@@ -241,6 +349,45 @@ export class AuthService {
         await this.userRepository.save(user);
       }
       return user;
+    }
+
+    // Check if there's a soft-deleted user with this email or providerId
+    const deletedUser = await this.userRepository.findOne({
+      where: [{ email }, { provider, providerId }],
+      withDeleted: true,
+    });
+
+    if (deletedUser && deletedUser.deletedAt) {
+      // Check if account is anonymized (can't recover)
+      if (deletedUser.anonymizedAt) {
+        // Create a new user instead since this one is permanently deleted
+        user = this.userRepository.create({
+          email,
+          firstName,
+          lastName,
+          profilePicture,
+          provider,
+          providerId,
+        });
+
+        await this.userRepository.save(user);
+        return user;
+      }
+
+      // Recover the soft-deleted user
+      deletedUser.firstName = firstName;
+      deletedUser.lastName = lastName;
+      if (profilePicture) {
+        deletedUser.profilePicture = profilePicture;
+      }
+      deletedUser.provider = provider;
+      deletedUser.providerId = providerId;
+      deletedUser.deletedAt = null;
+      deletedUser.deletionRequestedAt = null;
+      deletedUser.isActive = true;
+
+      await this.userRepository.save(deletedUser);
+      return deletedUser;
     }
 
     // Create new user
@@ -428,7 +575,10 @@ export class AuthService {
     }
 
     // Verify current password
-    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.password,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException('รหัสผ่านปัจจุบันไม่ถูกต้อง');
     }
