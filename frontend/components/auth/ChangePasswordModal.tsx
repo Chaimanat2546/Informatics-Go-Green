@@ -13,6 +13,7 @@ interface ChangePasswordModalProps {
   confirmNewPassword: string;
   setConfirmNewPassword: (value: string) => void;
   loading: boolean;
+  errorMessage?: string;
 }
 
 export default function ChangePasswordModal({
@@ -26,6 +27,7 @@ export default function ChangePasswordModal({
   confirmNewPassword,
   setConfirmNewPassword,
   loading,
+  errorMessage,
 }: ChangePasswordModalProps) {
   if (!isOpen) return null;
 
@@ -33,6 +35,13 @@ export default function ChangePasswordModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg p-6 max-w-md w-full">
         <h2 className="text-xl font-bold mb-4">เปลี่ยนรหัสผ่าน</h2>
+
+        {errorMessage && (
+          <div className="p-3 rounded mb-4 text-center bg-red-100 text-red-800">
+            {errorMessage}
+          </div>
+        )}
+
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
             <InputField

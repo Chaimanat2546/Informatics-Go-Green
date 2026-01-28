@@ -39,6 +39,8 @@ function DashboardContent() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [deleteError, setDeleteError] = useState("");
 
   const API_URL =
     process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
@@ -114,22 +116,20 @@ function DashboardContent() {
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    setPasswordError("");
 
     if (newPassword !== confirmNewPassword) {
-      showMessageFn("รหัสผ่านใหม่ไม่ตรงกัน", true);
+      setPasswordError("รหัสผ่านใหม่ไม่ตรงกัน");
       return;
     }
 
     if (newPassword.length < 6) {
-      showMessageFn("รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร", true);
+      setPasswordError("รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร");
       return;
     }
 
     if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/.test(newPassword)) {
-      showMessageFn(
-        "รหัสผ่านใหม่ต้องมีตัวพิมพ์เล็ก ตัวพิมพ์ใหญ่ และตัวเลข",
-        true,
-      );
+      setPasswordError("รหัสผ่านใหม่ต้องมีตัวพิมพ์เล็ก ตัวพิมพ์ใหญ่ และตัวเลข");
       return;
     }
 
@@ -158,17 +158,17 @@ function DashboardContent() {
         setCurrentPassword("");
         setNewPassword("");
         setConfirmNewPassword("");
+        setPasswordError("");
         showMessageFn("เปลี่ยนรหัสผ่านสำเร็จ!");
       } else {
-        showMessageFn(
+        setPasswordError(
           Array.isArray(data.message)
             ? data.message.join(", ")
             : data.message || "เปลี่ยนรหัสผ่านไม่สำเร็จ",
-          true,
         );
       }
     } catch {
-      showMessageFn("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง", true);
+      setPasswordError("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
     } finally {
       setActionLoading(false);
     }
@@ -176,6 +176,7 @@ function DashboardContent() {
 
   const handleDeleteAccount = async (e: React.FormEvent) => {
     e.preventDefault();
+    setDeleteError("");
 
     const token = localStorage.getItem("token");
     if (!token) {
@@ -202,15 +203,14 @@ function DashboardContent() {
         localStorage.removeItem("user");
         router.push("/auth/login");
       } else {
-        showMessageFn(
+        setDeleteError(
           Array.isArray(data.message)
             ? data.message.join(", ")
             : data.message || "ลบบัญชีไม่สำเร็จ",
-          true,
         );
       }
     } catch {
-      showMessageFn("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง", true);
+      setDeleteError("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
     } finally {
       setActionLoading(false);
     }
@@ -279,6 +279,7 @@ function DashboardContent() {
           setCurrentPassword("");
           setNewPassword("");
           setConfirmNewPassword("");
+          setPasswordError("");
         }}
         onSubmit={handleChangePassword}
         currentPassword={currentPassword}
@@ -288,6 +289,7 @@ function DashboardContent() {
         confirmNewPassword={confirmNewPassword}
         setConfirmNewPassword={setConfirmNewPassword}
         loading={actionLoading}
+        errorMessage={passwordError}
       />
 
       <DeleteAccountModal
@@ -295,12 +297,14 @@ function DashboardContent() {
         onClose={() => {
           setShowDeleteModal(false);
           setPassword("");
+          setDeleteError("");
         }}
         onSubmit={handleDeleteAccount}
         password={password}
         setPassword={setPassword}
         loading={actionLoading}
         provider={user?.provider}
+        errorMessage={deleteError}
       />
       <MenuBar activeTab="profile" />
     </div>

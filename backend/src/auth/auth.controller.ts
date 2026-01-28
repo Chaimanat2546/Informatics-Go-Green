@@ -21,6 +21,8 @@ import {
   ChangeEmailDto,
   DeleteAccountDto,
   ChangePasswordDto,
+  RecoverAccountDto,
+  CheckRecoverableDto,
 } from './dto';
 import { JwtAuthGuard, GoogleAuthGuard } from './guards';
 import { User } from '../users/user.entity';
@@ -121,5 +123,17 @@ export class AuthController {
   ) {
     return this.authService.changePassword(req.user.id, changePasswordDto);
   }
-}
 
+  @Post('recover-account')
+  async recoverAccount(@Body() recoverAccountDto: RecoverAccountDto) {
+    return this.authService.recoverAccount(
+      recoverAccountDto.email,
+      recoverAccountDto.password,
+    );
+  }
+
+  @Post('check-recoverable')
+  async checkRecoverable(@Body() checkRecoverableDto: CheckRecoverableDto) {
+    return this.authService.checkRecoverableAccount(checkRecoverableDto.email);
+  }
+}

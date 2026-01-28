@@ -10,6 +10,7 @@ interface DeleteAccountModalProps {
   setPassword: (value: string) => void;
   loading: boolean;
   provider?: string;
+  errorMessage?: string;
 }
 
 export default function DeleteAccountModal({
@@ -20,6 +21,7 @@ export default function DeleteAccountModal({
   setPassword,
   loading,
   provider,
+  errorMessage,
 }: DeleteAccountModalProps) {
   if (!isOpen) return null;
 
@@ -30,10 +32,21 @@ export default function DeleteAccountModal({
         <p className="text-gray-600 mb-4">
           การลบบัญชีจะไม่สามารถกู้คืนได้ ข้อมูลทั้งหมดจะถูกลบออกจากระบบ
         </p>
+
+        {errorMessage && (
+          <div className="p-3 rounded mb-4 text-center bg-red-100 text-red-800">
+            {errorMessage}
+          </div>
+        )}
+
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
             <InputField
-              label="กรอกรหัสผ่านเพื่อยืนยัน"
+              label={
+                provider === "local"
+                  ? "กรอกรหัสผ่านเพื่อยืนยัน"
+                  : "พิมพ์ DELETE เพื่อยืนยัน"
+              }
               type={provider === "local" ? "password" : "text"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
