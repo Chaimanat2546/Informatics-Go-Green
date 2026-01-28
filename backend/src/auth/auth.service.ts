@@ -193,14 +193,14 @@ export class AuthService {
     }
 
     if (!deletedUser.deletedAt) {
-      throw new BadRequestException('บัญชีนี้ยังใช้งานได้ปกติ สามารถเข้าสู่ระบบได้เลย');
+      throw new BadRequestException(
+        'บัญชีนี้ยังใช้งานได้ปกติ สามารถเข้าสู่ระบบได้เลย',
+      );
     }
 
     // Check if account is anonymized (can't recover)
     if (deletedUser.anonymizedAt) {
-      throw new BadRequestException(
-        'บัญชีนี้ถูกลบถาวรแล้ว ไม่สามารถกู้คืนได้',
-      );
+      throw new BadRequestException('บัญชีนี้ถูกลบถาวรแล้ว ไม่สามารถกู้คืนได้');
     }
 
     // Recover the account
@@ -261,8 +261,7 @@ export class AuthService {
     if (!user) {
       // Don't reveal if email exists or not for security
       return {
-        message:
-          'หากอีเมลของคุณลงทะเบียนไว้ คุณจะได้รับลิงก์รีเซ็ตรหัสผ่าน',
+        message: 'หากอีเมลของคุณลงทะเบียนไว้ คุณจะได้รับลิงก์รีเซ็ตรหัสผ่าน',
       };
     }
 
@@ -287,14 +286,11 @@ export class AuthService {
       user.resetPasswordToken = undefined as unknown as string;
       user.resetPasswordExpires = null;
       await this.userRepository.save(user);
-      throw new BadRequestException(
-        'ส่งอีเมลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง',
-      );
+      throw new BadRequestException('ส่งอีเมลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
     }
 
     return {
-      message:
-        'หากอีเมลของคุณลงทะเบียนไว้ คุณจะได้รับลิงก์รีเซ็ตรหัสผ่าน',
+      message: 'หากอีเมลของคุณลงทะเบียนไว้ คุณจะได้รับลิงก์รีเซ็ตรหัสผ่าน',
     };
   }
 
@@ -579,7 +575,10 @@ export class AuthService {
     }
 
     // Verify current password
-    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.password,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException('รหัสผ่านปัจจุบันไม่ถูกต้อง');
     }

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like, Not, IsNull } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 import { User } from '../users/user.entity';
 
 @Injectable()
@@ -63,7 +63,9 @@ export class AdminService {
     };
   }
 
-  async toggleUserStatus(userId: string): Promise<{ user: Partial<User>; message: string }> {
+  async toggleUserStatus(
+    userId: string,
+  ): Promise<{ user: Partial<User>; message: string }> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
     });

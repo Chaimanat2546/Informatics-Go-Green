@@ -1,9 +1,4 @@
-import {
-  IsString,
-  IsOptional,
-  Matches,
-  MaxLength,
-} from 'class-validator';
+import { IsString, IsOptional, Matches, MaxLength } from 'class-validator';
 
 export class UpdateProfileDto {
   @IsOptional()
@@ -31,4 +26,3 @@ export class UpdateProfileDto {
   @IsString()
   profilePicture?: string;
 }
-
