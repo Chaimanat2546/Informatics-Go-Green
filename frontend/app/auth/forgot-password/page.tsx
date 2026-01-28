@@ -1,14 +1,17 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { InputField } from "@/components/ui/input";
+import { useState } from "react";
 
 export default function ForgotPasswordPage() {
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+  const API_URL =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
   const showMessage = (text: string, error = false) => {
     setMessage(text);
@@ -21,21 +24,24 @@ export default function ForgotPasswordPage() {
 
     try {
       const response = await fetch(`${API_URL}/auth/forgot-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        showMessage(data.message || 'หากอีเมลของคุณลงทะเบียนไว้ คุณจะได้รับลิงก์รีเซ็ตรหัสผ่าน');
-        setEmail('');
+        showMessage(
+          data.message ||
+            "หากอีเมลของคุณลงทะเบียนไว้ คุณจะได้รับลิงก์รีเซ็ตรหัสผ่าน",
+        );
+        setEmail("");
       } else {
-        showMessage(data.message || 'ไม่สามารถส่งอีเมลได้', true);
+        showMessage(data.message || "ไม่สามารถส่งอีเมลได้", true);
       }
     } catch {
-      showMessage('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง', true);
+      showMessage("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง", true);
     } finally {
       setLoading(false);
     }
@@ -51,15 +57,17 @@ export default function ForgotPasswordPage() {
         </p>
 
         {message && (
-          <div className={`p-3 rounded mb-4 text-center ${isError ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+          <div
+            className={`p-3 rounded mb-4 text-center ${isError ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}`}
+          >
             {message}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1">อีเมล</label>
-            <input
+            <InputField
+              label="อีเมล"
               type="email"
               id="email"
               value={email}
@@ -70,17 +78,19 @@ export default function ForgotPasswordPage() {
             />
           </div>
 
-          <button
+          <Button
             type="submit"
             disabled={loading}
             className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
           >
-            {loading ? 'กำลังส่ง...' : 'ส่งลิงก์รีเซ็ตรหัสผ่าน'}
-          </button>
+            {loading ? "กำลังส่ง..." : "ส่งลิงก์รีเซ็ตรหัสผ่าน"}
+          </Button>
         </form>
 
         <p className="text-center mt-6 text-sm">
-          <a href="/auth/login" className="text-blue-500 hover:underline">← กลับไปหน้าเข้าสู่ระบบ</a>
+          <a href="/auth/login" className="text-blue-500 hover:underline">
+            ← กลับไปหน้าเข้าสู่ระบบ
+          </a>
         </p>
       </div>
     </div>

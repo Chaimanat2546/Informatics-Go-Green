@@ -1,4 +1,7 @@
+"use client";
+
 import React from "react";
+import Image from "next/image";
 import { Button } from "../ui/button";
 
 interface User {
@@ -22,9 +25,11 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
     <div>
       <div className="flex items-center gap-4 mb-6">
         {user.profilePicture ? (
-          <img
+          <Image
             src={user.profilePicture}
             alt="Profile"
+            width={64}
+            height={64}
             className="w-16 h-16 rounded-full object-cover"
           />
         ) : (

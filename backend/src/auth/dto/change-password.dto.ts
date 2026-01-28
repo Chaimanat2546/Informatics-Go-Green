@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsString, MinLength, MaxLength, Matches } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  MinLength,
+  MaxLength,
+  Matches,
+} from 'class-validator';
 
 export class ChangePasswordDto {
   @IsNotEmpty({ message: 'กรุณากรอกรหัสผ่านปัจจุบัน' })

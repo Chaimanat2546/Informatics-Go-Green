@@ -3,6 +3,7 @@ import { IBM_Plex_Sans_Thai } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import GlobalHeader from "@/components/GlobalHeader";
+import { Suspense } from "react";
 
 const ibmPlexSansThai = IBM_Plex_Sans_Thai({
   variable: "--font-ibm-plex-sans-thai",
@@ -37,9 +38,11 @@ export default function RootLayout({
           },
         }} />
         <GlobalHeader />
-        <main>
-          {children}
-        </main>
+        <Suspense>
+          <main>
+            {children}
+          </main>
+        </Suspense>
       </body>
     </html>
   );
