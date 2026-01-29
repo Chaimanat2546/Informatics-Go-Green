@@ -57,11 +57,38 @@ function DashboardContent() {
     const tokenFromUrl = searchParams.get("token");
     if (tokenFromUrl) {
       localStorage.setItem("token", tokenFromUrl);
-      // Remove token from URL
 
-      // *****edit route and return *****
-      // window.history.replaceState({}, document.title, '/auth/dashboard');
-      router.push("/wasteTracking/home");
+      // Fetch user profile to check role before redirecting
+      const fetchAndRedirect = async () => {
+        try {
+          const response = await fetch(`${API_URL}/auth/me`, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${tokenFromUrl}`,
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (response.ok) {
+            const userData = await response.json();
+            localStorage.setItem("user", JSON.stringify(userData));
+
+            // Redirect based on user role
+            const redirectPath =
+              userData.role === "admin"
+                ? "/admin/users"
+                : "/wasteTracking/home";
+            router.push(redirectPath);
+          } else {
+            localStorage.removeItem("token");
+            router.push("/auth/login");
+          }
+        } catch {
+          router.push("/wasteTracking/home");
+        }
+      };
+
+      fetchAndRedirect();
       return;
     }
 

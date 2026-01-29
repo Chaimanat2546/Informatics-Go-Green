@@ -53,7 +53,11 @@ export default function AuthLoginForm({
         localStorage.setItem("token", data.accessToken);
         localStorage.setItem("user", JSON.stringify(data.user));
         showMessage("เข้าสู่ระบบสำเร็จ! กำลังเปลี่ยนหน้า...");
-        setTimeout(() => router.push("/wasteTracking/home"), 1000);
+
+        // Redirect based on user role
+        const redirectPath =
+          data.user.role === "admin" ? "/admin/users" : "/wasteTracking/home";
+        setTimeout(() => router.push(redirectPath), 1000);
       } else {
         if (response.status === 401) {
           showMessage("อีเมลหรือรหัสผ่านไม่ถูกต้อง", true);
