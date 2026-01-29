@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { Save } from "lucide-react"; 
+import { Save } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -43,7 +43,6 @@ export default function CarbonSummaryPage() {
 
     return (
         <>
-
             <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
                 <DialogContent className="sm:max-w-[320px] rounded-xl p-6 bg-white flex flex-col items-center [&>button]:hidden">
                     <div className="mb-2">
@@ -73,9 +72,6 @@ export default function CarbonSummaryPage() {
                     </div>
                 </DialogContent>
             </Dialog>
-
-
-
             <CardContentLarge className="">
 
                 <div className="w-full aspect-square bg-gray-100 rounded-2xl overflow-hidden mb-5 shadow-inner">
@@ -136,6 +132,11 @@ export default function CarbonSummaryPage() {
                 </div>
 
             </CardContentLarge>
+
+
+
+
+
         </>
     );
 }
