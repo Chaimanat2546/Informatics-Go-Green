@@ -8,6 +8,7 @@ import {
   User,
   LucideIcon,
   BarChart3,
+  ScanLine,
 } from "lucide-react";
 
 const pageConfig: Record<
@@ -50,6 +51,13 @@ export default function GlobalHeader() {
         title: "ประวัติการคัดแยก", 
         showBack: false,     
         icon: History,
+      };
+    } 
+    if (pathname.startsWith("/wasteTracking/wasteScaner/")) {
+      currentPage = {
+        title: "สแกนบาร์โค้ดขยะ", 
+        showBack: false,     
+        icon: ScanLine,
       };
     } 
   }
