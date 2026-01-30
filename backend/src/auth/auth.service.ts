@@ -340,14 +340,24 @@ export class AuthService {
 
     if (user) {
       // Update provider info if user logged in with different method before
+      let needsSave = false;
+
       if (user.provider !== provider) {
         user.provider = provider;
         user.providerId = providerId;
-        if (profilePicture) {
-          user.profilePicture = profilePicture;
-        }
+        needsSave = true;
+      }
+
+      // Always update profilePicture if a new one is provided from OAuth
+      if (profilePicture && user.profilePicture !== profilePicture) {
+        user.profilePicture = profilePicture;
+        needsSave = true;
+      }
+
+      if (needsSave) {
         await this.userRepository.save(user);
       }
+
       return user;
     }
 
