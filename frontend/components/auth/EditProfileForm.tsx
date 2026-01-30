@@ -14,6 +14,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button, ButtonWithIcon } from "@/components/ui/button";
+import { IconUser } from "@tabler/icons-react";
+import { toast } from "sonner";
 
 interface User {
   id: string;
@@ -177,10 +179,11 @@ export default function EditProfileForm({
       const data = await response.json();
 
       if (response.ok) {
-        setMessage("บันทึกข้อมูลสำเร็จ!");
         if (onUpdate) {
           onUpdate(data);
         }
+        toast.success("บันทึกข้อมูลสำเร็จ!");
+        router.push("/auth/dashboard");
       } else {
         if (Array.isArray(data.message)) {
           setError(data.message.join(", "));
@@ -220,11 +223,7 @@ export default function EditProfileForm({
             />
           ) : (
             <div className="w-full h-full bg-background flex justify-center items-center">
-              <span className="text-4xl text-white font-bold">
-                {firstName?.[0]?.toUpperCase() ||
-                  user?.email?.[0]?.toUpperCase() ||
-                  "?"}
-              </span>
+              <IconUser size={48} className="text-white" />
             </div>
           )}
           <div className="absolute bottom-0 left-0 right-0 h-8 bg-black/60 flex justify-center items-center">

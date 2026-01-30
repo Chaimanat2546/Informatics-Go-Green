@@ -3,6 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import { Button } from "../ui/button";
+import { IconUser } from "@tabler/icons-react";
 
 interface User {
   firstName: string;
@@ -34,9 +35,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
           />
         ) : (
           <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center">
-            <span className="text-2xl text-white font-bold">
-              {user.firstName?.[0]?.toUpperCase() || "?"}
-            </span>
+            <IconUser size={32} className="text-white" />
           </div>
         )}
         <div>
