@@ -21,6 +21,9 @@ export class MaterialGuide {
   @Column({ type: 'varchar', length: 255, nullable: true })
   recommendation: string;
 
+  @Column({ type: 'float', nullable: true })
+  weight: number;
+
   @CreateDateColumn({ type: 'date' })
   created_at: Date;
 

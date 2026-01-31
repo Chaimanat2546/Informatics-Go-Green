@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { WasteCategory } from './waste-category.entity';
 import { MaterialGuide } from './material-guide.entity';
+import { WasteHistory } from './waste-history.entity';
 
 @Entity('waste_meterial')
 export class WasteMaterial {
@@ -44,4 +45,7 @@ export class WasteMaterial {
 
   @OneToMany(() => MaterialGuide, (guide) => guide.wasteMaterial)
   materialGuides: MaterialGuide[];
+
+  @OneToMany(() => WasteHistory, (history) => history.wasteMaterial)
+  wasteHistories: WasteHistory[];
 }
