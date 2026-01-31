@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { Waste } from './waste.entity';
 import { User } from '../../users/user.entity';
+import { WasteMaterial } from './waste-material.entity';
 
 @Entity('waste_history')
 export class WasteHistory {
@@ -17,8 +18,14 @@ export class WasteHistory {
   @Column({ type: 'int' })
   amount: number;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  record_type: string;
+
   @CreateDateColumn({ type: 'date' })
   create_at: Date;
+
+  @Column({ type: 'bigint', nullable: true })
+  waste_meterialid: number;
 
   @Column({ type: 'bigint', nullable: true })
   wastesid: number;
@@ -31,7 +38,12 @@ export class WasteHistory {
   @JoinColumn({ name: 'wastesid' })
   waste: Waste;
 
+
   @ManyToOne(() => User)
   @JoinColumn({ name: 'userid' })
   user: User;
+
+  @ManyToOne(() => WasteMaterial, (material) => material.wasteHistories)
+  @JoinColumn({ name: 'waste_meterialid' })
+  wasteMaterial: WasteMaterial;
 }
