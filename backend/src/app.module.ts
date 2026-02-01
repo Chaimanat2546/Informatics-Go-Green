@@ -8,6 +8,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UploadModule } from './upload/upload.module';
 import { AdminModule } from './admin/admin.module';
+import { WasteModule } from './waste/waste.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { AdminModule } from './admin/admin.module';
     AuthModule,
     UploadModule,
     AdminModule,
+    WasteModule,
   ],
   controllers: [AppController],
   providers: [AppService],

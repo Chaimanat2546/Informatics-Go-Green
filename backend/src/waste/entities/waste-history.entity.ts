@@ -15,20 +15,20 @@ export class WasteHistory {
   @PrimaryGeneratedColumn({ type: 'bigint' })
   id: number;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'float', nullable: true })
   amount: number;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   record_type: string;
 
-  @CreateDateColumn({ type: 'date' })
+  @CreateDateColumn({ type: 'timestamp' })
   create_at: Date;
 
   @Column({ type: 'bigint', nullable: true })
   waste_meterialid: number;
 
   @Column({ type: 'bigint', nullable: true })
-  wastesid: number;
+  wastesid: number | null;
 
   @Column({ type: 'bigint', nullable: true })
   userid: number;
@@ -37,7 +37,6 @@ export class WasteHistory {
   @ManyToOne(() => Waste, (waste) => waste.wasteHistories)
   @JoinColumn({ name: 'wastesid' })
   waste: Waste;
-
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'userid' })

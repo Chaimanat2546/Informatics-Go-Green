@@ -16,72 +16,70 @@ export default function Home() {
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
     useEffect(() => {
+        
         const tokenFromUrl = searchParams.get('token');
         if (tokenFromUrl) {
             localStorage.setItem('token', tokenFromUrl);
-            window.history.replaceState({}, document.title, '/wasteTracking/home');
+            window.history.replaceState({}, document.title, window.location.pathname);
         }
+
+        
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
             try {
                 setUser(JSON.parse(storedUser));
-
+                setLoading(false); 
             } catch (e) {
                 console.error("Parse error", e);
             }
         }
-    }, [searchParams]);
-    useEffect(() => {
-        let ignore = false;
-        const token = localStorage.getItem('token');
 
-        if (!token) {
-            router.push('/wasteTracking/home');
-            return;
-        }
+        
+        const validateAndFetch = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setLoading(false);
+                return;
+            }
 
-        const fetchUserProfile = async () => {
             try {
                 const response = await fetch(`${API_URL}/auth/me`, {
-                    method: 'GET',
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { Authorization: `Bearer ${token}` }
                 });
-
-                if (ignore) return;
 
                 if (response.ok) {
                     const data = await response.json();
-                    setUser(data);
+                    setUser(data); 
                     localStorage.setItem('user', JSON.stringify(data));
-                } else {
+                } else if (response.status === 401) {
+                    
                     localStorage.removeItem('token');
                     localStorage.removeItem('user');
-                    router.push('/wasteTracking/home');
+                    setUser(null);
                 }
             } catch (error) {
-                console.error("Fetch error:", error);
+                console.error("Connection error", error);
             } finally {
-                if (!ignore) setLoading(false);
+                setLoading(false);
             }
         };
-        fetchUserProfile();
-        return () => {
-            ignore = true;
-        };
-    }, [router, API_URL]);
+
+        validateAndFetch();
+    }, [searchParams, API_URL]);
 
     if (loading && !user) {
-        return <>
-            <div onClick={() => { router.push('/auth/login') }} >
-                <HomePage title={`ยินดีต้อนรับ`} />
+        return <HomePage title="กำลังโหลดข้อมูล..." />;
+    }
+
+    if (!user) {
+        return (
+            <div onClick={() => router.push('/auth/login')}>
+                <HomePage title="ยินดีต้อนรับ" />
             </div>
-        </>;
+        );
     }
 
     return (
-        <HomePage title={`สวัสดี ${user?.firstName}`} />
+        <HomePage title={`สวัสดี ${user.firstName}`} />
     );
 }
