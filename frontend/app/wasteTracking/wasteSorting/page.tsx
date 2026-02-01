@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Filter, Search, Check, Loader2, SearchX } from "lucide-react";
 import { toast } from "sonner";
@@ -37,9 +37,10 @@ export default function WasteSortingPage() {
     const [weightInput, setWeightInput] = useState("");
     const [categories, setCategory] = useState<string[]>([]);
 
-    const API_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
-    const fetchCategories = async () => {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+
+
+    const fetchCategories = useCallback(async () => {
         try {
             const res = await fetch(`${API_URL}/waste/categories`);
             if (!res.ok) throw new Error("Failed to fetch categories");
@@ -50,35 +51,44 @@ export default function WasteSortingPage() {
             console.error("Error fetching categories:", error);
             toast.error("ไม่สามารถโหลดข้อมูลหมวดหมู่ได้");
         }
-    };
+    }, [API_URL]);
+
+
     useEffect(() => {
         fetchCategories();
-    }, []);
+    }, [fetchCategories]);
 
-    const fetchMaterials = async () => {
-            setLoading(true);
-            try {
-                const categoryParam = selectedCategory === "ทั้งหมด" ? "" : `&category_name=${selectedCategory}`;
-                const searchParam = searchQuery ? `&material_name=${searchQuery}` : "";
-                const res = await fetch(
-                    `${API_URL}/waste/waste-materials?page=${currentPage}${categoryParam}${searchParam}`
-                );
-                if (!res.ok) throw new Error("Failed to fetch");
-                const result = await res.json();
-                setWasteMaterials(result.data);
-                setPagination(result.pagination);
-            } catch (error) {
-                console.error("Error:", error);
-                toast.error("ไม่สามารถโหลดข้อมูลวัสดุได้");
-            } finally {
-                setLoading(false);
-            }
-        };
+    const fetchMaterials = useCallback(async () => {
+        setLoading(true);
+        try {
+            const categoryParam = selectedCategory === "ทั้งหมด" ? "" : `&category_name=${selectedCategory}`;
+            const searchParam = searchQuery ? `&material_name=${searchQuery}` : "";
+            const res = await fetch(
+                `${API_URL}/waste/waste-materials?page=${currentPage}${categoryParam}${searchParam}`
+            );
+            if (!res.ok) throw new Error("Failed to fetch");
+            const result = await res.json();
+            setWasteMaterials(result.data);
+            setPagination(result.pagination);
+        } catch (error) {
+            console.error("Error:", error);
+            toast.error("ไม่สามารถโหลดข้อมูลวัสดุได้");
+        } finally {
+            setLoading(false);
+        }
+    }, [API_URL, currentPage, selectedCategory, searchQuery]);
+
+   
     useEffect(() => {
-        fetchMaterials();
-        const debounce = setTimeout(fetchMaterials, 300);
-        return () => clearTimeout(debounce);
-    }, [currentPage, selectedCategory, searchQuery]);
+        if (searchQuery) {
+            const debounce = setTimeout(() => {
+                fetchMaterials();
+            }, 300);
+            return () => clearTimeout(debounce);
+        } else {
+            fetchMaterials();
+        }
+    }, [fetchMaterials,searchQuery]);
 
     const handleSelectCategory = (category: string) => {
         setSelectedCategory(category);

@@ -7,7 +7,7 @@ import { CheckCircle2, Leaf, Loader2, } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { WasteData} from "@/interfaces/Waste";
+import { WasteData } from "@/interfaces/Waste";
 
 
 export default function WasteHistoryDetail() {
@@ -18,10 +18,11 @@ export default function WasteHistoryDetail() {
     const [error, setError] = useState(Boolean(false));
     const router = useRouter();
 
-    const API_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
     useEffect(() => {
+        const API_URL =
+            process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+
         const fetchData = async () => {
             if (!wasteId) return;
             try {
@@ -123,7 +124,7 @@ export default function WasteHistoryDetail() {
                                                 alt="Component"
                                                 className="w-full h-full object-cover"
                                             />
-                                        ):(
+                                        ) : (
                                             <div className="w-full h-full flex items-center justify-center text-gray-300">?</div>
                                         )}
                                     </div>

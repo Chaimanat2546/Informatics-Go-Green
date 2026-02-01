@@ -44,10 +44,11 @@ export default function WasteHistoryPage() {
         return Math.floor(amount * 100);
     };
 
-    const API_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
     useEffect(() => {
+        const API_URL =
+            process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+
         const fetchHistory = async () => {
             const storedUser = localStorage.getItem('user');
             if (!storedUser) {

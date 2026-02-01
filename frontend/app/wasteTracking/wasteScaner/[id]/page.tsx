@@ -18,6 +18,15 @@ import {
 } from "@/components/ui/dialog";
 import { WasteData } from "@/interfaces/Waste";
 
+interface Error {
+    response?: {
+        data?: {
+            message?: string | string[];
+        };
+    };
+    message?: string;
+}
+
 export default function WasteDetailPage() {
     const params = useParams();
     const rawId = decodeURIComponent(params.id as string);
@@ -32,10 +41,12 @@ export default function WasteDetailPage() {
     const [isSaving, setIsSaving] = useState(false);
     const [userId, setUserId] = useState<string | null>(null);
 
-    const API_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
     useEffect(() => {
+        const API_URL =
+            process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+
+
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
             try {
@@ -52,19 +63,20 @@ export default function WasteDetailPage() {
                 const res = await fetch(`${API_URL}/waste/scan/${barcode.trim()}`);
                 if (!res.ok) {
                     if (res.status === 404) {
-                        throw new Error("NOT_FOUND"); 
+                        throw new Error("NOT_FOUND");
                     }
                     throw new Error("SERVER_ERROR");
                 }
                 const data = await res.json();
                 setWaste(data);
-            } catch (err: any) {
-                if (err.message === "NOT_FOUND") {
-                    setError("ขออภัย ไม่พบข้อมูลสินค้านี้ในระบบ");
-                } else {
-                    setError("ระบบขัดข้อง กรุณาลองใหม่อีกครั้งภายหลัง");
-                }
-                setWaste(null);
+            } catch (err: unknown) {
+                const error = err as Error;
+                console.error("Error Details:", error.response?.data?.message || error);
+                const serverMessage = Array.isArray(error.response?.data?.message)
+                    ? error.response?.data?.message.join(', ')
+                    : "เกิดข้อผิดพลาดในการบันทึก";
+
+                toast.error("บันทึกไม่สำเร็จ", { description: serverMessage });
             } finally {
                 setLoading(false);
             }
@@ -73,6 +85,9 @@ export default function WasteDetailPage() {
     }, [barcode]);
 
     const handleConfirmSave = async () => {
+        const API_URL =
+            process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+
         if (!userId) {
             toast.error("กรุณาเข้าสู่ระบบก่อนบันทึก");
             return;
@@ -99,11 +114,13 @@ export default function WasteDetailPage() {
                 router.push('/wasteTracking/home');
             }, 1000);
 
-        } catch (err: any) {
-            console.error("Error Details:", err.response?.data?.message || err);
-            const serverMessage = Array.isArray(err.response?.data?.message)
-                ? err.response?.data?.message.join(', ')
+        } catch (err: unknown) {
+            const error = err as Error;
+            console.error("Error Details:", error.response?.data?.message || error);
+            const serverMessage = Array.isArray(error.response?.data?.message)
+                ? error.response?.data?.message.join(', ')
                 : "เกิดข้อผิดพลาดในการบันทึก";
+
             toast.error("บันทึกไม่สำเร็จ", { description: serverMessage });
         } finally {
             setIsSaving(false);

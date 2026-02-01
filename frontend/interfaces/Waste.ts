@@ -3,7 +3,10 @@ export interface WasteMaterial {
     id: number;
     name: string;
     meterial_image: string;
+    material_name: string;
+    waste_category: Categories[];
     waste_categoriesid: Categories[];
+    emission_factor: number;
 }
 
 export interface Categories {

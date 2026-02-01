@@ -1,8 +1,8 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { Save, Loader2 } from "lucide-react"; 
-import { useRouter, useSearchParams } from "next/navigation"; 
+import { Save, Loader2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import {
@@ -15,20 +15,22 @@ import {
 } from "@/components/ui/dialog";
 import Image from "next/image";
 import { CardContentLarge } from "@/components/ui/card";
+import { WasteMaterial } from "@/interfaces/Waste";
 
 export default function CarbonSummaryPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [materialData, setMaterialData] = useState<any>(null);
+    const [materialData, setMaterialData] = useState<WasteMaterial | null>(null);
     const materialId = searchParams.get('materialId');
     const weight = parseFloat(searchParams.get('weight') || "0");
 
-    const API_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
-    
+
+
     useEffect(() => {
+        const API_URL =
+            process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
         const fetchDetail = async () => {
             if (!materialId) return;
             try {
@@ -54,6 +56,8 @@ export default function CarbonSummaryPage() {
     const points = weight * 100;
 
     const handleConfirmSave = async () => {
+        const API_URL =
+            process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
         setLoading(true);
         try {
             const storedUser = localStorage.getItem('user');
@@ -65,7 +69,7 @@ export default function CarbonSummaryPage() {
                 body: JSON.stringify({
                     meterialId: Number(materialId),
                     weight: weight,
-                    userId: user?.id 
+                    userId: user?.id
                 })
             });
 
@@ -77,6 +81,7 @@ export default function CarbonSummaryPage() {
             });
             router.push('/wasteTracking/home');
         } catch (err) {
+            console.error("Error saving data:", err);
             toast.error("เกิดข้อผิดพลาดในการบันทึก");
         } finally {
             setLoading(false);
@@ -122,9 +127,9 @@ export default function CarbonSummaryPage() {
 
             <CardContentLarge className="">
                 <div className="w-full aspect-square bg-gray-100 rounded-2xl overflow-hidden mb-5 shadow-inner relative">
-                    {materialData?.material_image && materialData.material_image.trim() !== "" ? (
+                    {materialData?.meterial_image && materialData.meterial_image.trim() !== "" ? (
                         <Image
-                            src={materialData.material_image}
+                            src={materialData.meterial_image}
                             alt={materialData.material_name || "waste"}
                             fill
                             className="object-cover mix-blend-multiply"
