@@ -60,7 +60,7 @@ export class WasteScannerService {
         waste.wasteSortings?.map((sorting) => ({
           id: sorting.id,
           name: sorting.name,
-          discription: sorting.description,
+          description: sorting.description,
         })) || [],
 
       material_guides:
