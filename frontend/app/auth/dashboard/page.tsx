@@ -138,7 +138,7 @@ function DashboardContent() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    router.push("/auth/login");
+    router.push("/wasteTracking/home");
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {

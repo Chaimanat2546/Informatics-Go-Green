@@ -33,11 +33,7 @@ import { WasteSortingService } from './services/waste-sorting.service';
     WasteHistoryController,
     WasteSortingController,
   ],
-  providers: [
-    WasteScannerService,
-    WasteHistoryService,
-    WasteSortingService,
-  ],
+  providers: [WasteScannerService, WasteHistoryService, WasteSortingService],
   exports: [TypeOrmModule],
 })
 export class WasteModule {}

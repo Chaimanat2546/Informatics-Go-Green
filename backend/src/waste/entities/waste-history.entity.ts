@@ -15,7 +15,7 @@ export class WasteHistory {
   @PrimaryGeneratedColumn({ type: 'bigint' })
   id: number;
 
-  @Column({ type: 'float' , nullable: true })
+  @Column({ type: 'float', nullable: true })
   amount: number;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
@@ -37,7 +37,6 @@ export class WasteHistory {
   @ManyToOne(() => Waste, (waste) => waste.wasteHistories)
   @JoinColumn({ name: 'wastesid' })
   waste: Waste;
-
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'userid' })
