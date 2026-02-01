@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Filter, Search, Check } from "lucide-react";
-import { toast } from "sonner"
+import { Filter, Search, Check, Loader2, SearchX } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,54 +17,68 @@ import {
 } from "@/components/ui/dialog";
 import Image from "next/image";
 import { CardContentLarge } from "@/components/ui/card";
-
-interface WasteItem {
-    id: number;
-    name: string;
-    category: string;
-    src: string;
-}
+import { Categories, WasteMaterial } from "@/interfaces/Waste";
 
 export default function WasteSortingPage() {
     const router = useRouter();
-
-    // Mock Data
-    const wasteTypes = [
-        { id: 1, name: 'กระดาษกล่อง', category: 'กระดาษ', src: "" },
-        { id: 2, name: 'หนังสือเก่า', category: 'กระดาษ', src: "" },
-        { id: 3, name: 'ขวดพลาสติกใส (PET)', category: 'พลาสติก', src: "" },
-        { id: 4, name: 'ฝาพลาสติกรวม', category: 'พลาสติก', src: "" },
-        { id: 5, name: 'หลอดพลาสติก', category: 'พลาสติก', src: "" },
-        { id: 6, name: 'กระป๋องอลูมิเนียม', category: 'โลหะ', src: "" },
-        { id: 7, name: 'แก้วพลาสติก (PET)', category: 'พลาสติก', src: "" },
-        { id: 8, name: 'โฟม', category: 'อื่นๆ', src: "" },
-        { id: 9, name: 'แก้วน้ำ', category: 'แก้ว', src: "" },
-        { id: 10, name: 'เศษเหล็ก', category: 'เหล็ก', src: "" },
-    ];
-
-    const categories = ["ทั้งหมด", "พลาสติก", "กระดาษ", "โลหะ", "แก้ว", "เหล็ก", "อื่นๆ"];
-
+    const [wasteMaterials, setWasteMaterials] = useState<WasteMaterial[]>([]);
+    const [pagination, setPagination] = useState({
+        current_page: 1,
+        total_pages: 1,
+        total_items: 0
+    });
+    const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState("ทั้งหมด");
-
+    const [searchQuery, setSearchQuery] = useState("");
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [selectedItem, setSelectedItem] = useState<WasteItem | null>(null);
+    const [selectedItem, setSelectedItem] = useState<WasteMaterial | null>(null);
     const [weightInput, setWeightInput] = useState("");
+    const [categories, setCategory] = useState<string[]>([]);
 
-    const itemsPerPage = 6;
+    const API_URL =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+    const fetchCategories = async () => {
+        try {
+            const res = await fetch(`${API_URL}/waste/categories`);
+            if (!res.ok) throw new Error("Failed to fetch categories");
+            const data = await res.json();
+            const categoryNames = data.data.map((cat: Categories) => cat.name);
+            setCategory(["ทั้งหมด", ...categoryNames]);
+        } catch (error) {
+            console.error("Error fetching categories:", error);
+            toast.error("ไม่สามารถโหลดข้อมูลหมวดหมู่ได้");
+        }
+    };
+    useEffect(() => {
+        fetchCategories();
+    }, []);
 
-    const filteredItems = wasteTypes.filter((item: WasteItem) => {
-        if (selectedCategory === "ทั้งหมด") return true;
-        return item.category === selectedCategory;
-    });
-
-    const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const currentItems = filteredItems.slice(startIndex, startIndex + itemsPerPage);
-
-    const handlePrevPage = () => { if (currentPage > 1) setCurrentPage(currentPage - 1); };
-    const handleNextPage = () => { if (currentPage < totalPages) setCurrentPage(currentPage + 1); };
+    const fetchMaterials = async () => {
+            setLoading(true);
+            try {
+                const categoryParam = selectedCategory === "ทั้งหมด" ? "" : `&category_name=${selectedCategory}`;
+                const searchParam = searchQuery ? `&material_name=${searchQuery}` : "";
+                const res = await fetch(
+                    `${API_URL}/waste/waste-materials?page=${currentPage}${categoryParam}${searchParam}`
+                );
+                if (!res.ok) throw new Error("Failed to fetch");
+                const result = await res.json();
+                setWasteMaterials(result.data);
+                setPagination(result.pagination);
+            } catch (error) {
+                console.error("Error:", error);
+                toast.error("ไม่สามารถโหลดข้อมูลวัสดุได้");
+            } finally {
+                setLoading(false);
+            }
+        };
+    useEffect(() => {
+        fetchMaterials();
+        const debounce = setTimeout(fetchMaterials, 300);
+        return () => clearTimeout(debounce);
+    }, [currentPage, selectedCategory, searchQuery]);
 
     const handleSelectCategory = (category: string) => {
         setSelectedCategory(category);
@@ -72,92 +86,75 @@ export default function WasteSortingPage() {
         setCurrentPage(1);
     };
 
-    const handleCardClick = (item: WasteItem) => {
-        setSelectedItem(item);
-        setWeightInput("");
-        setIsDialogOpen(true);
-    };
-
     const handleConfirm = () => {
-        if (!weightInput) {
-            toast.warning("เกิดข้อผิดพลาด", {
-                description: "กรุณากรอกน้ำหนักก่อนกดยืนยัน",
-            })
+        if (!weightInput || parseFloat(weightInput) <= 0) {
+            toast.warning("ข้อมูลไม่ครบถ้วน", {
+                description: "กรุณากรอกน้ำหนักที่ถูกต้องก่อนกดยืนยัน",
+            });
             return;
         }
-        console.log(`บันทึก: ${selectedItem?.name}, น้ำหนัก: ${weightInput} กก.`);
         setIsDialogOpen(false);
-        router.push('/wasteTracking/wasteSorting/carbonSummary')
+        router.push(`/wasteTracking/wasteSorting/carbonSummary?materialId=${selectedItem?.id}&weight=${weightInput}`);
     };
-    return (
-        < >
 
+    return (
+        <>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="sm:max-w-xs rounded-2xl p-6 bg-white [&>button]:hidden">
-
                     <DialogHeader className="flex flex-col items-center gap-4">
-                        {selectedItem && (
-                            <div className="w-48 h-48 bg-gray-100 rounded-lg overflow-hidden shadow-sm">
-                                {selectedItem.src === "" ? (<></>) : (
-                                    <Image
-                                        src={selectedItem.src}
-                                        alt={selectedItem.name}
-                                        fill
-                                        sizes="192px"
-                                        className="object-cover"
-                                    />)}
-                            </div>
-                        )}
+                        <div className="w-48 h-48 bg-gray-100 rounded-lg overflow-hidden relative shadow-sm">
+                            <Image
+                                src={selectedItem?.meterial_image || ""}
+                                alt={selectedItem?.name || "waste"}
+                                fill
+                                className="object-cover"
+                            />
+                        </div>
                         <DialogTitle className="text-lg font-bold text-gray-800 text-center">
                             {selectedItem?.name}
+
                         </DialogTitle>
                     </DialogHeader>
 
                     <div className="flex items-center gap-3 justify-center py-2">
-                        <Label htmlFor="weight" className="text-gray-600 text-sm font-medium">
-                            น้ำหนัก
-                        </Label>
+                        <Label htmlFor="weight" className="text-gray-600 text-sm font-medium">น้ำหนัก</Label>
                         <Input
                             id="weight"
                             type="number"
+                            step="0.1"
                             value={weightInput}
                             onChange={(e) => setWeightInput(e.target.value)}
                             className="w-24 text-center text-lg h-10 border-gray-300"
                             placeholder="0.0"
-                            autoFocus
                         />
                         <span className="text-gray-600 text-sm font-medium">กิโลกรัม</span>
                     </div>
 
-                    <DialogFooter className="flex flex-row  gap-2 sm:justify-between w-full mt-2">
+                    <DialogFooter className="flex flex-row gap-2 sm:justify-between w-full mt-2">
                         <DialogClose asChild>
-                            <Button type="button" variant="outline" className="flex-1 h-10 border-gray-300 text-gray-600">
-                                ยกเลิก
-                            </Button>
+                            <Button variant="outline" className="flex-1 h-10 border-gray-300 text-gray-600">ยกเลิก</Button>
                         </DialogClose>
-                        <Button
-                            type="submit"
-                            onClick={handleConfirm}
-                            className="flex-1 bg-[#5EA500] hover:bg-green-700 h-10 text-white"
-                        >
+                        <Button onClick={handleConfirm} className="flex-1 bg-[#5EA500] hover:bg-green-700 h-10 text-white">
                             ยืนยัน
                         </Button>
                     </DialogFooter>
-
                 </DialogContent>
             </Dialog>
 
-
-
-
-            <CardContentLarge className="">
+            <CardContentLarge >
                 <div className="flex gap-3 mb-6 relative z-20">
                     <div className="flex-1 relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                        <input type="text" placeholder="กรุณาระบุ" className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-green-500 transition-colors" />
+                        <input
+                            type="text"
+                            placeholder="ค้นหาวัสดุ..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-green-500"
+                        />
                     </div>
                     <div className="relative">
-                        <button onClick={() => setIsFilterOpen(!isFilterOpen)} className={`p-2.5 border rounded-xl transition-colors ${isFilterOpen ? 'bg-green-50 border-green-500' : 'border-gray-200 hover:bg-gray-50'}`}>
+                        <button onClick={() => setIsFilterOpen(!isFilterOpen)} className={`p-2.5 border rounded-xl ${isFilterOpen ? 'bg-green-50 border-green-500' : 'border-gray-200'}`}>
                             <Filter size={20} className={isFilterOpen ? "text-green-600" : "text-gray-600"} />
                         </button>
                         {isFilterOpen && (
@@ -173,49 +170,77 @@ export default function WasteSortingPage() {
                         )}
                     </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                    {currentItems.map((item) => (
-                        <div
-                            key={item.id}
-                            onClick={() => handleCardClick(item)}
-                            className="bg-[#E6F9EE] rounded-xl p-3 flex flex-col items-center gap-2 cursor-pointer hover:shadow-md transition-all active:scale-95"
-                        >
-                            <div className="w-full aspect-square bg-white rounded-lg overflow-hidden relative pointer-events-none">
-                                {item.src === "" ? (<></>) : (
-                                    <Image
-                                        src={item.src}
-                                        alt={item.name}
-                                        fill
-                                        width={200}
-                                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 200px"
-                                        className="object-cover"
-                                    />)}
-                            </div>
-                            <span className="text-xs font-semibold text-green-900 text-center pointer-events-none">
-                                {item.name}
-                            </span>
-                        </div>
-                    ))}
-                </div>
-                <div className="mt-auto flex justify-between items-center pt-4 border-t border-gray-100">
-                    <Button
-                        variant="ghost"
-                        onClick={handlePrevPage}
-                        disabled={currentPage === 1}
-                        className="text-gray-600 disabled:text-gray-300"
-                    >
-                        หน้าก่อนหน้า
-                    </Button>
-                    <span className="text-xs text-gray-400">หน้า {currentPage} จาก {totalPages}</span>
-                    <Button
-                        onClick={handleNextPage}
-                        disabled={currentPage === totalPages}
-                        className={`bg-[#5EA500] hover:bg-green-700 text-white ${currentPage === totalPages ? 'opacity-50' : ''}`}
-                    >
-                        หน้าถัดไป
-                    </Button>
-                </div>
 
+                <div className="flex flex-col min-h-158 h-full">
+
+                    <div className="flex-1 overflow-y-auto">
+                        {loading ? (
+                            <div className="flex justify-center items-center h-full min-h-75">
+                                <Loader2 className="animate-spin text-green-600" size={40} />
+                            </div>
+                        ) : pagination.total_items > 0 ? (
+                            <div className="grid grid-cols-2 gap-4 mb-6">
+                                {wasteMaterials.map((item) => (
+                                    <div
+                                        key={item.id}
+                                        onClick={() => {
+                                            setSelectedItem(item);
+                                            setWeightInput("");
+                                            setIsDialogOpen(true);
+                                        }}
+                                        className="bg-[#E6F9EE] rounded-xl p-3 flex flex-col items-center gap-2 cursor-pointer hover:shadow-md transition-all active:scale-95"
+                                    >
+                                        <div className="w-full aspect-square bg-white rounded-lg overflow-hidden relative">
+                                            <Image
+                                                src={item.meterial_image || ""}
+                                                alt={item.name}
+                                                fill
+                                                className="object-cover"
+                                            />
+                                        </div>
+                                        <div className="flex flex-col items-center">
+                                            <span className="text-xs font-semibold text-green-900 text-center line-clamp-1">
+                                                {item.name}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center h-full min-h-75 text-gray-500">
+                                <div className="bg-gray-50 p-4 rounded-full mb-4">
+                                    <SearchX size={48} className="text-gray-400" />
+                                </div>
+                                <p className="text-lg font-medium">ไม่พบข้อมูลในระบบ</p>
+                                <p className="text-sm opacity-70">กรุณาลองระบุคำค้นหาใหม่อีกครั้ง</p>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="mt-auto border-t border-gray-100 pt-4 pb-2">
+                        <div className="flex justify-between items-center">
+                            <Button
+                                variant="ghost"
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1 || loading}
+                                className="text-sm"
+                            >
+                                หน้าก่อนหน้า
+                            </Button>
+
+                            <span className="text-xs text-gray-400">
+                                {pagination.total_items === 0 ? 0 : pagination.current_page} / {pagination.total_pages}
+                            </span>
+                            <Button
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.total_pages))}
+                                disabled={currentPage >= pagination.total_pages || pagination.total_pages === 0 || loading}
+                                className="text-sm text-white"
+                            >
+                                หน้าถัดไป
+                            </Button>
+                        </div>
+                    </div>
+                </div>
             </CardContentLarge>
         </>
     );

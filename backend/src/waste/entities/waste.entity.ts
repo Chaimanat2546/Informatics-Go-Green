@@ -24,7 +24,7 @@ export class Waste {
   @Column({ type: 'varchar', length: 255, nullable: true })
   waste_image: string;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ type: 'bigint', nullable: true })
   barcode: number;
 
   @CreateDateColumn({ type: 'date' })

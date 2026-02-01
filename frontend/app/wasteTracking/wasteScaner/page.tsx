@@ -12,7 +12,6 @@ export default function ScanBarcodePage() {
     const videoRef = useRef<HTMLVideoElement>(null);
     const controlsRef = useRef<IScannerControls | null>(null);
     const [errorMsg, setErrorMsg] = useState<string>('');
-    
     const [isScanning, setIsScanning] = useState(true); 
 
     useEffect(() => {
@@ -21,7 +20,6 @@ export default function ScanBarcodePage() {
 
         const startScanning = async () => {
             try {
-                // เลือกกล้องหลัง
                 const videoInputDevices = await BrowserMultiFormatReader.listVideoInputDevices();
                 const selectedDeviceId = videoInputDevices.find(device => 
                     device.label.toLowerCase().includes('back') || 
@@ -30,20 +28,15 @@ export default function ScanBarcodePage() {
 
                 if (!mounted || !videoRef.current) return;
 
-                // เริ่มสแกน
                 const controls = await codeReader.decodeFromVideoDevice(
                     selectedDeviceId,
                     videoRef.current,
                     (result: Result | undefined | null, error: unknown) => {
                         if (result && mounted) {
                             const currentText = result.getText();
-                            
                             controls.stop();
                             mounted = false; 
                             setIsScanning(false);
-
-                            console.log('Scanned:', currentText);
-
                             router.push(`/wasteTracking/wasteScaner/id=${encodeURIComponent(currentText)}`);
                             return;
                         }
@@ -81,7 +74,6 @@ export default function ScanBarcodePage() {
 
     return (
         <div className="fixed inset-0 bg-black z-0 flex flex-col">
-            
             <video 
                 ref={videoRef} 
                 className="absolute inset-0 w-full h-full object-cover" 
@@ -90,14 +82,11 @@ export default function ScanBarcodePage() {
             />
 
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none">
-                
                 <div className="relative w-[280px] h-[280px] rounded-3xl shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]">
-                    
                     <div className="absolute top-0 left-0 w-10 h-10 border-l-[6px] border-t-[6px] border-white rounded-tl-2xl -translate-x-1 -translate-y-1"></div>
                     <div className="absolute top-0 right-0 w-10 h-10 border-r-[6px] border-t-[6px] border-white rounded-tr-2xl translate-x-1 -translate-y-1"></div>
                     <div className="absolute bottom-0 left-0 w-10 h-10 border-l-[6px] border-b-[6px] border-white rounded-bl-2xl -translate-x-1 translate-y-1"></div>
                     <div className="absolute bottom-0 right-0 w-10 h-10 border-r-[6px] border-b-[6px] border-white rounded-br-2xl translate-x-1 translate-y-1"></div>
-
                     {isScanning && (
                         <div className="absolute top-1/2 left-4 right-4 h-0.5 bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)] animate-pulse"></div>
                     )}
@@ -124,7 +113,7 @@ export default function ScanBarcodePage() {
             <button 
                 onClick={() => {
                     controlsRef.current?.stop();
-                    router.back();
+                    router.push("/wasteTracking/home");
                 }}
                 className="absolute top-6 left-6 z-20 bg-white/30 backdrop-blur-md p-2.5 rounded-xl border border-white/20 shadow-lg active:scale-95 transition-transform"
             >
