@@ -255,10 +255,11 @@ export class CarbonFootprintSchedulerService {
 
     // Fallback to first method if no default is set
     if (!wasteManagementMethod) {
-      wasteManagementMethod =
-        await this.wasteManagementMethodRepository.findOne({
-          order: { id: 'ASC' },
-        });
+      const methods = await this.wasteManagementMethodRepository.find({
+        order: { id: 'ASC' },
+        take: 1,
+      });
+      wasteManagementMethod = methods[0] || null;
     }
 
     // Calculate transport emission (if management method exists)
