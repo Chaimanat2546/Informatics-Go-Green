@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { UploadModule } from './upload/upload.module';
 import { AdminModule } from './admin/admin.module';
 import { WasteModule } from './waste/waste.module';
+import { SchedulerModule } from './scheduler/scheduler.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { WasteModule } from './waste/waste.module';
     UploadModule,
     AdminModule,
     WasteModule,
+    SchedulerModule,
   ],
   controllers: [AppController],
   providers: [AppService],

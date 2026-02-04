@@ -55,6 +55,11 @@ export default function AdminSidebar({ user }: AdminSidebarProps) {
           label: "ตั้งค่า Emission Factor",
           path: "/admin/emission-factor",
         },
+        {
+          id: "carbon-footprint",
+          label: "คำนวณ Carbon Footprint",
+          path: "/admin/carbon-footprint",
+        },
       ],
     },
     {
