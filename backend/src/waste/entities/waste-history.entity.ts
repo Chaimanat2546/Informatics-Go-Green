@@ -4,11 +4,13 @@ import {
   Column,
   CreateDateColumn,
   ManyToOne,
+  OneToMany,
   JoinColumn,
 } from 'typeorm';
 import { Waste } from './waste.entity';
 import { User } from '../../users/user.entity';
 import { WasteMaterial } from './waste-material.entity';
+import { WasteCalculateLog } from './waste-calculate-log.entity';
 
 @Entity('waste_history')
 export class WasteHistory {
@@ -33,6 +35,26 @@ export class WasteHistory {
   @Column({ type: 'bigint', nullable: true })
   userid: number;
 
+  // Carbon Footprint Calculation Fields
+  @Column({
+    type: 'varchar',
+    length: 20,
+    default: 'pending',
+  })
+  calculation_status: string;
+
+  @Column({ type: 'float', nullable: true })
+  carbon_footprint: number;
+
+  @Column({ type: 'int', default: 0 })
+  retry_count: number;
+
+  @Column({ type: 'timestamp', nullable: true })
+  last_calculation_attempt: Date;
+
+  @Column({ type: 'text', nullable: true })
+  error_message: string;
+
   // Relations
   @ManyToOne(() => Waste, (waste) => waste.wasteHistories)
   @JoinColumn({ name: 'wastesid' })
@@ -45,4 +67,7 @@ export class WasteHistory {
   @ManyToOne(() => WasteMaterial, (material) => material.wasteHistories)
   @JoinColumn({ name: 'waste_meterialid' })
   wasteMaterial: WasteMaterial;
+
+  @OneToMany(() => WasteCalculateLog, (log) => log.wasteHistory)
+  wasteCalculateLogs: WasteCalculateLog[];
 }
