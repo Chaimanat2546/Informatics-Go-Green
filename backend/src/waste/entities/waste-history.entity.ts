@@ -71,5 +71,3 @@ export class WasteHistory {
   @OneToMany(() => WasteCalculateLog, (log) => log.wasteHistory)
   wasteCalculateLogs: WasteCalculateLog[];
 }
-
-

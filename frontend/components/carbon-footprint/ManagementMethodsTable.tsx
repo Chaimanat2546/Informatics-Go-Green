@@ -27,15 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Truck,
-  Plus,
-  Edit2,
-  Trash2,
-  Loader2,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { Truck, Plus, Edit2, Trash2, Loader2 } from "lucide-react";
 
 export interface ManagementMethod {
   id: number;

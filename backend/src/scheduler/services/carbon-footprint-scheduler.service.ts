@@ -52,13 +52,17 @@ export class CarbonFootprintSchedulerService {
 
     const lockAcquired = await this.acquireLock();
     if (!lockAcquired) {
-      this.logger.warn('Could not acquire lock. Another instance might be processing.');
+      this.logger.warn(
+        'Could not acquire lock. Another instance might be processing.',
+      );
       return;
     }
 
     try {
       await this.processAllPendingRecords();
-      this.logger.log('Daily carbon footprint calculation completed successfully.');
+      this.logger.log(
+        'Daily carbon footprint calculation completed successfully.',
+      );
     } catch (error) {
       this.logger.error('Error during carbon footprint calculation:', error);
     } finally {
@@ -142,8 +146,10 @@ export class CarbonFootprintSchedulerService {
     // Filter out records that have exceeded retry limit
     const recordsToProcess = pendingRecords.filter(
       (record) =>
-        record.calculation_status === CalculationStatus.PENDING ||
-        (record.calculation_status === CalculationStatus.FAILED &&
+        (record.calculation_status as CalculationStatus) ===
+          CalculationStatus.PENDING ||
+        ((record.calculation_status as CalculationStatus) ===
+          CalculationStatus.FAILED &&
           (record.retry_count || 0) < MAX_RETRY_COUNT),
     );
 
@@ -166,11 +172,14 @@ export class CarbonFootprintSchedulerService {
         await this.wasteHistoryRepository.save(record);
 
         success++;
-        this.logger.debug(`Calculated carbon footprint for record ${record.id}: ${carbonFootprint}`);
+        this.logger.debug(
+          `Calculated carbon footprint for record ${record.id}: ${carbonFootprint}`,
+        );
       } catch (error) {
         const retryCount = (record.retry_count || 0) + 1;
         record.retry_count = retryCount;
-        record.error_message = error instanceof Error ? error.message : 'Unknown error';
+        record.error_message =
+          error instanceof Error ? error.message : 'Unknown error';
 
         if (retryCount >= MAX_RETRY_COUNT) {
           record.calculation_status = CalculationStatus.ERROR;
@@ -211,7 +220,8 @@ export class CarbonFootprintSchedulerService {
     }
 
     // Get waste material
-    let wasteMaterial: WasteMaterial | null | undefined = wasteHistory.wasteMaterial;
+    let wasteMaterial: WasteMaterial | null | undefined =
+      wasteHistory.wasteMaterial;
     if (!wasteMaterial && wasteHistory.waste_meterialid) {
       wasteMaterial = await this.wasteMaterialRepository.findOne({
         where: { id: wasteHistory.waste_meterialid },
@@ -227,31 +237,40 @@ export class CarbonFootprintSchedulerService {
     }
 
     // Calculate material emission
-    const materialEmission = wasteHistory.amount * wasteMaterial.emission_factor;
+    const materialEmission =
+      wasteHistory.amount * wasteMaterial.emission_factor;
 
     // Get default waste management method from settings
     let wasteManagementMethod: WasteManagementMethod | null = null;
-    const defaultMethodId = await this.schedulerSettingsService.getSetting('default_management_method_id');
-    
+    const defaultMethodId = await this.schedulerSettingsService.getSetting(
+      'default_management_method_id',
+    );
+
     if (defaultMethodId) {
-      wasteManagementMethod = await this.wasteManagementMethodRepository.findOne({
-        where: { id: parseInt(defaultMethodId, 10) },
-      });
+      wasteManagementMethod =
+        await this.wasteManagementMethodRepository.findOne({
+          where: { id: parseInt(defaultMethodId, 10) },
+        });
     }
-    
+
     // Fallback to first method if no default is set
     if (!wasteManagementMethod) {
-      wasteManagementMethod = await this.wasteManagementMethodRepository.findOne({
-        order: { id: 'ASC' },
-      });
+      wasteManagementMethod =
+        await this.wasteManagementMethodRepository.findOne({
+          order: { id: 'ASC' },
+        });
     }
 
     // Calculate transport emission (if management method exists)
     let transportEmission = 0;
-    if (wasteManagementMethod && 
-        wasteManagementMethod.transport_km && 
-        wasteManagementMethod.transport_co2e_per_km) {
-      transportEmission = wasteManagementMethod.transport_km * wasteManagementMethod.transport_co2e_per_km;
+    if (
+      wasteManagementMethod &&
+      wasteManagementMethod.transport_km &&
+      wasteManagementMethod.transport_co2e_per_km
+    ) {
+      transportEmission =
+        wasteManagementMethod.transport_km *
+        wasteManagementMethod.transport_co2e_per_km;
     }
 
     // Total carbon footprint
@@ -271,9 +290,9 @@ export class CarbonFootprintSchedulerService {
 
     this.logger.debug(
       `Log created for record ${wasteHistory.id}: ` +
-      `Material=${materialEmission.toFixed(3)}, ` +
-      `Transport=${transportEmission.toFixed(3)}, ` +
-      `Total=${roundedTotal}`
+        `Material=${materialEmission.toFixed(3)}, ` +
+        `Transport=${transportEmission.toFixed(3)}, ` +
+        `Total=${roundedTotal}`,
     );
 
     return roundedTotal;
@@ -378,14 +397,16 @@ export class CarbonFootprintSchedulerService {
   /**
    * Get pending waste records for display in admin panel
    */
-  async getPendingWasteRecords(limit: number = 50): Promise<Array<{
-    id: number;
-    amount: number;
-    materialName: string;
-    status: string;
-    created_at: string;
-    retryCount: number;
-  }>> {
+  async getPendingWasteRecords(limit: number = 50): Promise<
+    Array<{
+      id: number;
+      amount: number;
+      materialName: string;
+      status: string;
+      created_at: string;
+      retryCount: number;
+    }>
+  > {
     const records = await this.wasteHistoryRepository.find({
       where: [
         { calculation_status: CalculationStatus.PENDING },
@@ -396,7 +417,7 @@ export class CarbonFootprintSchedulerService {
       take: limit,
     });
 
-    return records.map(record => ({
+    return records.map((record) => ({
       id: record.id,
       amount: record.amount || 0,
       materialName: record.wasteMaterial?.name || 'Unknown',
@@ -406,4 +427,3 @@ export class CarbonFootprintSchedulerService {
     }));
   }
 }
-

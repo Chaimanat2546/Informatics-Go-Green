@@ -1,9 +1,4 @@
-import {
-  Entity,
-  Column,
-  PrimaryColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Entity, Column, PrimaryColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity('scheduler_locks')
 export class SchedulerLock {

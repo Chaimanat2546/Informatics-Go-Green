@@ -4,13 +4,13 @@ import { Repository } from 'typeorm';
 import { WasteMaterial } from '../../waste/entities/waste-material.entity';
 
 export interface CarbonFootprintInput {
-  amount: number;           // ปริมาณขยะ
+  amount: number; // ปริมาณขยะ
   wasteMaterialId?: number; // ID ของ waste material (ถ้ามี)
-  emissionFactor?: number;  // ค่า emission factor โดยตรง (ถ้าไม่มี wasteMaterialId)
+  emissionFactor?: number; // ค่า emission factor โดยตรง (ถ้าไม่มี wasteMaterialId)
 }
 
 export interface CarbonFootprintResult {
-  carbonFootprint: number;  // kg CO2e
+  carbonFootprint: number; // kg CO2e
   amount: number;
   emissionFactor: number;
   unit: string;
@@ -26,7 +26,7 @@ export class CarbonFootprintCalculatorService {
   /**
    * คำนวณ Carbon Footprint จาก amount และ emission factor
    * สูตร: Carbon Footprint (kg CO2e) = amount × emission_factor
-   * 
+   *
    * @param amount - ปริมาณขยะ
    * @param emissionFactor - ค่า emission factor
    * @returns Carbon Footprint in kg CO2e
@@ -45,7 +45,7 @@ export class CarbonFootprintCalculatorService {
 
   /**
    * คำนวณ Carbon Footprint โดยใช้ waste material ID
-   * 
+   *
    * @param amount - ปริมาณขยะ
    * @param wasteMaterialId - ID ของ WasteMaterial entity
    * @returns CarbonFootprintResult
@@ -62,8 +62,13 @@ export class CarbonFootprintCalculatorService {
       throw new Error(`Waste material with ID ${wasteMaterialId} not found`);
     }
 
-    if (material.emission_factor === null || material.emission_factor === undefined) {
-      throw new Error(`Emission factor is not set for material: ${material.name}`);
+    if (
+      material.emission_factor === null ||
+      material.emission_factor === undefined
+    ) {
+      throw new Error(
+        `Emission factor is not set for material: ${material.name}`,
+      );
     }
 
     const carbonFootprint = this.calculate(amount, material.emission_factor);
@@ -78,7 +83,7 @@ export class CarbonFootprintCalculatorService {
 
   /**
    * คำนวณ Carbon Footprint สำหรับหลาย items พร้อมกัน
-   * 
+   *
    * @param items - Array of { amount, wasteMaterialId }
    * @returns Total carbon footprint และ breakdown
    */

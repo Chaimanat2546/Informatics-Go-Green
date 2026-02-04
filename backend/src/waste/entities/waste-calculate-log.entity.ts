@@ -45,5 +45,3 @@ export class WasteCalculateLog {
   @JoinColumn({ name: 'waste_management_methodid' })
   wasteManagementMethod: WasteManagementMethod;
 }
-
-

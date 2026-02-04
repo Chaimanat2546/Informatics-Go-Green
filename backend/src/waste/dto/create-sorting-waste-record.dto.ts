@@ -5,7 +5,7 @@ import {
   IsNumber,
   IsOptional,
   IsEnum,
-} from 'class-validator'; 
+} from 'class-validator';
 
 export class CreateWasteSortingRecordDto {
   @IsString()

@@ -25,10 +25,15 @@ import { WasteCalculateLog } from '../waste/entities/waste-calculate-log.entity'
     ]),
   ],
   controllers: [SchedulerController],
-  providers: [CarbonFootprintSchedulerService, CarbonFootprintCalculatorService, SchedulerSettingsService],
-  exports: [CarbonFootprintSchedulerService, CarbonFootprintCalculatorService, SchedulerSettingsService],
+  providers: [
+    CarbonFootprintSchedulerService,
+    CarbonFootprintCalculatorService,
+    SchedulerSettingsService,
+  ],
+  exports: [
+    CarbonFootprintSchedulerService,
+    CarbonFootprintCalculatorService,
+    SchedulerSettingsService,
+  ],
 })
 export class SchedulerModule {}
-
-
-

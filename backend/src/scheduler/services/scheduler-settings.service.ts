@@ -69,7 +69,11 @@ export class SchedulerSettingsService implements OnModuleInit {
   }
 
   // Keys that should be displayed in UI
-  private readonly allowedSettingKeys = ['cron_time', 'auto_calculate_enabled', 'default_management_method_id'];
+  private readonly allowedSettingKeys = [
+    'cron_time',
+    'auto_calculate_enabled',
+    'default_management_method_id',
+  ];
 
   /**
    * Get all settings (only user-editable ones)
@@ -79,7 +83,7 @@ export class SchedulerSettingsService implements OnModuleInit {
       order: { key: 'ASC' },
     });
     // Filter to only return allowed settings
-    return allSettings.filter(s => this.allowedSettingKeys.includes(s.key));
+    return allSettings.filter((s) => this.allowedSettingKeys.includes(s.key));
   }
 
   /**
@@ -105,7 +109,10 @@ export class SchedulerSettingsService implements OnModuleInit {
   /**
    * Get setting as boolean
    */
-  async getSettingAsBoolean(key: string, defaultValue: boolean): Promise<boolean> {
+  async getSettingAsBoolean(
+    key: string,
+    defaultValue: boolean,
+  ): Promise<boolean> {
     const value = await this.getSetting(key);
     if (value === null) return defaultValue;
     return value === 'true';
@@ -114,7 +121,10 @@ export class SchedulerSettingsService implements OnModuleInit {
   /**
    * Update a setting
    */
-  async updateSetting(key: string, value: string): Promise<SchedulerSettings | null> {
+  async updateSetting(
+    key: string,
+    value: string,
+  ): Promise<SchedulerSettings | null> {
     const setting = await this.settingsRepository.findOne({
       where: { key },
     });
@@ -130,7 +140,9 @@ export class SchedulerSettingsService implements OnModuleInit {
   /**
    * Update multiple settings
    */
-  async updateSettings(updates: Array<{ key: string; value: string }>): Promise<void> {
+  async updateSettings(
+    updates: Array<{ key: string; value: string }>,
+  ): Promise<void> {
     for (const update of updates) {
       await this.updateSetting(update.key, update.value);
     }
@@ -232,8 +244,10 @@ export class SchedulerSettingsService implements OnModuleInit {
     }
 
     if (data.name !== undefined) method.name = data.name;
-    if (data.transport_km !== undefined) method.transport_km = data.transport_km;
-    if (data.transport_co2e_per_km !== undefined) method.transport_co2e_per_km = data.transport_co2e_per_km;
+    if (data.transport_km !== undefined)
+      method.transport_km = data.transport_km;
+    if (data.transport_co2e_per_km !== undefined)
+      method.transport_co2e_per_km = data.transport_co2e_per_km;
 
     return this.wasteManagementMethodRepository.save(method);
   }
@@ -246,4 +260,3 @@ export class SchedulerSettingsService implements OnModuleInit {
     return (result.affected || 0) > 0;
   }
 }
-

@@ -1,4 +1,15 @@
-import { Controller, Post, Get, Put, Delete, Body, Param, HttpCode, HttpStatus, Query } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Put,
+  Delete,
+  Body,
+  Param,
+  HttpCode,
+  HttpStatus,
+  Query,
+} from '@nestjs/common';
 import { CarbonFootprintSchedulerService } from '../services/carbon-footprint-scheduler.service';
 import { CarbonFootprintCalculatorService } from '../services/carbon-footprint-calculator.service';
 import { SchedulerSettingsService } from '../services/scheduler-settings.service';
@@ -51,7 +62,7 @@ export class SchedulerController {
   async getPendingWasteRecords(@Query('limit') limit?: string) {
     const records =
       await this.carbonFootprintSchedulerService.getPendingWasteRecords(
-        limit ? parseInt(limit, 10) : 50
+        limit ? parseInt(limit, 10) : 50,
       );
 
     return {
@@ -289,7 +300,8 @@ export class SchedulerController {
    */
   @Get('management-methods')
   async getAllManagementMethods() {
-    const methods = await this.schedulerSettingsService.getAllWasteManagementMethods();
+    const methods =
+      await this.schedulerSettingsService.getAllWasteManagementMethods();
     return {
       success: true,
       data: methods,
@@ -302,7 +314,8 @@ export class SchedulerController {
    */
   @Post('management-methods')
   async createManagementMethod(
-    @Body() body: {
+    @Body()
+    body: {
       name: string;
       process_type?: number;
       transport_km?: number;
@@ -316,7 +329,8 @@ export class SchedulerController {
       };
     }
 
-    const method = await this.schedulerSettingsService.createWasteManagementMethod(body);
+    const method =
+      await this.schedulerSettingsService.createWasteManagementMethod(body);
     return {
       success: true,
       message: 'Management method created successfully',
@@ -331,7 +345,8 @@ export class SchedulerController {
   @Put('management-methods/:id')
   async updateManagementMethod(
     @Param('id') id: string,
-    @Body() body: {
+    @Body()
+    body: {
       name?: string;
       process_type?: number;
       transport_km?: number;
@@ -346,7 +361,11 @@ export class SchedulerController {
       };
     }
 
-    const method = await this.schedulerSettingsService.updateWasteManagementMethod(methodId, body);
+    const method =
+      await this.schedulerSettingsService.updateWasteManagementMethod(
+        methodId,
+        body,
+      );
     if (!method) {
       return {
         success: false,
@@ -375,7 +394,8 @@ export class SchedulerController {
       };
     }
 
-    const deleted = await this.schedulerSettingsService.deleteWasteManagementMethod(methodId);
+    const deleted =
+      await this.schedulerSettingsService.deleteWasteManagementMethod(methodId);
     if (!deleted) {
       return {
         success: false,
@@ -389,5 +409,3 @@ export class SchedulerController {
     };
   }
 }
-
-
