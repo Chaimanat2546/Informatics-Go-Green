@@ -4,8 +4,8 @@ import React from "react";
 import {
   FormInput,
   FormSelect,
-} from "@/components/systemConfig/FormEmissionFactor";
-import { ImageUploadSection } from "@/components/systemConfig/ImageUploadSection";
+} from "@/components/system-config/FormEmissionFactor";
+import { ImageUploadSection } from "@/components/system-config/ImageUploadSection";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 
 export default function AddEmissionFactor() {

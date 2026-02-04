@@ -1,8 +1,8 @@
 "use client";
 
 import { Plus } from 'lucide-react';
-import { SearchInput } from '@/components/systemConfig/SearchInputEF';
-import { EmissionTable } from '@/components/systemConfig/EmissionTable';
+import { SearchInput } from '@/components/system-config/SearchInputEF';
+import { EmissionTable } from '@/components/system-config/EmissionTable';
 
 export default function EmissionFactorPage() {
   const mockData = Array(9).fill({

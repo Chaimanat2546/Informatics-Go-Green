@@ -5,7 +5,7 @@ import Image from "next/image"; // นำเข้า Image component
 import {
   FormInput,
   FormSelect,
-} from "@/components/systemConfig/FormEmissionFactor";
+} from "@/components/system-config/FormEmissionFactor";
 import { useRouter } from "next/navigation";
 
 export default function ViewEmissionFactor() {
