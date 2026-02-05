@@ -1,8 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Enable standalone output for Docker production builds
-  output: "standalone",
+  // Enable standalone output only for Docker production builds
+  // Set NEXT_OUTPUT=standalone when building for Docker
+  ...(process.env.NEXT_OUTPUT === "standalone" && { output: "standalone" }),
   images: {
     unoptimized: process.env.NODE_ENV === "development",
     remotePatterns: [
