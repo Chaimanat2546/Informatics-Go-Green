@@ -31,7 +31,8 @@ import { SchedulerModule } from './scheduler/scheduler.module';
         password: configService.get('DATABASE_PASSWORD', 'postgres'),
         database: configService.get('DATABASE_NAME', 'informatics_go_green'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: configService.get('NODE_ENV') !== 'production',
+        // TODO: Set to false after initial deployment and tables are created
+        synchronize: true, // Temporarily enabled for initial table creation
         logging: configService.get('NODE_ENV') !== 'production',
       }),
       inject: [ConfigService],
