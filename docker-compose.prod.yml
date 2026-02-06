@@ -35,8 +35,8 @@ services:
       DATABASE_USER: ${POSTGRES_USER}
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
       DATABASE_NAME: ${POSTGRES_DB}
-    expose:
-      - "3001"
+    ports:
+      - "8081:3001"
     depends_on:
       postgres:
         condition: service_healthy
@@ -55,8 +55,8 @@ services:
     restart: always
     environment:
       NODE_ENV: production
-    expose:
-      - "3000"
+    ports:
+      - "8080:3000"
     depends_on:
       - backend
     networks:
