@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Informatics Go Green</title>
+</head>
+<body>
+    <h1>Dashboard</h1>
+    
+    <div id="message"></div>
+    
+    <div id="loading">Loading...</div>
+    
+    <div id="userInfo" style="display: none;">
+        <h2>Welcome, <span id="userName"></span>!</h2>
+        <p><strong>Email:</strong> <span id="userEmail"></span></p>
+        <p><strong>First Name:</strong> <span id="userFirstName"></span></p>
+        <p><strong>Last Name:</strong> <span id="userLastName"></span></p>
+        <p><strong>Login Provider:</strong> <span id="userProvider"></span></p>
+        <p><strong>Account Created:</strong> <span id="userCreatedAt"></span></p>
+        <br>
+        <button id="logoutBtn">Logout</button>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3001/api';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const tokenFromUrl = urlParams.get('token');
+        
+        if (tokenFromUrl) {
+            localStorage.setItem('token', tokenFromUrl);
+            window.history.replaceState({}, document.title, 'dashboard.html');
+        }
+
+        const token = localStorage.getItem('token');
+
+        function showMessage(text, isError = false) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.style.color = isError ? 'red' : 'green';
+        }
+
+        if (!token) {
+            window.location.href = 'login.html';
+        } else {
+            fetchUserProfile();
+        }
+
+        async function fetchUserProfile() {
+            try {
+                const response = await fetch(`${API_URL}/auth/me`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('userInfo').style.display = 'block';
+                    
+                    document.getElementById('userName').textContent = `${data.firstName} ${data.lastName}`;
+                    document.getElementById('userEmail').textContent = data.email;
+                    document.getElementById('userFirstName').textContent = data.firstName;
+                    document.getElementById('userLastName').textContent = data.lastName;
+                    document.getElementById('userProvider').textContent = data.provider || 'local';
+                    document.getElementById('userCreatedAt').textContent = new Date(data.createdAt).toLocaleString();
+                } else {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    window.location.href = 'login.html';
+                }
+            } catch (error) {
+                showMessage('Network error. Please try again.', true);
+                document.getElementById('loading').textContent = 'Failed to load user data';
+            }
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        });
+    </script>
+</body>
+</html>

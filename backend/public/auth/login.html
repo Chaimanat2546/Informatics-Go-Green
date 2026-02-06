@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Informatics Go Green</title>
+</head>
+<body>
+    <h1>Login</h1>
+    
+    <div id="message"></div>
+    
+    <form id="loginForm">
+        <div>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        <br>
+        <div>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <br>
+        <button type="submit">Login</button>
+    </form>
+    
+    <p><a href="forgot-password.html">Forgot Password?</a></p>
+    
+    <hr>
+    
+    <h3>Or login with:</h3>
+    <button id="googleBtn">Login with Google</button>
+    <button id="facebookBtn">Login with Facebook</button>
+    
+    <hr>
+    
+    <p>Don't have an account? <a href="register.html">Register here</a></p>
+
+    <script>
+        const API_URL = 'http://localhost:3001/api';
+
+        const token = localStorage.getItem('token');
+        if (token) {
+            window.location.href = 'dashboard.html';
+        }
+
+        function showMessage(text, isError = false) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.style.color = isError ? 'red' : 'green';
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('token', data.accessToken);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    showMessage('Login successful! Redirecting...');
+                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
+                } else {
+                    showMessage(data.message || 'Login failed', true);
+                }
+            } catch (error) {
+                showMessage('Network error. Please try again.', true);
+            }
+        });
+
+        document.getElementById('googleBtn').addEventListener('click', () => {
+            window.location.href = `${API_URL}/auth/google`;
+        });
+
+        document.getElementById('facebookBtn').addEventListener('click', () => {
+            window.location.href = `${API_URL}/auth/facebook`;
+        });
+    </script>
+</body>
+</html>
