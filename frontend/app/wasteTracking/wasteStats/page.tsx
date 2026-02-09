@@ -6,16 +6,6 @@ import WasteBarChart from "@/components/wasteTracking/WasteBarChart"
 import WastePieChart from "@/components/wasteTracking/WastePieChart"
 import { BarChart3, Leaf } from "lucide-react"
 
-
-const data = [
-  { name: 'พลาสติก', value: 50, color: '#4ADE80' }, 
-  { name: 'กระดาษ', value: 20, color: '#FDE047' },
-  { name: 'แก้ว', value: 15, color: '#93C5FD' },   
-  { name: 'อื่นๆ', value: 10, color: '#D8B4FE' },   
-  { name: 'เหล็ก', value: 2.5, color: '#EF4444' },  
-  { name: 'โลหะ', value: 2.5, color: '#CBD5E1' },  
-];
-
 export default function wasteStatsPage() {
     return (
         <>

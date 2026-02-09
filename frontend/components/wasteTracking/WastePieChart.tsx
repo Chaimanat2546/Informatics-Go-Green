@@ -2,9 +2,15 @@
 
 import React, { useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Sector, Tooltip } from 'recharts';
+import { PieSectorDataItem } from 'recharts/types/polar/Pie';
 
+interface DataItem {
+    name: string;
+    value: number;
+    color: string;
+}
 // ข้อมูลจำลอง (Mock Data)
-const data = [
+const data: DataItem[] = [
     { name: 'พลาสติก', value: 50, color: '#4ADE80' }, 
     { name: 'กระดาษ', value: 20, color: '#FDE047' },
     { name: 'แก้ว', value: 15, color: '#93C5FD' },   
@@ -13,8 +19,19 @@ const data = [
     { name: 'โลหะ', value: 2.5, color: '#CBD5E1' },   
 ];
 
-const renderActiveShape = (props: any) => {
-    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
+interface ActiveShapeProps extends PieSectorDataItem {
+    cx: number;
+    cy: number;
+    innerRadius: number;
+    outerRadius: number;
+    startAngle: number;
+    endAngle: number;
+    fill: string;
+    payload?: DataItem;
+}
+
+const renderActiveShape = (props: unknown) => {
+    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props as ActiveShapeProps;
     return (
         <g>
             <Sector
@@ -35,7 +52,14 @@ const renderActiveShape = (props: any) => {
     );
 };
 
-const CustomTooltip = ({ active, payload }: any) => {
+interface CustomTooltipProps {
+    active?: boolean;
+    payload?: {
+        payload: DataItem;
+    }[];
+}
+
+const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
         const data = payload[0].payload;
         return (
@@ -53,10 +77,9 @@ const CustomTooltip = ({ active, payload }: any) => {
 export default function WastePieChart() {
     const [activeIndex, setActiveIndex] = useState(0); 
 
-    const onPieEnter = (_: any, index: number) => {
+    const onPieEnter = (_: unknown, index: number) => {
         setActiveIndex(index);
     };
-
     return (
         <div className="bg-white rounded-[30px] p-6 shadow-lg border border-gray-50 relative w-full max-w-sm mx-auto">
             <style>{`
@@ -77,7 +100,7 @@ export default function WastePieChart() {
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                         <Pie
-                            {...({ activeIndex } as any)}
+                            activeIndex={activeIndex}
                             activeShape={renderActiveShape}
                             data={data}
                             cx="50%"

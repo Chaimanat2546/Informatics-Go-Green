@@ -37,7 +37,12 @@ const chartConfig = {
 
 export default function WasteStackedBarChart() {
   const [isMounted, setIsMounted] = useState(false)
-  useEffect(() => setIsMounted(true), [])
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsMounted(true)
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [])
 
   return (
     <Card className="w-full h-full shadow-sm border border-gray-100 rounded-[20px] p-6">
