@@ -7,7 +7,6 @@ import {
   History,
   User,
   LucideIcon,
-  BarChart3,
   ScanLine,
 } from "lucide-react";
 
@@ -29,11 +28,6 @@ const pageConfig: Record<
     title: "การคัดแยก",
     icon: undefined,
     showBack: true,
-  },
-  "/wasteTracking/wasteStats": {
-    title: "สถิติ",
-    icon: BarChart3,
-    showBack: false,
   },
   "/auth/edit-profile": { title: "แก้ไขโปรไฟล์", icon: User },
   "/auth/dashboard": { title: "โปรไฟล์", icon: User },
@@ -71,7 +65,8 @@ export default function GlobalHeader() {
   if (
     pathname === "/auth/login" ||
     pathname === "/wasteTracking/home" ||
-    pathname === "/wasteTracking/wasteScaner" 
+    pathname === "/wasteTracking/wasteScaner" ||
+    pathname === "/wasteTracking/wasteStats"
 
   )
     return null;

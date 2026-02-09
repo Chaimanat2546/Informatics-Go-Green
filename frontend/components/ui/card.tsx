@@ -80,7 +80,6 @@ function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
     />
   )
 }
-
 function CardContentLarge({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div className="px-5  -mt-10 relative z-10 pb-10">
@@ -108,5 +107,5 @@ export {
   CardAction,
   CardDescription,
   CardContent,
-  CardContentLarge
+  CardContentLarge,
 }
