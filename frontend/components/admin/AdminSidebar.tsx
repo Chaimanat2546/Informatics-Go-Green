@@ -49,7 +49,7 @@ export default function AdminSidebar({ user }: AdminSidebarProps) {
       label: "การติดตามขยะ",
       icon: BarChart3,
       children: [
-        { id: "overview", label: "ภาพรวมทั้งหมด", path: "/admin/overview" },
+        { id: "dashboard-overview", label: "ภาพรวมทั้งหมด", path: "/admin/dashboard-overview" },
         {
           id: "emission-factor",
           label: "ตั้งค่า Emission Factor",
