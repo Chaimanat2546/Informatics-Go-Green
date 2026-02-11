@@ -1,4 +1,3 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
 import {
@@ -7,6 +6,11 @@ import {
   TrashItem,
 } from './carbonCalculator';
 import { WasteMaterial } from '../waste/entities/waste-material.entity';
+
+// Interface to access private methods for testing
+interface CalculatorWithPrivate {
+  getEmissionFactor(material: string | number): number;
+}
 
 describe('CarbonFootprintCalculator', () => {
   let calculator: CarbonFootprintCalculator;
@@ -46,7 +50,7 @@ describe('CarbonFootprintCalculator', () => {
     } as WasteMaterial,
   ];
 
-  beforeEach(async () => {
+  beforeEach(() => {
     mockEntityManager = {
       find: jest.fn(),
     } as unknown as jest.Mocked<EntityManager>;
@@ -85,7 +89,9 @@ describe('CarbonFootprintCalculator', () => {
     it('should handle database errors', async () => {
       mockEntityManager.find.mockRejectedValue(new Error('DB Error'));
 
-      await expect(calculator.loadEmissionFactors()).rejects.toThrow('DB Error');
+      await expect(calculator.loadEmissionFactors()).rejects.toThrow(
+        'DB Error',
+      );
     });
   });
 
@@ -134,9 +140,7 @@ describe('CarbonFootprintCalculator', () => {
         emission_factor: 2.5,
       };
 
-      expect(() => calculator.calculate(trash)).toThrow(
-        'Invalid weight: -5',
-      );
+      expect(() => calculator.calculate(trash)).toThrow('Invalid weight: -5');
     });
 
     it('should throw error for NaN weight', () => {
@@ -147,9 +151,7 @@ describe('CarbonFootprintCalculator', () => {
         emission_factor: 2.5,
       };
 
-      expect(() => calculator.calculate(trash)).toThrow(
-        'Invalid weight: NaN',
-      );
+      expect(() => calculator.calculate(trash)).toThrow('Invalid weight: NaN');
     });
 
     it('should throw error for Infinity weight', () => {
@@ -189,9 +191,9 @@ describe('CarbonFootprintCalculator', () => {
         id: 1,
         weight: 10, // 10 kg total
         waste_sorting: {
-          'พลาสติก': 0.5, // 5 kg plastic
-          'กระดาษ': 0.3, // 3 kg paper
-          'แก้ว': 0.2, // 2 kg glass
+          พลาสติก: 0.5, // 5 kg plastic
+          กระดาษ: 0.3, // 3 kg paper
+          แก้ว: 0.2, // 2 kg glass
         },
       };
 
@@ -208,10 +210,10 @@ describe('CarbonFootprintCalculator', () => {
         id: 1,
         weight: 100, // 100 kg
         waste_sorting: {
-          'พลาสติก': 0.4, // 40 kg
-          'โลหะ': 0.3, // 30 kg
-          'อิเล็กทรอนิกส์': 0.2, // 20 kg
-          'กระดาษ': 0.1, // 10 kg
+          พลาสติก: 0.4, // 40 kg
+          โลหะ: 0.3, // 30 kg
+          อิเล็กทรอนิกส์: 0.2, // 20 kg
+          กระดาษ: 0.1, // 10 kg
         },
       };
 
@@ -226,13 +228,11 @@ describe('CarbonFootprintCalculator', () => {
         id: 1,
         weight: 10,
         waste_sorting: {
-          'พลาสติก': NaN,
+          พลาสติก: NaN,
         },
       };
 
-      expect(() => calculator.calculate(trash)).toThrow(
-        'Invalid ratio: NaN',
-      );
+      expect(() => calculator.calculate(trash)).toThrow('Invalid ratio: NaN');
     });
 
     it('should throw error for invalid ratio (Infinity)', () => {
@@ -240,7 +240,7 @@ describe('CarbonFootprintCalculator', () => {
         id: 1,
         weight: 10,
         waste_sorting: {
-          'พลาสติก': Infinity,
+          พลาสติก: Infinity,
         },
       };
 
@@ -254,13 +254,11 @@ describe('CarbonFootprintCalculator', () => {
         id: 1,
         weight: 10,
         waste_sorting: {
-          'พลาสติก': -0.5,
+          พลาสติก: -0.5,
         },
       };
 
-      expect(() => calculator.calculate(trash)).toThrow(
-        'Invalid ratio: -0.5',
-      );
+      expect(() => calculator.calculate(trash)).toThrow('Invalid ratio: -0.5');
     });
 
     it('should throw error for unknown material', () => {
@@ -268,7 +266,7 @@ describe('CarbonFootprintCalculator', () => {
         id: 1,
         weight: 10,
         waste_sorting: {
-          'unknown_material': 1.0,
+          unknown_material: 1.0,
         },
       };
 
@@ -282,7 +280,7 @@ describe('CarbonFootprintCalculator', () => {
         id: 1,
         weight: 10,
         waste_sorting: {
-          'พลาสติก': 1.0, // Already lowercase in our mock
+          พลาสติก: 1.0, // Already lowercase in our mock
         },
       };
 
@@ -303,7 +301,7 @@ describe('CarbonFootprintCalculator', () => {
         waste_sorting: [
           { name: 'พลาสติก', ratio: 0.5 },
           { name: 'กระดาษ', ratio: 0.5 },
-        ] as any,
+        ],
       };
 
       const result = calculator.calculate(trash);
@@ -320,7 +318,7 @@ describe('CarbonFootprintCalculator', () => {
         waste_sorting: [
           { material: 'พลาสติก', percentage: 0.6 },
           { material: 'กระดาษ', percentage: 0.4 },
-        ] as any,
+        ],
       };
 
       const result = calculator.calculate(trash);
@@ -334,12 +332,10 @@ describe('CarbonFootprintCalculator', () => {
       const trash: TrashItem = {
         id: 1,
         weight: 10,
-        waste_sorting: [] as any,
+        waste_sorting: [],
       };
 
-      expect(() => calculator.calculate(trash)).toThrow(
-        'Invalid trash data',
-      );
+      expect(() => calculator.calculate(trash)).toThrow('Invalid trash data');
     });
   });
 
@@ -349,15 +345,15 @@ describe('CarbonFootprintCalculator', () => {
     });
 
     it('should throw error for null trash data', () => {
-      expect(() => calculator.calculate(null as any)).toThrow(
+      expect(() => calculator.calculate(null as unknown as TrashItem)).toThrow(
         'Invalid trash data: must be an object',
       );
     });
 
     it('should throw error for non-object trash data', () => {
-      expect(() => calculator.calculate('invalid' as any)).toThrow(
-        'Invalid trash data: must be an object',
-      );
+      expect(() =>
+        calculator.calculate('invalid' as unknown as TrashItem),
+      ).toThrow('Invalid trash data: must be an object');
     });
 
     it('should throw error when missing required fields', () => {
@@ -388,8 +384,8 @@ describe('CarbonFootprintCalculator', () => {
         id: 1,
         weight: 10,
         waste_sorting: {
-          'พลาสติก': 0.5,
-          'กระดาษ': 0.3, // Sum is 0.8, not 1.0
+          พลาสติก: 0.5,
+          กระดาษ: 0.3, // Sum is 0.8, not 1.0
         },
       };
 
@@ -436,7 +432,7 @@ describe('CarbonFootprintCalculator', () => {
         id: 1,
         weight: 10,
         waste_sorting: {
-          'nonexistent_material': 1.0,
+          nonexistent_material: 1.0,
         },
       };
 
@@ -455,8 +451,9 @@ describe('CarbonFootprintCalculator', () => {
       );
       await calc.loadEmissionFactors();
 
-      // We need to access private method through any cast
-      const getEF = (calc as any).getEmissionFactor.bind(calc);
+      // Access private method through type assertion
+      const typedCalc = calc as unknown as CalculatorWithPrivate;
+      const getEF = typedCalc.getEmissionFactor.bind(calc);
 
       // Should be able to look up by id (1 = พลาสติก with EF 2.5)
       expect(getEF(1)).toBe(2.5);
@@ -471,7 +468,9 @@ describe('CarbonFootprintCalculator', () => {
       );
       await calc.loadEmissionFactors();
 
-      const getEF = (calc as any).getEmissionFactor.bind(calc);
+      const typedCalc = calc as unknown as CalculatorWithPrivate;
+      const getEF = typedCalc.getEmissionFactor.bind(calc);
+      ).getEmissionFactor.bind(calc);
 
       expect(() => getEF(999)).toThrow('Unknown material id: 999');
     });
@@ -528,8 +527,8 @@ describe('calculateDailyCarbonFootprint', () => {
         id: 2,
         weight: 5,
         waste_sorting: {
-          'พลาสติก': 0.5,
-          'กระดาษ': 0.5,
+          พลาสติก: 0.5,
+          กระดาษ: 0.5,
         },
       },
     ];
@@ -564,7 +563,7 @@ describe('calculateDailyCarbonFootprint', () => {
         id: 3,
         weight: 5,
         waste_sorting: {
-          'unknown_material': 1.0, // Unknown material
+          unknown_material: 1.0, // Unknown material
         },
       },
     ];

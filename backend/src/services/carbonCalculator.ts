@@ -14,9 +14,20 @@ import { WasteMaterial } from '../waste/entities/waste-material.entity';
 interface TrashItem {
   id?: number | string;
   weight: number;
-  waste_sorting?: Record<string, number> | Array<{ name: string; ratio: number }>;
+  waste_sorting?:
+    | Record<string, number>
+    | Array<{ name: string; ratio: number }>
+    | WasteSortingArrayItem[];
   type?: string;
   emission_factor?: number;
+}
+
+interface WasteSortingArrayItem {
+  name?: string;
+  material?: string;
+  ratio?: number;
+  percentage?: number;
+  amount?: number;
 }
 
 interface MaterialBreakdown {
@@ -69,7 +80,11 @@ export class CarbonFootprintCalculator {
   private maxLogs: number; // Fix #1: Memory leak prevention
   private logger: Logger;
 
-  constructor(entityManager: EntityManager, maxLogs: number = 1000, logger?: Logger) {
+  constructor(
+    entityManager: EntityManager,
+    maxLogs: number = 1000,
+    logger?: Logger,
+  ) {
     this.entityManager = entityManager;
     this.emissionFactors = new Map();
     this.materialIdMap = new Map();
@@ -102,11 +117,10 @@ export class CarbonFootprintCalculator {
             material.emission_factor,
           );
           // Store by id for numeric lookup
-          this.materialIdMap.set(
-            Number(material.id),
-            material.emission_factor,
+          this.materialIdMap.set(Number(material.id), material.emission_factor);
+          this.log(
+            `  ✓ ${material.name} (id: ${material.id}): ${material.emission_factor}`,
           );
-          this.log(`  ✓ ${material.name} (id: ${material.id}): ${material.emission_factor}`);
         }
       }
 
@@ -164,12 +178,20 @@ export class CarbonFootprintCalculator {
     this.log(`🗑️ Processing trash ID: ${trash.id ?? 'unknown'}`);
 
     // Fix: Check for waste_sorting as object but NOT array
-    if (trash.waste_sorting && typeof trash.waste_sorting === 'object' && !Array.isArray(trash.waste_sorting)) {
+    if (
+      trash.waste_sorting &&
+      typeof trash.waste_sorting === 'object' &&
+      !Array.isArray(trash.waste_sorting)
+    ) {
       return this.calculateFromWasteSorting(trash);
     }
 
     // Fix: Support array format for waste_sorting
-    if (trash.waste_sorting && Array.isArray(trash.waste_sorting) && trash.waste_sorting.length > 0) {
+    if (
+      trash.waste_sorting &&
+      Array.isArray(trash.waste_sorting) &&
+      trash.waste_sorting.length > 0
+    ) {
       return this.calculateFromWasteSortingArray(trash);
     }
 
@@ -190,11 +212,17 @@ export class CarbonFootprintCalculator {
   private calculateFromWasteSorting(trash: TrashItem): CalculationResult {
     const { waste_sorting, weight } = trash;
 
-    if (!waste_sorting || typeof waste_sorting !== 'object' || Array.isArray(waste_sorting)) {
+    if (
+      !waste_sorting ||
+      typeof waste_sorting !== 'object' ||
+      Array.isArray(waste_sorting)
+    ) {
       throw new Error('waste_sorting must be a non-array object');
     }
 
-    this.log(`  📊 Calculating from waste_sorting (object), weight: ${weight}kg`);
+    this.log(
+      `  📊 Calculating from waste_sorting (object), weight: ${weight}kg`,
+    );
 
     // Fix: Accept weight in kg like rest of codebase
     if (typeof weight !== 'number' || !Number.isFinite(weight) || weight <= 0) {
@@ -212,7 +240,7 @@ export class CarbonFootprintCalculator {
         // Fix: Add Number.isFinite() check for NaN/Infinity
         if (typeof ratio !== 'number' || !Number.isFinite(ratio) || ratio < 0) {
           throw new Error(
-            `Invalid ratio: ${ratio}. Must be a non-negative finite number`,
+            `Invalid ratio: ${String(ratio)}. Must be a non-negative finite number`,
           );
         }
         return sum + ratio;
@@ -278,7 +306,9 @@ export class CarbonFootprintCalculator {
       throw new Error('waste_sorting must be an array');
     }
 
-    this.log(`  📊 Calculating from waste_sorting (array), weight: ${weight}kg`);
+    this.log(
+      `  📊 Calculating from waste_sorting (array), weight: ${weight}kg`,
+    );
 
     if (typeof weight !== 'number' || !Number.isFinite(weight) || weight <= 0) {
       throw new Error(
@@ -296,9 +326,10 @@ export class CarbonFootprintCalculator {
       if (typeof item !== 'object' || item === null) {
         throw new Error('waste_sorting array items must be objects');
       }
-      const itemAny = item as any; // Allow flexible property names
-      const name = itemAny.name || itemAny.material || 'unknown';
-      const ratio = itemAny.ratio ?? itemAny.percentage ?? itemAny.amount;
+      const sortingItem = item as WasteSortingArrayItem;
+      const name = sortingItem.name || sortingItem.material || 'unknown';
+      const ratio =
+        sortingItem.ratio ?? sortingItem.percentage ?? sortingItem.amount;
       if (typeof ratio !== 'number' || !Number.isFinite(ratio) || ratio < 0) {
         throw new Error(`Invalid ratio for ${name}: ${ratio}`);
       }
@@ -387,7 +418,9 @@ export class CarbonFootprintCalculator {
 
     // Fix: Throw error instead of returning default EF
     if (ef === undefined) {
-      throw new Error(`Unknown material: "${material}". Please check the material name or add it to the database.`);
+      throw new Error(
+        `Unknown material: "${material}". Please check the material name or add it to the database.`,
+      );
     }
 
     return ef;

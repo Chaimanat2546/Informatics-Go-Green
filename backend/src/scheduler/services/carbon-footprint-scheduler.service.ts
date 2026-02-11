@@ -215,7 +215,11 @@ export class CarbonFootprintSchedulerService {
   private async calculateCarbonFootprintWithCalculator(
     wasteHistory: WasteHistory,
   ): Promise<number> {
-    const calculator = new CarbonFootprintCalculator(this.entityManager, 1000, this.logger);
+    const calculator = new CarbonFootprintCalculator(
+      this.entityManager,
+      1000,
+      this.logger,
+    );
     await calculator.loadEmissionFactors();
 
     // Prepare trash item for calculator
