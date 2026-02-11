@@ -1,13 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, EntityManager } from 'typeorm';
 import { WasteHistory } from '../../waste/entities/waste-history.entity';
 import { WasteMaterial } from '../../waste/entities/waste-material.entity';
 import { WasteManagementMethod } from '../../waste/entities/waste-management-method.entity';
 import { WasteCalculateLog } from '../../waste/entities/waste-calculate-log.entity';
 import { SchedulerLock } from '../entities/scheduler-lock.entity';
 import { SchedulerSettingsService } from './scheduler-settings.service';
+import { CarbonFootprintCalculator } from '../../services/carbonCalculator';
 
 export enum CalculationStatus {
   PENDING = 'pending',
@@ -39,6 +40,7 @@ export class CarbonFootprintSchedulerService {
     @InjectRepository(SchedulerLock)
     private readonly schedulerLockRepository: Repository<SchedulerLock>,
     private readonly schedulerSettingsService: SchedulerSettingsService,
+    private readonly entityManager: EntityManager,
   ) {
     this.instanceId = `instance_${Date.now()}_${Math.random().toString(36).substring(7)}`;
   }
@@ -204,6 +206,30 @@ export class CarbonFootprintSchedulerService {
       success,
       failed,
     };
+  }
+
+  /**
+   * Calculate carbon footprint using the new CarbonFootprintCalculator
+   * Supports waste_sorting with multiple materials
+   */
+  private async calculateCarbonFootprintWithCalculator(
+    wasteHistory: WasteHistory,
+  ): Promise<number> {
+    const calculator = new CarbonFootprintCalculator(this.entityManager, 1000, this.logger);
+    await calculator.loadEmissionFactors();
+
+    // Prepare trash item for calculator
+    const trashItem = {
+      id: wasteHistory.id,
+      weight: wasteHistory.amount || 0,
+      type: wasteHistory.wasteMaterial?.name,
+      emission_factor: wasteHistory.wasteMaterial?.emission_factor,
+    };
+
+    // Calculate using the new calculator
+    const result = calculator.calculate(trashItem);
+
+    return result.carbon_footprint;
   }
 
   /**
