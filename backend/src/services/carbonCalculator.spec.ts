@@ -80,7 +80,9 @@ describe('CarbonFootprintCalculator', () => {
     it('should load emission factors from database', async () => {
       await calculator.loadEmissionFactors();
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockEntityManager.find).toHaveBeenCalledWith(WasteMaterial);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockLogger.log).toHaveBeenCalledWith(
         expect.stringContaining('Loading emission factors'),
       );
@@ -391,6 +393,7 @@ describe('CarbonFootprintCalculator', () => {
 
       calculator.calculate(trash);
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockLogger.log).toHaveBeenCalledWith(
         expect.stringContaining("Ratios don't sum to 1.0"),
       );
@@ -401,6 +404,7 @@ describe('CarbonFootprintCalculator', () => {
     it('should use Nest Logger instead of console.log', async () => {
       await calculator.loadEmissionFactors();
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockLogger.log).toHaveBeenCalled();
     });
 
@@ -452,11 +456,15 @@ describe('CarbonFootprintCalculator', () => {
       await calc.loadEmissionFactors();
 
       // Access private method through type assertion
+
       const typedCalc = calc as unknown as CalculatorWithPrivate;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const getEF = typedCalc.getEmissionFactor.bind(calc);
 
       // Should be able to look up by id (1 = พลาสติก with EF 2.5)
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       expect(getEF(1)).toBe(2.5);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       expect(getEF(2)).toBe(1.2);
     });
 
@@ -469,9 +477,10 @@ describe('CarbonFootprintCalculator', () => {
       await calc.loadEmissionFactors();
 
       const typedCalc = calc as unknown as CalculatorWithPrivate;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const getEF = typedCalc.getEmissionFactor.bind(calc);
-      ).getEmissionFactor.bind(calc);
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return
       expect(() => getEF(999)).toThrow('Unknown material id: 999');
     });
   });
@@ -602,6 +611,7 @@ describe('calculateDailyCarbonFootprint', () => {
     );
 
     // Should not call transaction since we're only reading
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(mockEntityManager.transaction).not.toHaveBeenCalled();
   });
 
