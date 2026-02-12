@@ -124,25 +124,32 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
     }),
     materialRepo.create({
       name: 'ถ่านไฟฉาย / แบตเตอรี่',
-      emission_factor: 3.50,
+      emission_factor: 3.5,
       unit: 'kg CO₂e/kg',
       waste_categoriesid: Number(catHazardous.id),
     }),
     materialRepo.create({
       name: 'โฟม (Styrofoam)',
-      emission_factor: 3.30,
+      emission_factor: 3.3,
       unit: 'kg CO₂e/kg',
       waste_categoriesid: Number(catGeneral.id),
     }),
     materialRepo.create({
       name: 'ผ้า / สิ่งทอ',
-      emission_factor: 1.50,
+      emission_factor: 1.5,
       unit: 'kg CO₂e/kg',
       waste_categoriesid: Number(catGeneral.id),
     }),
   ]);
 
-  const [matPET, matPaper, matGlass, matAluminum, matFood, matBattery, matFoam, matFabric] = materials;
+  const matPET = materials[0];
+  const matPaper = materials[1];
+  const matGlass = materials[2];
+  const matAluminum = materials[3];
+  const matFood = materials[4];
+  // materials[5] = ถ่านไฟฉาย / แบตเตอรี่
+  const matFoam = materials[6];
+  // materials[7] = ผ้า / สิ่งทอ
   console.log(`  ✅ Created ${materials.length} waste materials\n`);
 
   // ============================================================
@@ -182,7 +189,8 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
     }),
   ]);
 
-  const [wasteBottle, wasteBox, wasteGlass, wasteCan, wasteFruit, wasteFoam] = wastes;
+  const [wasteBottle, wasteBox, wasteGlass, wasteCan, wasteFruit, wasteFoam] =
+    wastes;
   console.log(`  ✅ Created ${wastes.length} wastes\n`);
 
   // ============================================================
@@ -233,13 +241,15 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
 
   const guides = await guideRepo.save([
     guideRepo.create({
-      recommendation: 'ล้างขวดให้สะอาด แกะฉลากออก บีบให้แบน ส่งขายร้านรับซื้อของเก่า',
+      recommendation:
+        'ล้างขวดให้สะอาด แกะฉลากออก บีบให้แบน ส่งขายร้านรับซื้อของเก่า',
       weight: 0.03,
       waste_meterialid: Number(matPET.id),
       wastesid: Number(wasteBottle.id),
     }),
     guideRepo.create({
-      recommendation: 'พับกล่องให้แบน มัดรวมกัน ส่งขายร้านรับซื้อของเก่าหรือบริจาค',
+      recommendation:
+        'พับกล่องให้แบน มัดรวมกัน ส่งขายร้านรับซื้อของเก่าหรือบริจาค',
       weight: 0.15,
       waste_meterialid: Number(matPaper.id),
       wastesid: Number(wasteBox.id),
@@ -300,7 +310,10 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
     }),
   ]);
 
-  const [methodRecycle, methodLandfill, methodIncineration, methodCompost] = methods;
+  const methodRecycle = methods[0];
+  // methods[1] = ฝังกลบ (Landfill)
+  // methods[2] = เผา (Incineration)
+  const methodCompost = methods[3];
   console.log(`  ✅ Created ${methods.length} waste management methods\n`);
 
   // ============================================================
@@ -315,9 +328,9 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       record_type: 'manual',
       waste_meterialid: Number(matPET.id),
       wastesid: Number(wasteBottle.id),
-      userid: savedUser.id as any,
+      userid: savedUser.id as unknown as number,
       calculation_status: 'completed',
-      carbon_footprint: 2.5 * 2.29 + 15.0 * 0.21,  // 5.725 + 3.15 = 8.875
+      carbon_footprint: 2.5 * 2.29 + 15.0 * 0.21, // 5.725 + 3.15 = 8.875
       retry_count: 0,
     }),
     historyRepo.create({
@@ -325,9 +338,9 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       record_type: 'manual',
       waste_meterialid: Number(matPaper.id),
       wastesid: Number(wasteBox.id),
-      userid: savedUser.id as any,
+      userid: savedUser.id as unknown as number,
       calculation_status: 'completed',
-      carbon_footprint: 1.0 * 1.17 + 15.0 * 0.21,  // 1.17 + 3.15 = 4.32
+      carbon_footprint: 1.0 * 1.17 + 15.0 * 0.21, // 1.17 + 3.15 = 4.32
       retry_count: 0,
     }),
     historyRepo.create({
@@ -335,9 +348,9 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       record_type: 'scan',
       waste_meterialid: Number(matGlass.id),
       wastesid: Number(wasteGlass.id),
-      userid: savedUser.id as any,
+      userid: savedUser.id as unknown as number,
       calculation_status: 'completed',
-      carbon_footprint: 3.0 * 0.86 + 15.0 * 0.21,  // 2.58 + 3.15 = 5.73
+      carbon_footprint: 3.0 * 0.86 + 15.0 * 0.21, // 2.58 + 3.15 = 5.73
       retry_count: 0,
     }),
     historyRepo.create({
@@ -345,9 +358,9 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       record_type: 'manual',
       waste_meterialid: Number(matAluminum.id),
       wastesid: Number(wasteCan.id),
-      userid: savedAdmin.id as any,
+      userid: savedAdmin.id as unknown as number,
       calculation_status: 'completed',
-      carbon_footprint: 0.5 * 8.14 + 15.0 * 0.21,  // 4.07 + 3.15 = 7.22
+      carbon_footprint: 0.5 * 8.14 + 15.0 * 0.21, // 4.07 + 3.15 = 7.22
       retry_count: 0,
     }),
     historyRepo.create({
@@ -355,9 +368,9 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       record_type: 'manual',
       waste_meterialid: Number(matFood.id),
       wastesid: Number(wasteFruit.id),
-      userid: savedAdmin.id as any,
+      userid: savedAdmin.id as unknown as number,
       calculation_status: 'completed',
-      carbon_footprint: 5.0 * 0.58 + 5.0 * 0.15,  // 2.9 + 0.75 = 3.65
+      carbon_footprint: 5.0 * 0.58 + 5.0 * 0.15, // 2.9 + 0.75 = 3.65
       retry_count: 0,
     }),
     historyRepo.create({
@@ -365,7 +378,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       record_type: 'scan',
       waste_meterialid: Number(matFoam.id),
       wastesid: Number(wasteFoam.id),
-      userid: savedUser.id as any,
+      userid: savedUser.id as unknown as number,
       calculation_status: 'pending',
       retry_count: 0,
     }),
@@ -383,9 +396,9 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       waste_historyid: Number(histories[0].id),
       waste_management_methodid: Number(methodRecycle.id),
       amount: 2.5,
-      material_emission: 2.5 * 2.29,       // 5.725
-      transport_emission: 15.0 * 0.21,      // 3.15
-      total_carbon_footprint: 2.5 * 2.29 + 15.0 * 0.21,  // 8.875
+      material_emission: 2.5 * 2.29, // 5.725
+      transport_emission: 15.0 * 0.21, // 3.15
+      total_carbon_footprint: 2.5 * 2.29 + 15.0 * 0.21, // 8.875
     }),
     calcLogRepo.create({
       waste_historyid: Number(histories[1].id),
@@ -433,7 +446,8 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       key: 'carbon_footprint_cron',
       value: '*/5 * * * *',
       label: 'Carbon Footprint Cron Schedule',
-      description: 'Cron expression สำหรับ scheduler คำนวณ Carbon Footprint (ทุก 5 นาที)',
+      description:
+        'Cron expression สำหรับ scheduler คำนวณ Carbon Footprint (ทุก 5 นาที)',
       type: 'string',
     }),
     settingsRepo.create({
