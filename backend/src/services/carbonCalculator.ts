@@ -434,6 +434,58 @@ export class CarbonFootprintCalculator {
   }
 
   /**
+   * Calculate carbon footprint by waste_id (wastesid)
+   * Used by Cron Job to calculate using MaterialGuide records
+   * Formula: totalCarbon = Σ (materialWeight × materialEmissionFactor)
+   */
+  async calculateByWasteId(wasteId: number): Promise<number> {
+    this.log(`🔄 Calculating carbon for waste_id: ${wasteId}`);
+
+    try {
+      // Find all MaterialGuide records for this waste_id
+      const materialGuides = await this.entityManager.find(MaterialGuide, {
+        where: { wastesid: wasteId },
+        relations: ['wasteMaterial'],
+      });
+
+      if (!materialGuides || materialGuides.length === 0) {
+        throw new Error(`No material guides found for waste_id: ${wasteId}`);
+      }
+
+      this.log(`  📦 Found ${materialGuides.length} material guides`);
+
+      let totalCarbon = new Decimal(0);
+
+      for (const guide of materialGuides) {
+        const materialWeight = guide.weight || 0;
+        const wasteMaterial = guide.wasteMaterial;
+
+        if (!wasteMaterial) {
+          this.log(`  ⚠️ Warning: No waste material found for guide ${guide.id}`);
+          continue;
+        }
+
+        const emissionFactor = wasteMaterial.emission_factor || 0;
+        const materialCarbon = new Decimal(materialWeight).mul(new Decimal(emissionFactor));
+
+        totalCarbon = totalCarbon.plus(materialCarbon);
+
+        this.log(
+          `    • ${wasteMaterial.name}: ${materialCarbon.toFixed(4)} kg CO2e (weight: ${materialWeight}kg, EF: ${emissionFactor})`,
+        );
+      }
+
+      this.log(`  ✅ Total: ${totalCarbon.toFixed(4)} kg CO2e`);
+
+      return totalCarbon.toNumber();
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.log(`❌ Error calculating by waste_id: ${errorMessage}`);
+      throw error;
+    }
+  }
+
+  /**
    * Get Emission Factor from Database using material_guides lookup chain
    * Lookup chain: materialName -> waste_sorting_id -> waste_material_id -> emission_factor
    * Fix: Throw error for unknown materials instead of silent fallback

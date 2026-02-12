@@ -9,6 +9,7 @@ import { WasteCalculateLog } from '../../waste/entities/waste-calculate-log.enti
 import { SchedulerLock } from '../entities/scheduler-lock.entity';
 import { SchedulerSettingsService } from './scheduler-settings.service';
 import { CarbonFootprintCalculator } from '../../services/carbonCalculator';
+import { MaterialGuide } from '../../waste/entities/material-guide.entity';
 
 export enum CalculationStatus {
   PENDING = 'pending',
@@ -210,7 +211,8 @@ export class CarbonFootprintSchedulerService {
 
   /**
    * Calculate carbon footprint using the new CarbonFootprintCalculator
-   * Supports waste_sorting with multiple materials
+   * Uses waste_id (wastesid) to find MaterialGuide records and calculate total carbon
+   * Formula: totalCarbon = Σ (materialWeight × materialEmissionFactor)
    */
   private async calculateCarbonFootprintWithCalculator(
     wasteHistory: WasteHistory,
@@ -220,20 +222,15 @@ export class CarbonFootprintSchedulerService {
       1000,
       this.logger,
     );
-    await calculator.loadEmissionFactors();
 
-    // Prepare trash item for calculator
-    const trashItem = {
-      id: wasteHistory.id,
-      weight: wasteHistory.amount || 0,
-      type: wasteHistory.wasteMaterial?.name,
-      emission_factor: wasteHistory.wasteMaterial?.emission_factor,
-    };
+    // Use waste_id (wastesid) to calculate through material_guides
+    if (!wasteHistory.wastesid) {
+      throw new Error('WasteHistory is missing waste_id (wastesid)');
+    }
 
-    // Calculate using the new calculator
-    const result = calculator.calculate(trashItem);
+    const totalCarbon = await calculator.calculateByWasteId(wasteHistory.wastesid);
 
-    return result.carbon_footprint;
+    return totalCarbon;
   }
 
   /**
