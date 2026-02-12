@@ -6,6 +6,8 @@ import {
   TrashItem,
 } from './carbonCalculator';
 import { WasteMaterial } from '../waste/entities/waste-material.entity';
+import { WasteSorting } from '../waste/entities/waste-sorting.entity';
+import { MaterialGuide } from '../waste/entities/material-guide.entity';
 
 // Interface to access private methods for testing
 interface CalculatorWithPrivate {
@@ -17,7 +19,25 @@ describe('CarbonFootprintCalculator', () => {
   let mockEntityManager: jest.Mocked<EntityManager>;
   let mockLogger: jest.Mocked<Logger>;
 
-  const mockMaterials: WasteMaterial[] = [
+  // Mock data for the lookup chain:
+  // WasteSorting.name -> MaterialGuide.wastesid -> MaterialGuide.waste_meterialid -> WasteMaterial.emission_factor
+  const mockWasteSortings: WasteSorting[] = [
+    { id: 1, name: 'พลาสติก' } as WasteSorting, // Plastic
+    { id: 2, name: 'กระดาษ' } as WasteSorting, // Paper
+    { id: 3, name: 'แก้ว' } as WasteSorting, // Glass
+    { id: 4, name: 'โลหะ' } as WasteSorting, // Metal
+    { id: 5, name: 'อิเล็กทรอนิกส์' } as WasteSorting, // Electronics
+  ];
+
+  const mockMaterialGuides: MaterialGuide[] = [
+    { id: 1, wastesid: 1, waste_meterialid: 1 } as MaterialGuide, // พลาสติก -> material 1
+    { id: 2, wastesid: 2, waste_meterialid: 2 } as MaterialGuide, // กระดาษ -> material 2
+    { id: 3, wastesid: 3, waste_meterialid: 3 } as MaterialGuide, // แก้ว -> material 3
+    { id: 4, wastesid: 4, waste_meterialid: 4 } as MaterialGuide, // โลหะ -> material 4
+    { id: 5, wastesid: 5, waste_meterialid: 5 } as MaterialGuide, // อิเล็กทรอนิกส์ -> material 5
+  ];
+
+  const mockWasteMaterials: WasteMaterial[] = [
     {
       id: 1,
       name: 'พลาสติก', // Plastic in Thai
@@ -62,8 +82,19 @@ describe('CarbonFootprintCalculator', () => {
       debug: jest.fn(),
     } as unknown as jest.Mocked<Logger>;
 
-    // Setup default mock for find
-    mockEntityManager.find.mockResolvedValue(mockMaterials);
+    // Setup mock for find to return appropriate entities based on the entity class
+    mockEntityManager.find.mockImplementation((entityClass: unknown) => {
+      if (entityClass === WasteSorting) {
+        return Promise.resolve(mockWasteSortings);
+      }
+      if (entityClass === MaterialGuide) {
+        return Promise.resolve(mockMaterialGuides);
+      }
+      if (entityClass === WasteMaterial) {
+        return Promise.resolve(mockWasteMaterials);
+      }
+      return Promise.resolve([]);
+    });
 
     calculator = new CarbonFootprintCalculator(
       mockEntityManager,
@@ -77,9 +108,14 @@ describe('CarbonFootprintCalculator', () => {
   });
 
   describe('loadEmissionFactors', () => {
-    it('should load emission factors from database', async () => {
+    it('should load emission factors from database using material_guides lookup', async () => {
       await calculator.loadEmissionFactors();
 
+      // Should call find for all three entities
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(mockEntityManager.find).toHaveBeenCalledWith(WasteSorting);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(mockEntityManager.find).toHaveBeenCalledWith(MaterialGuide);
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockEntityManager.find).toHaveBeenCalledWith(WasteMaterial);
       // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -263,7 +299,7 @@ describe('CarbonFootprintCalculator', () => {
       expect(() => calculator.calculate(trash)).toThrow('Invalid ratio: -0.5');
     });
 
-    it('should throw error for unknown material', () => {
+    it('should throw error for unknown material (no waste_sorting found)', () => {
       const trash: TrashItem = {
         id: 1,
         weight: 10,
@@ -272,8 +308,9 @@ describe('CarbonFootprintCalculator', () => {
         },
       };
 
+      // Should throw error for unknown material (no waste_sorting with that name)
       expect(() => calculator.calculate(trash)).toThrow(
-        'Unknown material: "unknown_material"',
+        'Unknown material: "unknown_material". No waste_sorting found with name "unknown_material".',
       );
     });
 
@@ -442,7 +479,7 @@ describe('CarbonFootprintCalculator', () => {
 
       // Should throw error instead of returning default EF: 2.0
       expect(() => calculator.calculate(trash)).toThrow(
-        'Unknown material: "nonexistent_material"',
+        'Unknown material: "nonexistent_material". No waste_sorting found with name "nonexistent_material".',
       );
     });
 
@@ -490,7 +527,17 @@ describe('calculateDailyCarbonFootprint', () => {
   let mockEntityManager: jest.Mocked<EntityManager>;
   let mockLogger: jest.Mocked<Logger>;
 
-  const mockMaterials: WasteMaterial[] = [
+  const mockWasteSortings: WasteSorting[] = [
+    { id: 1, name: 'พลาสติก' } as WasteSorting,
+    { id: 2, name: 'กระดาษ' } as WasteSorting,
+  ];
+
+  const mockMaterialGuides: MaterialGuide[] = [
+    { id: 1, wastesid: 1, waste_meterialid: 1 } as MaterialGuide,
+    { id: 2, wastesid: 2, waste_meterialid: 2 } as MaterialGuide,
+  ];
+
+  const mockWasteMaterials: WasteMaterial[] = [
     {
       id: 1,
       name: 'พลาสติก',
@@ -517,7 +564,18 @@ describe('calculateDailyCarbonFootprint', () => {
       debug: jest.fn(),
     } as unknown as jest.Mocked<Logger>;
 
-    mockEntityManager.find.mockResolvedValue(mockMaterials);
+    mockEntityManager.find.mockImplementation((entityClass: unknown) => {
+      if (entityClass === WasteSorting) {
+        return Promise.resolve(mockWasteSortings);
+      }
+      if (entityClass === MaterialGuide) {
+        return Promise.resolve(mockMaterialGuides);
+      }
+      if (entityClass === WasteMaterial) {
+        return Promise.resolve(mockWasteMaterials);
+      }
+      return Promise.resolve([]);
+    });
   });
 
   afterEach(() => {

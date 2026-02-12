@@ -9,6 +9,8 @@ import { Logger } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
 import Decimal from 'decimal.js';
 import { WasteMaterial } from '../waste/entities/waste-material.entity';
+import { WasteSorting } from '../waste/entities/waste-sorting.entity';
+import { MaterialGuide } from '../waste/entities/material-guide.entity';
 
 // Type definitions
 interface TrashItem {
@@ -76,6 +78,8 @@ export class CarbonFootprintCalculator {
   private entityManager: EntityManager;
   private emissionFactors: Map<string, number>;
   private materialIdMap: Map<number, number>; // id -> emission factor
+  private wasteSortingMap: Map<string, number>; // name (lowercase) -> waste_sorting_id
+  private materialGuideMap: Map<number, number>; // waste_sorting_id -> waste_material_id
   private debugLogs: string[];
   private maxLogs: number; // Fix #1: Memory leak prevention
   private logger: Logger;
@@ -88,6 +92,8 @@ export class CarbonFootprintCalculator {
     this.entityManager = entityManager;
     this.emissionFactors = new Map();
     this.materialIdMap = new Map();
+    this.wasteSortingMap = new Map();
+    this.materialGuideMap = new Map();
     this.debugLogs = [];
     this.maxLogs = maxLogs; // Limit logs to prevent memory leak
     this.logger = logger || new Logger(CarbonFootprintCalculator.name);
@@ -95,37 +101,72 @@ export class CarbonFootprintCalculator {
 
   /**
    * Load Emission Factors from Database (TypeORM)
-   * Fix: Support material.id lookup and material.name lookup
+   * Fix: Use material_guides lookup chain:
+   * materialName -> waste_sorting_id -> waste_material_id -> emission_factor
    */
   async loadEmissionFactors(): Promise<void> {
     this.log('🔄 Loading emission factors from database...');
 
     try {
-      const materials = await this.entityManager.find(WasteMaterial);
+      // Load all three entities for the lookup chain
+      const [wasteSortings, materialGuides, wasteMaterials] = await Promise.all(
+        [
+          this.entityManager.find(WasteSorting),
+          this.entityManager.find(MaterialGuide),
+          this.entityManager.find(WasteMaterial),
+        ],
+      );
 
+      // Clear all maps
       this.emissionFactors.clear();
       this.materialIdMap.clear();
+      this.wasteSortingMap.clear();
+      this.materialGuideMap.clear();
 
-      for (const material of materials) {
+      // Build wasteSortingMap: name (lowercase) -> id
+      for (const sorting of wasteSortings) {
+        if (sorting.name) {
+          this.wasteSortingMap.set(
+            sorting.name.toLowerCase(),
+            Number(sorting.id),
+          );
+          this.log(`  ✓ WasteSorting: ${sorting.name} (id: ${sorting.id})`);
+        }
+      }
+
+      // Build materialGuideMap: waste_sorting_id -> waste_material_id
+      for (const guide of materialGuides) {
+        if (
+          guide.wastesid !== null &&
+          guide.wastesid !== undefined &&
+          guide.waste_meterialid !== null &&
+          guide.waste_meterialid !== undefined
+        ) {
+          this.materialGuideMap.set(
+            Number(guide.wastesid),
+            Number(guide.waste_meterialid),
+          );
+          this.log(
+            `  ✓ MaterialGuide: wastesid=${guide.wastesid} -> materialid=${guide.waste_meterialid}`,
+          );
+        }
+      }
+
+      // Build materialIdMap: id -> emission_factor (for numeric lookup)
+      for (const material of wasteMaterials) {
         if (
           material.emission_factor !== null &&
           material.emission_factor !== undefined
         ) {
-          // Store by name (lowercase) for string lookup
-          this.emissionFactors.set(
-            material.name.toLowerCase(),
-            material.emission_factor,
-          );
-          // Store by id for numeric lookup
           this.materialIdMap.set(Number(material.id), material.emission_factor);
           this.log(
-            `  ✓ ${material.name} (id: ${material.id}): ${material.emission_factor}`,
+            `  ✓ WasteMaterial: ${material.name} (id: ${material.id}): ${material.emission_factor}`,
           );
         }
       }
 
       this.log(
-        `✅ Loaded ${this.emissionFactors.size} materials from database`,
+        `✅ Loaded ${this.wasteSortingMap.size} waste sortings, ${this.materialGuideMap.size} material guides, ${this.materialIdMap.size} waste materials`,
       );
     } catch (error: unknown) {
       const errorMessage =
@@ -393,12 +434,12 @@ export class CarbonFootprintCalculator {
   }
 
   /**
-   * Get Emission Factor from Database
+   * Get Emission Factor from Database using material_guides lookup chain
+   * Lookup chain: materialName -> waste_sorting_id -> waste_material_id -> emission_factor
    * Fix: Throw error for unknown materials instead of silent fallback
-   * Fix: Support material name lookup with normalized keys
    */
   private getEmissionFactor(material: string | number): number {
-    // Support numeric material id
+    // Support numeric material id (direct lookup)
     if (typeof material === 'number') {
       const ef = this.materialIdMap.get(material);
       if (ef === undefined) {
@@ -414,16 +455,32 @@ export class CarbonFootprintCalculator {
     }
 
     const normalizedMaterial = material.toLowerCase().trim();
-    const ef = this.emissionFactors.get(normalizedMaterial);
 
-    // Fix: Throw error instead of returning default EF
-    if (ef === undefined) {
+    // Step 1: Find waste_sorting_id from WasteSorting name
+    const wasteSortingId = this.wasteSortingMap.get(normalizedMaterial);
+    if (wasteSortingId === undefined) {
       throw new Error(
-        `Unknown material: "${material}". Please check the material name or add it to the database.`,
+        `Unknown material: "${material}". No waste_sorting found with name "${normalizedMaterial}".`,
       );
     }
 
-    return ef;
+    // Step 2: Find waste_material_id from MaterialGuide
+    const wasteMaterialId = this.materialGuideMap.get(wasteSortingId);
+    if (wasteMaterialId === undefined) {
+      throw new Error(
+        `Unknown material: "${material}". No material_guide found for waste_sorting_id ${wasteSortingId}.`,
+      );
+    }
+
+    // Step 3: Get emission_factor from WasteMaterial
+    const emissionFactor = this.materialIdMap.get(wasteMaterialId);
+    if (emissionFactor === undefined) {
+      throw new Error(
+        `Unknown material: "${material}". No waste_material found with id ${wasteMaterialId} or missing emission_factor.`,
+      );
+    }
+
+    return emissionFactor;
   }
 }
 
