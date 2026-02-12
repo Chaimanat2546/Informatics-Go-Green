@@ -23,11 +23,11 @@ async function runSeeder() {
 
   const dataSource = new DataSource({
     type: 'postgres',
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432', 10),
-    username: process.env.DB_USERNAME || 'postgres',
-    password: process.env.DB_PASSWORD || 'postgres',
-    database: process.env.DB_DATABASE || 'informatics_go_green',
+    host: process.env.DATABASE_HOST || 'localhost',
+    port: parseInt(process.env.DATABASE_PORT || '5432', 10),
+    username: process.env.DATABASE_USER || 'postgres',
+    password: process.env.DATABASE_PASSWORD || 'postgres',
+    database: process.env.DATABASE_NAME || 'informatics_go_green',
     entities: [
       User,
       WasteCategory,
@@ -41,7 +41,7 @@ async function runSeeder() {
       SchedulerSettings,
       SchedulerLock,
     ],
-    synchronize: false, // Don't auto-sync in seed script
+    synchronize: true, // Create tables before seeding
   });
 
   try {
