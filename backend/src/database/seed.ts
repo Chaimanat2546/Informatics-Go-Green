@@ -194,6 +194,30 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
   console.log(`  ✅ Created ${wastes.length} wastes\n`);
 
   // ============================================================
+  // 4b. ADDITIONAL WASTES (for manual entry testing - NO MaterialGuides)
+  // ============================================================
+  console.log('🗑️  Seeding Additional Wastes (manual entry only)...');
+  
+  const manualWastes = await wasteRepo.save([
+    wasteRepo.create({
+      name: 'ซองขนม',
+      waste_categoriesid: Number(catGeneral.id),
+    }),
+    wasteRepo.create({
+      name: 'กล่องนม',
+      waste_categoriesid: Number(catRecycle.id),
+    }),
+    wasteRepo.create({
+      name: 'ขวดแก้วน้ำผลไม้',
+      barcode: 8851028005050,
+      waste_categoriesid: Number(catRecycle.id),
+    }),
+  ]);
+
+  const [wasteSnackBag, wasteMilkBox, wasteJuiceBottle] = manualWastes;
+  console.log(`  ✅ Created ${manualWastes.length} manual-only wastes\n`);
+
+  // ============================================================
   // 5. WASTE SORTING
   // ============================================================
   console.log('♻️  Seeding Waste Sorting...');
@@ -240,6 +264,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
   const guideRepo = dataSource.getRepository(MaterialGuide);
 
   const guides = await guideRepo.save([
+    // Single material guides (scanned waste)
     guideRepo.create({
       recommendation:
         'ล้างขวดให้สะอาด แกะฉลากออก บีบให้แบน ส่งขายร้านรับซื้อของเก่า',
@@ -277,6 +302,19 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       weight: 0.01,
       waste_meterialid: Number(matFoam.id),
       wastesid: Number(wasteFoam.id),
+    }),
+    // Composite material guide: wasteJuiceBottle has both glass and plastic (label)
+    guideRepo.create({
+      recommendation: 'ล้างขวดให้สะอาด แกะฉลากพลาสติกออก แยกส่งรีไซเคิลตามประเภท',
+      weight: 0.22,
+      waste_meterialid: Number(matGlass.id),
+      wastesid: Number(wasteJuiceBottle.id),
+    }),
+    guideRepo.create({
+      recommendation: 'ฉลากพลาสติก: แกะออกจากขวดแก้ว ทิ้งถังรีไซเคิลพลาสติก',
+      weight: 0.005,
+      waste_meterialid: Number(matPET.id),
+      wastesid: Number(wasteJuiceBottle.id),
     }),
   ]);
   console.log(`  ✅ Created ${guides.length} material guides\n`);
@@ -322,63 +360,156 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
   console.log('📊 Seeding Waste History...');
   const historyRepo = dataSource.getRepository(WasteHistory);
 
+  // Note: New carbon calculation logic
+  // - Scanned waste (record_type: 'scan'): Uses MaterialGuide for calculation
+  //   - Waste with MaterialGuides: Use guide weights and material emission factors
+  //   - Waste without MaterialGuides: Fall back to direct WasteMaterial
+  // - Manual entry (record_type: 'manual'): Uses WasteMaterial directly
+
   const histories = await historyRepo.save([
+    // ============================================================
+    // SCANNED WASTE TEST CASES (use MaterialGuide)
+    // ============================================================
+    
+    // Scan 1: Water bottle (has MaterialGuide) - Uses guide weight (0.03 kg) + PET emission
     historyRepo.create({
-      amount: 2.5,
-      record_type: 'manual',
+      amount: 10, // 10 bottles scanned
+      record_type: 'scan',
       waste_meterialid: Number(matPET.id),
       wastesid: Number(wasteBottle.id),
       userid: savedUser.id as unknown as number,
       calculation_status: 'completed',
-      carbon_footprint: 2.5 * 2.29 + 15.0 * 0.21, // 5.725 + 3.15 = 8.875
+      // Carbon = (amount * guide_weight * emission_factor) + transport
+      // 10 * 0.03 * 2.29 + 15.0 * 0.21 = 0.687 + 3.15 = 3.837
+      carbon_footprint: 10 * 0.03 * 2.29 + 15.0 * 0.21,
       retry_count: 0,
     }),
+    
+    // Scan 2: Cardboard box (has MaterialGuide) - Uses guide weight (0.15 kg)
     historyRepo.create({
-      amount: 1.0,
-      record_type: 'manual',
+      amount: 5, // 5 boxes
+      record_type: 'scan',
       waste_meterialid: Number(matPaper.id),
       wastesid: Number(wasteBox.id),
       userid: savedUser.id as unknown as number,
       calculation_status: 'completed',
-      carbon_footprint: 1.0 * 1.17 + 15.0 * 0.21, // 1.17 + 3.15 = 4.32
+      // 5 * 0.15 * 1.17 + 15.0 * 0.21 = 0.8775 + 3.15 = 4.0275
+      carbon_footprint: 5 * 0.15 * 1.17 + 15.0 * 0.21,
       retry_count: 0,
     }),
+    
+    // Scan 3: Glass bottle (has MaterialGuide) - Uses guide weight (0.25 kg)
     historyRepo.create({
-      amount: 3.0,
+      amount: 4, // 4 bottles
       record_type: 'scan',
       waste_meterialid: Number(matGlass.id),
       wastesid: Number(wasteGlass.id),
       userid: savedUser.id as unknown as number,
       calculation_status: 'completed',
-      carbon_footprint: 3.0 * 0.86 + 15.0 * 0.21, // 2.58 + 3.15 = 5.73
+      // 4 * 0.25 * 0.86 + 15.0 * 0.21 = 0.86 + 3.15 = 4.01
+      carbon_footprint: 4 * 0.25 * 0.86 + 15.0 * 0.21,
       retry_count: 0,
     }),
+    
+    // Scan 4: Composite material - Juice bottle with MULTIPLE guides (glass + plastic label)
+    // This tests the composite material scenario where waste has multiple material guides
     historyRepo.create({
-      amount: 0.5,
-      record_type: 'manual',
-      waste_meterialid: Number(matAluminum.id),
-      wastesid: Number(wasteCan.id),
+      amount: 3, // 3 juice bottles
+      record_type: 'scan',
+      waste_meterialid: Number(matGlass.id), // Primary material
+      wastesid: Number(wasteJuiceBottle.id),
       userid: savedAdmin.id as unknown as number,
-      calculation_status: 'completed',
-      carbon_footprint: 0.5 * 8.14 + 15.0 * 0.21, // 4.07 + 3.15 = 7.22
+      calculation_status: 'pending', // Pending calculation (multiple materials)
       retry_count: 0,
     }),
+    
+    // Scan 5: Styrofoam (has MaterialGuide) - pending calculation
     historyRepo.create({
-      amount: 5.0,
-      record_type: 'manual',
-      waste_meterialid: Number(matFood.id),
-      wastesid: Number(wasteFruit.id),
-      userid: savedAdmin.id as unknown as number,
-      calculation_status: 'completed',
-      carbon_footprint: 5.0 * 0.58 + 5.0 * 0.15, // 2.9 + 0.75 = 3.65
-      retry_count: 0,
-    }),
-    historyRepo.create({
-      amount: 0.2,
+      amount: 8,
       record_type: 'scan',
       waste_meterialid: Number(matFoam.id),
       wastesid: Number(wasteFoam.id),
       userid: savedUser.id as unknown as number,
+      calculation_status: 'pending',
+      retry_count: 0,
+    }),
+
+    // ============================================================
+    // MANUAL ENTRY TEST CASES (use WasteMaterial directly)
+    // ============================================================
+    
+    // Manual 1: Direct PET material entry (no dependency on MaterialGuide)
+    historyRepo.create({
+      amount: 2.5, // Direct weight in kg
+      record_type: 'manual',
+      waste_meterialid: Number(matPET.id),
+      wastesid: null, // Manual entry can have null waste reference
+      userid: savedUser.id as unknown as number,
+      calculation_status: 'completed',
+      // Carbon = amount * emission_factor + transport
+      // 2.5 * 2.29 + 15.0 * 0.21 = 5.725 + 3.15 = 8.875
+      carbon_footprint: 2.5 * 2.29 + 15.0 * 0.21,
+      retry_count: 0,
+    }),
+    
+    // Manual 2: Paper material entry
+    historyRepo.create({
+      amount: 1.5,
+      record_type: 'manual',
+      waste_meterialid: Number(matPaper.id),
+      wastesid: null,
+      userid: savedUser.id as unknown as number,
+      calculation_status: 'completed',
+      // 1.5 * 1.17 + 15.0 * 0.21 = 1.755 + 3.15 = 4.905
+      carbon_footprint: 1.5 * 1.17 + 15.0 * 0.21,
+      retry_count: 0,
+    }),
+    
+    // Manual 3: Aluminum can entry
+    historyRepo.create({
+      amount: 0.8,
+      record_type: 'manual',
+      waste_meterialid: Number(matAluminum.id),
+      wastesid: Number(wasteCan.id), // Can optionally reference a waste
+      userid: savedAdmin.id as unknown as number,
+      calculation_status: 'completed',
+      // 0.8 * 8.14 + 15.0 * 0.21 = 6.512 + 3.15 = 9.662
+      carbon_footprint: 0.8 * 8.14 + 15.0 * 0.21,
+      retry_count: 0,
+    }),
+    
+    // Manual 4: Food waste (composting method)
+    historyRepo.create({
+      amount: 3.0,
+      record_type: 'manual',
+      waste_meterialid: Number(matFood.id),
+      wastesid: null,
+      userid: savedAdmin.id as unknown as number,
+      calculation_status: 'completed',
+      // 3.0 * 0.58 + 5.0 * 0.15 = 1.74 + 0.75 = 2.49 (composting transport)
+      carbon_footprint: 3.0 * 0.58 + 5.0 * 0.15,
+      retry_count: 0,
+    }),
+    
+    // Manual 5: Waste WITHOUT MaterialGuide (snack bag - manual only)
+    // This tests manual entry for waste that has no scan data
+    historyRepo.create({
+      amount: 0.5,
+      record_type: 'manual',
+      waste_meterialid: Number(matFoam.id), // Using foam as proxy for snack packaging
+      wastesid: Number(wasteSnackBag.id),
+      userid: savedUser.id as unknown as number,
+      calculation_status: 'pending',
+      retry_count: 0,
+    }),
+    
+    // Manual 6: Milk box (no MaterialGuide) - pending
+    historyRepo.create({
+      amount: 2.0,
+      record_type: 'manual',
+      waste_meterialid: Number(matPaper.id),
+      wastesid: Number(wasteMilkBox.id),
+      userid: savedAdmin.id as unknown as number,
       calculation_status: 'pending',
       retry_count: 0,
     }),
@@ -391,46 +522,72 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
   console.log('🔢 Seeding Waste Calculate Logs...');
   const calcLogRepo = dataSource.getRepository(WasteCalculateLog);
 
+  // Calculate logs for completed history entries
+  // Note: Histories with 'pending' status don't have calc logs yet
+
   const calcLogs = await calcLogRepo.save([
+    // Log 1: Scanned PET bottles (10 bottles * 0.03kg * 2.29 + transport)
     calcLogRepo.create({
       waste_historyid: Number(histories[0].id),
       waste_management_methodid: Number(methodRecycle.id),
-      amount: 2.5,
-      material_emission: 2.5 * 2.29, // 5.725
+      amount: 10,
+      material_emission: 10 * 0.03 * 2.29, // 0.687 (using MaterialGuide weight)
       transport_emission: 15.0 * 0.21, // 3.15
-      total_carbon_footprint: 2.5 * 2.29 + 15.0 * 0.21, // 8.875
+      total_carbon_footprint: 10 * 0.03 * 2.29 + 15.0 * 0.21, // 3.837
     }),
+    // Log 2: Scanned paper boxes (5 boxes * 0.15kg * 1.17 + transport)
     calcLogRepo.create({
       waste_historyid: Number(histories[1].id),
       waste_management_methodid: Number(methodRecycle.id),
-      amount: 1.0,
-      material_emission: 1.0 * 1.17,
-      transport_emission: 15.0 * 0.21,
-      total_carbon_footprint: 1.0 * 1.17 + 15.0 * 0.21,
+      amount: 5,
+      material_emission: 5 * 0.15 * 1.17, // 0.8775 (using MaterialGuide weight)
+      transport_emission: 15.0 * 0.21, // 3.15
+      total_carbon_footprint: 5 * 0.15 * 1.17 + 15.0 * 0.21, // 4.0275
     }),
+    // Log 3: Scanned glass bottles (4 bottles * 0.25kg * 0.86 + transport)
     calcLogRepo.create({
       waste_historyid: Number(histories[2].id),
       waste_management_methodid: Number(methodRecycle.id),
-      amount: 3.0,
-      material_emission: 3.0 * 0.86,
-      transport_emission: 15.0 * 0.21,
-      total_carbon_footprint: 3.0 * 0.86 + 15.0 * 0.21,
+      amount: 4,
+      material_emission: 4 * 0.25 * 0.86, // 0.86 (using MaterialGuide weight)
+      transport_emission: 15.0 * 0.21, // 3.15
+      total_carbon_footprint: 4 * 0.25 * 0.86 + 15.0 * 0.21, // 4.01
     }),
+    // Log 4: Manual PET entry (direct weight 2.5kg * 2.29 + transport)
     calcLogRepo.create({
-      waste_historyid: Number(histories[3].id),
+      waste_historyid: Number(histories[5].id),
       waste_management_methodid: Number(methodRecycle.id),
-      amount: 0.5,
-      material_emission: 0.5 * 8.14,
-      transport_emission: 15.0 * 0.21,
-      total_carbon_footprint: 0.5 * 8.14 + 15.0 * 0.21,
+      amount: 2.5,
+      material_emission: 2.5 * 2.29, // 5.725 (direct material weight)
+      transport_emission: 15.0 * 0.21, // 3.15
+      total_carbon_footprint: 2.5 * 2.29 + 15.0 * 0.21, // 8.875
     }),
+    // Log 5: Manual paper entry (direct weight 1.5kg * 1.17 + transport)
     calcLogRepo.create({
-      waste_historyid: Number(histories[4].id),
+      waste_historyid: Number(histories[6].id),
+      waste_management_methodid: Number(methodRecycle.id),
+      amount: 1.5,
+      material_emission: 1.5 * 1.17, // 1.755
+      transport_emission: 15.0 * 0.21, // 3.15
+      total_carbon_footprint: 1.5 * 1.17 + 15.0 * 0.21, // 4.905
+    }),
+    // Log 6: Manual aluminum entry (direct weight 0.8kg * 8.14 + transport)
+    calcLogRepo.create({
+      waste_historyid: Number(histories[7].id),
+      waste_management_methodid: Number(methodRecycle.id),
+      amount: 0.8,
+      material_emission: 0.8 * 8.14, // 6.512
+      transport_emission: 15.0 * 0.21, // 3.15
+      total_carbon_footprint: 0.8 * 8.14 + 15.0 * 0.21, // 9.662
+    }),
+    // Log 7: Manual food waste (composting - direct weight 3.0kg * 0.58 + compost transport)
+    calcLogRepo.create({
+      waste_historyid: Number(histories[8].id),
       waste_management_methodid: Number(methodCompost.id),
-      amount: 5.0,
-      material_emission: 5.0 * 0.58,
-      transport_emission: 5.0 * 0.15,
-      total_carbon_footprint: 5.0 * 0.58 + 5.0 * 0.15,
+      amount: 3.0,
+      material_emission: 3.0 * 0.58, // 1.74
+      transport_emission: 5.0 * 0.15, // 0.75 (composting transport)
+      total_carbon_footprint: 3.0 * 0.58 + 5.0 * 0.15, // 2.49
     }),
   ]);
   console.log(`  ✅ Created ${calcLogs.length} waste calculate logs\n`);
@@ -493,14 +650,20 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
   console.log(`   👤 Users:                   2 (admin + 1 user)`);
   console.log(`   📦 Waste Categories:        ${categories.length}`);
   console.log(`   🧪 Waste Materials:         ${materials.length}`);
-  console.log(`   🗑️  Wastes:                  ${wastes.length}`);
+  console.log(`   🗑️  Wastes:                  ${wastes.length + manualWastes.length} (${wastes.length} with guides + ${manualWastes.length} manual-only)`);
   console.log(`   ♻️  Waste Sorting:            ${sortings.length}`);
-  console.log(`   📖 Material Guides:         ${guides.length}`);
+  console.log(`   📖 Material Guides:         ${guides.length} (includes 2 composite guides)`);
   console.log(`   🏭 Management Methods:      ${methods.length}`);
-  console.log(`   📊 Waste History:           ${histories.length}`);
+  console.log(`   📊 Waste History:           ${histories.length} (${histories.filter(h => h.record_type === 'scan').length} scan + ${histories.filter(h => h.record_type === 'manual').length} manual)`);
   console.log(`   🔢 Calculate Logs:          ${calcLogs.length}`);
   console.log(`   ⚙️  Scheduler Settings:      ${settings.length}`);
   console.log(`   🔒 Scheduler Locks:         1`);
+  console.log('');
+  console.log('🧪 Test Coverage:');
+  console.log('   ✅ Scanned waste with MaterialGuide (single material)');
+  console.log('   ✅ Scanned waste with composite materials (multiple guides)');
+  console.log('   ✅ Manual entry with WasteMaterial (direct)');
+  console.log('   ✅ Manual entry for waste without MaterialGuide');
   console.log('');
   console.log('🔑 Admin Login:');
   console.log('   Email:    admin@informatics.buu.ac.th');
