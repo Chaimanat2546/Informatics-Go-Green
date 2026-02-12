@@ -3,13 +3,9 @@ import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, EntityManager } from 'typeorm';
 import { WasteHistory } from '../../waste/entities/waste-history.entity';
-import { WasteMaterial } from '../../waste/entities/waste-material.entity';
-import { WasteManagementMethod } from '../../waste/entities/waste-management-method.entity';
-import { WasteCalculateLog } from '../../waste/entities/waste-calculate-log.entity';
 import { SchedulerLock } from '../entities/scheduler-lock.entity';
 import { SchedulerSettingsService } from './scheduler-settings.service';
 import { CarbonFootprintCalculator } from '../../services/carbonCalculator';
-import { MaterialGuide } from '../../waste/entities/material-guide.entity';
 
 export enum CalculationStatus {
   PENDING = 'pending',
@@ -32,12 +28,6 @@ export class CarbonFootprintSchedulerService {
   constructor(
     @InjectRepository(WasteHistory)
     private readonly wasteHistoryRepository: Repository<WasteHistory>,
-    @InjectRepository(WasteMaterial)
-    private readonly wasteMaterialRepository: Repository<WasteMaterial>,
-    @InjectRepository(WasteManagementMethod)
-    private readonly wasteManagementMethodRepository: Repository<WasteManagementMethod>,
-    @InjectRepository(WasteCalculateLog)
-    private readonly wasteCalculateLogRepository: Repository<WasteCalculateLog>,
     @InjectRepository(SchedulerLock)
     private readonly schedulerLockRepository: Repository<SchedulerLock>,
     private readonly schedulerSettingsService: SchedulerSettingsService,
@@ -212,9 +202,10 @@ export class CarbonFootprintSchedulerService {
   /**
    * Calculate carbon footprint using the new CarbonFootprintCalculator
    * Uses waste_id (wastesid) to find MaterialGuide records and calculate total carbon
-   * Formula: totalCarbon = Σ (materialWeight × materialEmissionFactor)
+   * Falls back to wasteHistory.amount × wasteMaterial.emission_factor if no MaterialGuide found
+   * Formula: totalCarbon = Σ (materialWeight × materialEmissionFactor) OR amount × emission_factor
    */
-  private async calculateCarbonFootprintWithCalculator(
+  private async calculateCarbonFootprint(
     wasteHistory: WasteHistory,
   ): Promise<number> {
     const calculator = new CarbonFootprintCalculator(
@@ -224,106 +215,13 @@ export class CarbonFootprintSchedulerService {
     );
 
     // Use waste_id (wastesid) to calculate through material_guides
-    if (!wasteHistory.wastesid) {
-      throw new Error('WasteHistory is missing waste_id (wastesid)');
-    }
-
-    const totalCarbon = await calculator.calculateByWasteId(wasteHistory.wastesid);
+    // Pass wasteHistory for fallback if no MaterialGuide exists (manual entry)
+    const totalCarbon = await calculator.calculateByWasteId(
+      wasteHistory.wastesid ?? 0,
+      wasteHistory,
+    );
 
     return totalCarbon;
-  }
-
-  /**
-   * Calculate carbon footprint for a single waste history record
-   * Formula: Total Carbon Footprint = Material Emission + Transport Emission
-   *   - Material Emission = amount × emission_factor
-   *   - Transport Emission = transport_km × transport_co2e_per_km
-   */
-  private async calculateCarbonFootprint(
-    wasteHistory: WasteHistory,
-  ): Promise<number> {
-    if (!wasteHistory.amount) {
-      throw new Error('Waste history amount is missing');
-    }
-
-    // Get waste material
-    let wasteMaterial: WasteMaterial | null | undefined =
-      wasteHistory.wasteMaterial;
-    if (!wasteMaterial && wasteHistory.waste_meterialid) {
-      wasteMaterial = await this.wasteMaterialRepository.findOne({
-        where: { id: wasteHistory.waste_meterialid },
-      });
-    }
-
-    if (!wasteMaterial) {
-      throw new Error('Waste material not found');
-    }
-
-    if (!wasteMaterial.emission_factor && wasteMaterial.emission_factor !== 0) {
-      throw new Error('Emission factor is missing for the waste material');
-    }
-
-    // Calculate material emission
-    const materialEmission =
-      wasteHistory.amount * wasteMaterial.emission_factor;
-
-    // Get default waste management method from settings
-    let wasteManagementMethod: WasteManagementMethod | null = null;
-    const defaultMethodId = await this.schedulerSettingsService.getSetting(
-      'default_management_method_id',
-    );
-
-    if (defaultMethodId) {
-      wasteManagementMethod =
-        await this.wasteManagementMethodRepository.findOne({
-          where: { id: parseInt(defaultMethodId, 10) },
-        });
-    }
-
-    // Fallback to first method if no default is set
-    if (!wasteManagementMethod) {
-      const methods = await this.wasteManagementMethodRepository.find({
-        order: { id: 'ASC' },
-        take: 1,
-      });
-      wasteManagementMethod = methods[0] || null;
-    }
-
-    // Calculate transport emission (if management method exists)
-    let transportEmission = 0;
-    if (
-      wasteManagementMethod &&
-      wasteManagementMethod.transport_km &&
-      wasteManagementMethod.transport_co2e_per_km
-    ) {
-      transportEmission =
-        wasteManagementMethod.transport_km *
-        wasteManagementMethod.transport_co2e_per_km;
-    }
-
-    // Total carbon footprint
-    const totalCarbonFootprint = materialEmission + transportEmission;
-    const roundedTotal = Math.round(totalCarbonFootprint * 1000) / 1000;
-
-    // Create calculation log
-    const calculateLog = this.wasteCalculateLogRepository.create({
-      waste_historyid: wasteHistory.id,
-      waste_management_methodid: wasteManagementMethod?.id,
-      amount: wasteHistory.amount,
-      material_emission: Math.round(materialEmission * 1000) / 1000,
-      transport_emission: Math.round(transportEmission * 1000) / 1000,
-      total_carbon_footprint: roundedTotal,
-    });
-    await this.wasteCalculateLogRepository.save(calculateLog);
-
-    this.logger.debug(
-      `Log created for record ${wasteHistory.id}: ` +
-        `Material=${materialEmission.toFixed(3)}, ` +
-        `Transport=${transportEmission.toFixed(3)}, ` +
-        `Total=${roundedTotal}`,
-    );
-
-    return roundedTotal;
   }
 
   /**

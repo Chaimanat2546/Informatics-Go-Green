@@ -11,6 +11,7 @@ import Decimal from 'decimal.js';
 import { WasteMaterial } from '../waste/entities/waste-material.entity';
 import { WasteSorting } from '../waste/entities/waste-sorting.entity';
 import { MaterialGuide } from '../waste/entities/material-guide.entity';
+import { WasteHistory } from '../waste/entities/waste-history.entity';
 
 // Type definitions
 interface TrashItem {
@@ -436,9 +437,15 @@ export class CarbonFootprintCalculator {
   /**
    * Calculate carbon footprint by waste_id (wastesid)
    * Used by Cron Job to calculate using MaterialGuide records
-   * Formula: totalCarbon = Σ (materialWeight × materialEmissionFactor)
+   * Supports two cases:
+   *   Case 1: Has MaterialGuide (scanned waste) - sum of material weights × emission factors
+   *   Case 2: No MaterialGuide (manual entry) - amount × wasteMaterial.emission_factor
+   * Formula: totalCarbon = Σ (materialWeight × materialEmissionFactor) OR amount × emission_factor
    */
-  async calculateByWasteId(wasteId: number): Promise<number> {
+  async calculateByWasteId(
+    wasteId: number,
+    wasteHistory?: WasteHistory,
+  ): Promise<number> {
     this.log(`🔄 Calculating carbon for waste_id: ${wasteId}`);
 
     try {
@@ -448,38 +455,71 @@ export class CarbonFootprintCalculator {
         relations: ['wasteMaterial'],
       });
 
-      if (!materialGuides || materialGuides.length === 0) {
-        throw new Error(`No material guides found for waste_id: ${wasteId}`);
-      }
+      // Case 1: Has MaterialGuide records (scanned waste with multiple materials)
+      if (materialGuides && materialGuides.length > 0) {
+        this.log(
+          `  📦 Found ${materialGuides.length} material guides (scanned waste)`,
+        );
 
-      this.log(`  📦 Found ${materialGuides.length} material guides`);
+        let totalCarbon = new Decimal(0);
 
-      let totalCarbon = new Decimal(0);
+        for (const guide of materialGuides) {
+          const materialWeight = guide.weight || 0;
+          const wasteMaterial = guide.wasteMaterial;
 
-      for (const guide of materialGuides) {
-        const materialWeight = guide.weight || 0;
-        const wasteMaterial = guide.wasteMaterial;
+          if (!wasteMaterial) {
+            this.log(
+              `  ⚠️ Warning: No waste material found for guide ${guide.id}`,
+            );
+            continue;
+          }
 
-        if (!wasteMaterial) {
-          this.log(`  ⚠️ Warning: No waste material found for guide ${guide.id}`);
-          continue;
+          const emissionFactor = wasteMaterial.emission_factor || 0;
+          const materialCarbon = new Decimal(materialWeight).mul(
+            new Decimal(emissionFactor),
+          );
+
+          totalCarbon = totalCarbon.plus(materialCarbon);
+
+          this.log(
+            `    • ${wasteMaterial.name}: ${materialCarbon.toFixed(4)} kg CO2e (weight: ${materialWeight}kg, EF: ${emissionFactor})`,
+          );
         }
 
-        const emissionFactor = wasteMaterial.emission_factor || 0;
-        const materialCarbon = new Decimal(materialWeight).mul(new Decimal(emissionFactor));
+        this.log(`  ✅ Total (scanned): ${totalCarbon.toFixed(4)} kg CO2e`);
+        return totalCarbon.toNumber();
+      }
 
-        totalCarbon = totalCarbon.plus(materialCarbon);
+      // Case 2: No MaterialGuide records (manually added waste)
+      this.log(`  📦 No material guides found (manual entry)`);
 
-        this.log(
-          `    • ${wasteMaterial.name}: ${materialCarbon.toFixed(4)} kg CO2e (weight: ${materialWeight}kg, EF: ${emissionFactor})`,
+      if (!wasteHistory) {
+        throw new Error(
+          `No material guides found for waste_id: ${wasteId} and no wasteHistory provided for fallback`,
         );
       }
 
-      this.log(`  ✅ Total: ${totalCarbon.toFixed(4)} kg CO2e`);
+      const amount = wasteHistory.amount || 0;
+      const wasteMaterial = wasteHistory.wasteMaterial;
+
+      if (!wasteMaterial) {
+        throw new Error(
+          `No wasteMaterial found in wasteHistory for fallback calculation (waste_id: ${wasteId})`,
+        );
+      }
+
+      const emissionFactor = wasteMaterial.emission_factor || 0;
+      const totalCarbon = new Decimal(amount).mul(new Decimal(emissionFactor));
+
+      this.log(
+        `    • ${wasteMaterial.name}: ${totalCarbon.toFixed(4)} kg CO2e (amount: ${amount}, EF: ${emissionFactor})`,
+      );
+      this.log(`  ✅ Total (manual): ${totalCarbon.toFixed(4)} kg CO2e`);
 
       return totalCarbon.toNumber();
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       this.log(`❌ Error calculating by waste_id: ${errorMessage}`);
       throw error;
     }

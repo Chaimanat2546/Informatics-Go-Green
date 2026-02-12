@@ -8,6 +8,7 @@ import {
 import { WasteMaterial } from '../waste/entities/waste-material.entity';
 import { WasteSorting } from '../waste/entities/waste-sorting.entity';
 import { MaterialGuide } from '../waste/entities/material-guide.entity';
+import { WasteHistory } from '../waste/entities/waste-history.entity';
 
 // Interface to access private methods for testing
 interface CalculatorWithPrivate {
@@ -728,5 +729,139 @@ describe('calculateDailyCarbonFootprint', () => {
     expect(result.summary.total).toBe(0);
     expect(result.summary.success).toBe(0);
     expect(result.summary.failed).toBe(0);
+  });
+});
+
+describe('calculateByWasteId', () => {
+  let calculator: CarbonFootprintCalculator;
+  let mockEntityManager: jest.Mocked<EntityManager>;
+  let mockLogger: jest.Mocked<Logger>;
+
+  const mockWasteMaterial: WasteMaterial = {
+    id: 1,
+    name: 'พลาสติก',
+    emission_factor: 2.5,
+    unit: 'kg',
+  } as WasteMaterial;
+
+  const mockMaterialGuides: MaterialGuide[] = [
+    {
+      id: 1,
+      wastesid: 1,
+      waste_meterialid: 1,
+      weight: 0.5,
+      wasteMaterial: mockWasteMaterial,
+    } as MaterialGuide,
+    {
+      id: 2,
+      wastesid: 1,
+      waste_meterialid: 1,
+      weight: 0.3,
+      wasteMaterial: mockWasteMaterial,
+    } as MaterialGuide,
+  ];
+
+  beforeEach(() => {
+    mockEntityManager = {
+      find: jest.fn(),
+    } as unknown as jest.Mocked<EntityManager>;
+
+    mockLogger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    } as unknown as jest.Mocked<Logger>;
+
+    calculator = new CarbonFootprintCalculator(
+      mockEntityManager,
+      1000,
+      mockLogger,
+    );
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should calculate carbon for scanned waste with MaterialGuide records (Case 1)', async () => {
+    // Mock MaterialGuide records found
+    mockEntityManager.find.mockImplementation((entityClass: unknown) => {
+      if (entityClass === MaterialGuide) {
+        return Promise.resolve(mockMaterialGuides);
+      }
+      return Promise.resolve([]);
+    });
+
+    const wasteHistory = {
+      id: 1,
+      amount: 10,
+      wastesid: 1,
+      wasteMaterial: mockWasteMaterial,
+    } as WasteHistory;
+
+    const result = await calculator.calculateByWasteId(1, wasteHistory);
+
+    // (0.5 * 2.5) + (0.3 * 2.5) = 1.25 + 0.75 = 2.0
+    expect(result).toBeCloseTo(2.0, 1);
+  });
+
+  it('should fallback to wasteHistory for manual entry without MaterialGuide (Case 2)', async () => {
+    // Mock no MaterialGuide records found (empty array)
+    mockEntityManager.find.mockImplementation((entityClass: unknown) => {
+      if (entityClass === MaterialGuide) {
+        return Promise.resolve([]);
+      }
+      return Promise.resolve([]);
+    });
+
+    const wasteHistory = {
+      id: 1,
+      amount: 10,
+      wastesid: 2,
+      wasteMaterial: mockWasteMaterial,
+    } as WasteHistory;
+
+    const result = await calculator.calculateByWasteId(2, wasteHistory);
+
+    // 10 * 2.5 = 25 (manual fallback calculation)
+    expect(result).toBeCloseTo(25, 1);
+  });
+
+  it('should throw error when no MaterialGuide and no wasteHistory provided', async () => {
+    // Mock no MaterialGuide records found
+    mockEntityManager.find.mockImplementation((entityClass: unknown) => {
+      if (entityClass === MaterialGuide) {
+        return Promise.resolve([]);
+      }
+      return Promise.resolve([]);
+    });
+
+    await expect(calculator.calculateByWasteId(1)).rejects.toThrow(
+      'No material guides found for waste_id: 1 and no wasteHistory provided for fallback',
+    );
+  });
+
+  it('should throw error when no MaterialGuide and no wasteMaterial in wasteHistory', async () => {
+    // Mock no MaterialGuide records found
+    mockEntityManager.find.mockImplementation((entityClass: unknown) => {
+      if (entityClass === MaterialGuide) {
+        return Promise.resolve([]);
+      }
+      return Promise.resolve([]);
+    });
+
+    const wasteHistoryWithoutMaterial = {
+      id: 1,
+      amount: 10,
+      wastesid: 1,
+      wasteMaterial: undefined,
+    } as unknown as WasteHistory;
+
+    await expect(
+      calculator.calculateByWasteId(1, wasteHistoryWithoutMaterial),
+    ).rejects.toThrow(
+      'No wasteMaterial found in wasteHistory for fallback calculation',
+    );
   });
 });
