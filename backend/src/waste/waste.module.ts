@@ -38,7 +38,12 @@ import { StatisticsController } from './controllers/statistics.controller';
     WasteSortingController,
     StatisticsController,
   ],
-  providers: [WasteScannerService, WasteHistoryService, WasteSortingService, StatisticsService],
+  providers: [
+    WasteScannerService,
+    WasteHistoryService,
+    WasteSortingService,
+    StatisticsService,
+  ],
   exports: [TypeOrmModule],
 })
 export class WasteModule {}

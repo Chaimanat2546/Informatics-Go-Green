@@ -197,7 +197,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
   // 4b. ADDITIONAL WASTES (for manual entry testing - NO MaterialGuides)
   // ============================================================
   console.log('🗑️  Seeding Additional Wastes (manual entry only)...');
-  
+
   const manualWastes = await wasteRepo.save([
     wasteRepo.create({
       name: 'ซองขนม',
@@ -305,7 +305,8 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
     }),
     // Composite material guide: wasteJuiceBottle has both glass and plastic (label)
     guideRepo.create({
-      recommendation: 'ล้างขวดให้สะอาด แกะฉลากพลาสติกออก แยกส่งรีไซเคิลตามประเภท',
+      recommendation:
+        'ล้างขวดให้สะอาด แกะฉลากพลาสติกออก แยกส่งรีไซเคิลตามประเภท',
       weight: 0.22,
       waste_meterialid: Number(matGlass.id),
       wastesid: Number(wasteJuiceBottle.id),
@@ -370,7 +371,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
     // ============================================================
     // SCANNED WASTE TEST CASES (use MaterialGuide)
     // ============================================================
-    
+
     // Scan 1: Water bottle (has MaterialGuide) - Uses guide weight (0.03 kg) + PET emission
     historyRepo.create({
       amount: 10, // 10 bottles scanned
@@ -384,7 +385,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       carbon_footprint: 10 * 0.03 * 2.29 + 15.0 * 0.21,
       retry_count: 0,
     }),
-    
+
     // Scan 2: Cardboard box (has MaterialGuide) - Uses guide weight (0.15 kg)
     historyRepo.create({
       amount: 5, // 5 boxes
@@ -397,7 +398,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       carbon_footprint: 5 * 0.15 * 1.17 + 15.0 * 0.21,
       retry_count: 0,
     }),
-    
+
     // Scan 3: Glass bottle (has MaterialGuide) - Uses guide weight (0.25 kg)
     historyRepo.create({
       amount: 4, // 4 bottles
@@ -410,7 +411,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       carbon_footprint: 4 * 0.25 * 0.86 + 15.0 * 0.21,
       retry_count: 0,
     }),
-    
+
     // Scan 4: Composite material - Juice bottle with MULTIPLE guides (glass + plastic label)
     // This tests the composite material scenario where waste has multiple material guides
     historyRepo.create({
@@ -422,7 +423,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       calculation_status: 'pending', // Pending calculation (multiple materials)
       retry_count: 0,
     }),
-    
+
     // Scan 5: Styrofoam (has MaterialGuide) - pending calculation
     historyRepo.create({
       amount: 8,
@@ -437,7 +438,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
     // ============================================================
     // MANUAL ENTRY TEST CASES (use WasteMaterial directly)
     // ============================================================
-    
+
     // Manual 1: Direct PET material entry (no dependency on MaterialGuide)
     historyRepo.create({
       amount: 2.5, // Direct weight in kg
@@ -451,7 +452,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       carbon_footprint: 2.5 * 2.29 + 15.0 * 0.21,
       retry_count: 0,
     }),
-    
+
     // Manual 2: Paper material entry
     historyRepo.create({
       amount: 1.5,
@@ -464,7 +465,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       carbon_footprint: 1.5 * 1.17 + 15.0 * 0.21,
       retry_count: 0,
     }),
-    
+
     // Manual 3: Aluminum can entry
     historyRepo.create({
       amount: 0.8,
@@ -477,7 +478,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       carbon_footprint: 0.8 * 8.14 + 15.0 * 0.21,
       retry_count: 0,
     }),
-    
+
     // Manual 4: Food waste (composting method)
     historyRepo.create({
       amount: 3.0,
@@ -490,7 +491,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       carbon_footprint: 3.0 * 0.58 + 5.0 * 0.15,
       retry_count: 0,
     }),
-    
+
     // Manual 5: Waste WITHOUT MaterialGuide (snack bag - manual only)
     // This tests manual entry for waste that has no scan data
     historyRepo.create({
@@ -502,7 +503,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       calculation_status: 'pending',
       retry_count: 0,
     }),
-    
+
     // Manual 6: Milk box (no MaterialGuide) - pending
     historyRepo.create({
       amount: 2.0,
@@ -650,11 +651,17 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
   console.log(`   👤 Users:                   2 (admin + 1 user)`);
   console.log(`   📦 Waste Categories:        ${categories.length}`);
   console.log(`   🧪 Waste Materials:         ${materials.length}`);
-  console.log(`   🗑️  Wastes:                  ${wastes.length + manualWastes.length} (${wastes.length} with guides + ${manualWastes.length} manual-only)`);
+  console.log(
+    `   🗑️  Wastes:                  ${wastes.length + manualWastes.length} (${wastes.length} with guides + ${manualWastes.length} manual-only)`,
+  );
   console.log(`   ♻️  Waste Sorting:            ${sortings.length}`);
-  console.log(`   📖 Material Guides:         ${guides.length} (includes 2 composite guides)`);
+  console.log(
+    `   📖 Material Guides:         ${guides.length} (includes 2 composite guides)`,
+  );
   console.log(`   🏭 Management Methods:      ${methods.length}`);
-  console.log(`   📊 Waste History:           ${histories.length} (${histories.filter(h => h.record_type === 'scan').length} scan + ${histories.filter(h => h.record_type === 'manual').length} manual)`);
+  console.log(
+    `   📊 Waste History:           ${histories.length} (${histories.filter((h) => h.record_type === 'scan').length} scan + ${histories.filter((h) => h.record_type === 'manual').length} manual)`,
+  );
   console.log(`   🔢 Calculate Logs:          ${calcLogs.length}`);
   console.log(`   ⚙️  Scheduler Settings:      ${settings.length}`);
   console.log(`   🔒 Scheduler Locks:         1`);

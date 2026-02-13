@@ -346,7 +346,8 @@ export class CarbonFootprintSchedulerService {
     return records.map((record) => ({
       id: record.id,
       amount: record.amount || 0,
-      materialName: record.wasteMaterial?.name || record.waste?.name || 'Unknown',
+      materialName:
+        record.wasteMaterial?.name || record.waste?.name || 'Unknown',
       status: record.calculation_status || 'pending',
       created_at: record.create_at?.toISOString() || '',
       retryCount: record.retry_count || 0,

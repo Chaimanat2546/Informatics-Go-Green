@@ -96,7 +96,7 @@ export default function WasteHistoryPage() {
                     <TrendingUp size={32} className="text-green-700" strokeWidth={2.5} />
                 </div>
                 <div>
-                    <p className="text-gray-500 text-md font-bold uppercase tracking-wider">CARBON FOOTPRINT ที่ลดได้</p>
+                    <p className="text-gray-500 text-md font-bold uppercase tracking-wider">CARBON FOOTPRINT</p>
                     <p className="text-3xl font-bold text-green-700 mt-1">
                         {totalPoints.toLocaleString()} <span className="text-base font-semibold text-green-700">แต้ม</span>
                     </p>
@@ -120,16 +120,16 @@ export default function WasteHistoryPage() {
 
                                         <div className="flex flex-row justify-between w-full items-start">
                                             <div>
-                                                <span className="bg-slate-200 text-slate-600 text-sm font-bold px-2 py-1 rounded">
+                                                <span className="bg-slate-200  text-slate-600 text-sm font-bold px-2 py-1 rounded">
                                                     บันทึกน้ำหนัก
                                                 </span>
-                                                <span className={`${getCategoryStyle(item.waste_category)} text-sm font-bold px-3 ml-4 py-1 rounded-full`}>
+                                                {/* <span className={`${getCategoryStyle(item.waste_category)} text-sm font-bold px-3 ml-1 py-1 rounded-full`}>
                                                     {item.waste_category}
-                                                </span>
+                                                </span> */}
                                             </div>
 
 
-                                            <div className="flex flex-row gap-1 items-center text-lg text-green-600 font-bold">
+                                            <div className="flex flex-row gap-1   items-center text-lg text-green-600 font-bold">
                                                 {item.carbon_footprint ? (
                                                     <>
                                                         <p>+{item.carbon_footprint} kgCO2e</p>
@@ -166,8 +166,20 @@ export default function WasteHistoryPage() {
                                             {item.waste_category}
                                         </span>
                                         <div className="flex flex-row gap-1 items-center text-lg text-green-600 font-bold">
-                                            <p>+{item.carbon_footprint}</p>
-                                            <MoveUpRight size={16} strokeWidth={3} />
+                                            {item.carbon_footprint ? (
+                                                <>
+                                                    <p>+{item.carbon_footprint} kgCO2e</p>
+                                                    <MoveUpRight size={16} strokeWidth={3} />
+
+                                                </>
+
+                                            ) : (
+                                                <>
+                                                    <p>รอคำนวณ</p>
+                                                    <Loader2 size={16} className="animate-spin" strokeWidth={3} />
+                                                </>
+
+                                            )}
                                         </div>
                                     </div>
 
