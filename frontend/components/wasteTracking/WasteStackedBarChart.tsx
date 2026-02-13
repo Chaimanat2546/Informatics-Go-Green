@@ -17,15 +17,6 @@ import {
   ChartLegendContent
 } from "@/components/ui/chart"
 
-const chartData = [
-  { month: "Jan", plastic: 80, paper: 30, glass: 20, metal: 10, steel: 15, other: 15 },
-  { month: "Feb", plastic: 75, paper: 25, glass: 15, metal: 5, steel: 10, other: 15 },
-  { month: "Mar", plastic: 70, paper: 20, glass: 10, metal: 10, steel: 0, other: 0 },
-  { month: "Apr", plastic: 40, paper: 0, glass: 0, metal: 0, steel: 0, other: 0 },
-  { month: "May", plastic: 85, paper: 35, glass: 25, metal: 0, steel: 15, other: 0 },
-  { month: "Jun", plastic: 120, paper: 0, glass: 0, metal: 10, steel: 10, other: 30 },
-]
-
 const chartConfig = {
   plastic: { label: "พลาสติก", color: "#4ADE80" }, 
   paper: { label: "กระดาษ", color: "#FDE047" },   
@@ -37,11 +28,27 @@ const chartConfig = {
 
 export default function WasteStackedBarChart() {
   const [isMounted, setIsMounted] = useState(false)
+  const [chartData, setChartData] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsMounted(true)
-    }, 0)
-    return () => clearTimeout(timer)
+    setIsMounted(true)
+
+    const fetchChartData = async () => {
+      try {
+        const response = await fetch("http://localhost:3001/api/waste/waste-weight-categories");
+        if (!response.ok) throw new Error("Failed to fetch data");
+        
+        const data = await response.json();
+        setChartData(data);
+      } catch (error) {
+        console.error("Error fetching waste chart data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchChartData();
   }, [])
 
   return (
@@ -53,13 +60,15 @@ export default function WasteStackedBarChart() {
       </CardHeader>
       
       <CardContent className="p-0">
-        {!isMounted ? (
-            <div className="h-[350px] w-full bg-gray-50 rounded-xl animate-pulse" />
+        {!isMounted || isLoading ? (
+            <div className="h-[350px] w-full bg-gray-50 rounded-xl animate-pulse flex items-center justify-center text-gray-400">
+                กำลังโหลดข้อมูล...
+            </div>
         ) : (
             <ChartContainer config={chartConfig} className="min-h-[350px] text-md w-full">
                 <BarChart 
                     accessibilityLayer 
-                    data={chartData} 
+                    data={chartData}  
                     margin={{ top: 20, right: 0, left: -20, bottom: 0 }}
                 >
                     <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -80,13 +89,13 @@ export default function WasteStackedBarChart() {
 
                     <ChartLegend content={<ChartLegendContent />} className="mt-4" />
 
-                    <Bar dataKey="plastic" stackId="a" fill="var(--color-plastic)" radius={[0, 0, 4, 4]} barSize={150}  />
-                    <Bar dataKey="paper" stackId="a" fill="var(--color-paper)" />
-                    <Bar dataKey="glass" stackId="a" fill="var(--color-glass)" />
-                    <Bar dataKey="metal" stackId="a" fill="var(--color-metal)" />
-                    <Bar dataKey="steel" stackId="a" fill="var(--color-steel)" />
+                    <Bar dataKey="plastic" stackId="a" fill="var(--color-plastic)" radius={[0, 0, 4, 4]} barSize={60}  />
+                    <Bar dataKey="paper" stackId="a" fill="var(--color-paper)" barSize={60} />
+                    <Bar dataKey="glass" stackId="a" fill="var(--color-glass)" barSize={60} />
+                    <Bar dataKey="metal" stackId="a" fill="var(--color-metal)" barSize={60} />
+                    <Bar dataKey="steel" stackId="a" fill="var(--color-steel)" barSize={60} />
                     
-                    <Bar dataKey="other" stackId="a" fill="var(--color-other)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="other" stackId="a" fill="var(--color-other)" radius={[4, 4, 0, 0]} barSize={60} />
                     
                 </BarChart>
             </ChartContainer>

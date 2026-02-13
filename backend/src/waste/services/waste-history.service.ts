@@ -14,7 +14,7 @@ export class WasteHistoryService {
     const skip = (page - 1) * limit;
 
     const [histories, total] = await this.wasteHistoryRepository.findAndCount({
-      relations: ['waste', 'waste.wasteCategory', 'user'],
+      relations: ['waste', 'waste.wasteCategory', 'user' ,'wasteMaterial', 'wasteMaterial.wasteCategory'],
       order: { create_at: 'DESC' },
       take: limit,
       skip: skip,
@@ -42,6 +42,7 @@ export class WasteHistoryService {
         'waste.wasteCategory',
         'wasteMaterial',
         'wasteMaterial.wasteCategory',
+        'user',
       ],
       order: { create_at: 'DESC' },
     });
@@ -62,12 +63,14 @@ export class WasteHistoryService {
         waste_category: categoryName,
         wastesid: history.wastesid,
         waste_meterialid: history.waste_meterialid,
-        material_name: materialName,
+        meterial_name: materialName,
         name_waste: materialName,
         create_at: history.create_at,
         amount: history.amount,
         record_type: history.record_type,
         user_id: history.userid,
+        user_name: history.user.firstName + ' ' + history.user.lastName,
+        carbon_footprint : history.carbon_footprint,
       };
     });
   }
