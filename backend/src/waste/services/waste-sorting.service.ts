@@ -54,7 +54,7 @@ export class WasteSortingService {
 
     const newHistory = this.wasteHistoryRepo.create({
       amount: weight,
-      record_type: 'weight_entry',
+      record_type: 'manual',
       waste_meterialid: materialId,
       userid: userId,
       wastesid: null,
