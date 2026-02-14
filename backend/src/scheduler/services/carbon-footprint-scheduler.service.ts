@@ -338,7 +338,7 @@ export class CarbonFootprintSchedulerService {
         { calculation_status: CalculationStatus.PENDING },
         { calculation_status: CalculationStatus.FAILED },
       ],
-      relations: ['wasteMaterial'],
+      relations: ['wasteMaterial', 'waste'],
       order: { create_at: 'DESC' },
       take: limit,
     });
@@ -346,7 +346,8 @@ export class CarbonFootprintSchedulerService {
     return records.map((record) => ({
       id: record.id,
       amount: record.amount || 0,
-      materialName: record.wasteMaterial?.name || 'Unknown',
+      materialName:
+        record.wasteMaterial?.name || record.waste?.name || 'Unknown',
       status: record.calculation_status || 'pending',
       created_at: record.create_at?.toISOString() || '',
       retryCount: record.retry_count || 0,

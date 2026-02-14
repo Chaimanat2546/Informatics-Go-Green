@@ -7,6 +7,7 @@ import {
   WasteSorting,
   WasteMaterial,
   MaterialGuide,
+  WasteCalculateLog,
 } from './entities';
 import { WasteScannerController } from './controllers/waste-scanbarcode.controller';
 import { WasteScannerService } from './services/waste-scanbarcode.service';
@@ -15,6 +16,8 @@ import { WasteHistoryController } from './controllers/waste-history.controller';
 import { WasteHistoryService } from './services/waste-history.service';
 import { WasteSortingController } from './controllers/waste-sorting.controller';
 import { WasteSortingService } from './services/waste-sorting.service';
+import { StatisticsService } from './services/statistics.service';
+import { StatisticsController } from './controllers/statistics.controller';
 
 @Module({
   imports: [
@@ -26,14 +29,21 @@ import { WasteSortingService } from './services/waste-sorting.service';
       WasteMaterial,
       MaterialGuide,
       User,
+      WasteCalculateLog,
     ]),
   ],
   controllers: [
     WasteScannerController,
     WasteHistoryController,
     WasteSortingController,
+    StatisticsController,
   ],
-  providers: [WasteScannerService, WasteHistoryService, WasteSortingService],
+  providers: [
+    WasteScannerService,
+    WasteHistoryService,
+    WasteSortingService,
+    StatisticsService,
+  ],
   exports: [TypeOrmModule],
 })
 export class WasteModule {}

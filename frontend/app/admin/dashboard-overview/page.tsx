@@ -5,8 +5,11 @@ import CO2ReductionChart from "@/components/wasteTracking/CO2ReductionChart"
 import RecentWasteList from "@/components/wasteTracking/RecentWasteList"
 import SummaryCards from "@/components/wasteTracking/SummaryCards"
 import WasteStackedBarChart from "@/components/wasteTracking/WasteStackedBarChart"
+import { useState } from "react"
 
 export default function DashboardOverviewPage() {
+    const [timeType, setTimeType] = useState<'daily' | 'monthly' | 'yearly'>('daily');
+    const currentDate = new Date().toISOString().split('T')[0];
     return <>
         <div className="space-y-6 p-6">
             <div className="flex items-center justify-between">
@@ -16,21 +19,21 @@ export default function DashboardOverviewPage() {
                     </h1>
                 </div>
                 <div className="flex gap-2 w-[30%] h-full bg-white">
-                    <Select>
+                    <Select value={timeType} onValueChange={(value: 'daily' | 'monthly' | 'yearly') => setTimeType(value)}>
                         <SelectTrigger className="w-full">
-                            <SelectValue placeholder="วัน/เดือน/ปี" />
+                            <SelectValue placeholder="เลือกช่วงเวลา" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="light">รายวัน</SelectItem>
-                            <SelectItem value="dark">รายเดือน</SelectItem>
-                            <SelectItem value="system">รายปี</SelectItem>
+                            <SelectItem value="daily">รายวัน</SelectItem>
+                            <SelectItem value="monthly">รายเดือน</SelectItem>
+                            <SelectItem value="yearly">รายปี</SelectItem>
                         </SelectContent>
                     </Select>
 
                 </div>
             </div>
             <div className="w-full">
-                <SummaryCards />
+                <SummaryCards type={timeType} date={currentDate} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-8 gap-6">
@@ -41,7 +44,7 @@ export default function DashboardOverviewPage() {
                     <RecentWasteList />
                 </div>
             </div>
-            <WasteStackedBarChart/>
+            <WasteStackedBarChart />
         </div>
     </>
 }
