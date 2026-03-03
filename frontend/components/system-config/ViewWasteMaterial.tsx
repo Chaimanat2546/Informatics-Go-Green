@@ -74,6 +74,19 @@ export default function ViewWasteMaterial({ materialId }: Props) {
     fetchMaterialData();
   }, [API_URL, materialId, router]); // ✅ ใส่ dependencies ครบ
 
+  // Helper: จัดการ URL รูปภาพ
+  const getImageUrl = (url: string | undefined): string => {
+    if (!url) return '';
+    // ถ้าเป็น absolute URL (http...) ใช้ตรงๆ
+    if (url.startsWith('http')) return url;
+    // ถ้าเป็น relative path (/uploads/...) เติม API_URL แต่เอา /api ออก
+    if (url.startsWith('/')) {
+      const baseUrl = API_URL.replace('/api', '');
+      return `${baseUrl}${url}`;
+    }
+    return url;
+  };
+
   const handleDelete = async () => {
     if (!confirm(`ต้องการลบ "${material?.name}" ใช่หรือไม่?`)) return;
 
@@ -167,7 +180,7 @@ export default function ViewWasteMaterial({ materialId }: Props) {
                 {material.materialImage ? (
                   <div className="aspect-square">
                     <img
-                      src={material.materialImage}
+                      src={getImageUrl(material.materialImage)}
                       alt={material.name}
                       className="w-full h-full object-cover"
                       onError={(e) => {
