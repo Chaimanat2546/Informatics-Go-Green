@@ -342,7 +342,7 @@ export default function WasteMaterialTable() {
               ยืนยันการลบข้อมูล
             </h3>
             <p className="text-slate-500 mb-8 text-[15px]">
-              ต้องการลบ "{deletingItem?.name}" ใช่หรือไม่?<br />
+              ต้องการลบ &quot;{deletingItem?.name}&quot; ใช่หรือไม่?<br/>
               เมื่อยืนยันแล้วข้อมูลจะถูกลบออกจากระบบ
             </p>
 
