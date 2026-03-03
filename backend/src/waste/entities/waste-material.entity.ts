@@ -20,8 +20,8 @@ export class WasteMaterial {
   @Column({ type: 'varchar', length: 255 })
   name: string;
 
-  @Column({ type: 'float', nullable: true })
-  emission_factor: number;
+  @Column({ type: 'float', nullable: true, name: 'emissionFactor' })
+  emissionFactor: number;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   unit: string;

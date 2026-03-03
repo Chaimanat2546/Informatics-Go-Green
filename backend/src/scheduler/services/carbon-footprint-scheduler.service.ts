@@ -202,8 +202,8 @@ export class CarbonFootprintSchedulerService {
   /**
    * Calculate carbon footprint using the new CarbonFootprintCalculator
    * Uses waste_id (wastesid) to find MaterialGuide records and calculate total carbon
-   * Falls back to wasteHistory.amount × wasteMaterial.emission_factor if no MaterialGuide found
-   * Formula: totalCarbon = Σ (materialWeight × materialEmissionFactor) OR amount × emission_factor
+   * Falls back to wasteHistory.amount × wasteMaterial.emissionFactor if no MaterialGuide found
+   * Formula: totalCarbon = Σ (materialWeight × materialEmissionFactor) OR amount × emissionFactor
    */
   private async calculateCarbonFootprint(
     wasteHistory: WasteHistory,

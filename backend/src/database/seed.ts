@@ -94,51 +94,51 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
   const materials = await materialRepo.save([
     materialRepo.create({
       name: 'พลาสติก PET',
-      emission_factor: 2.29,
+      emissionFactor: 2.29,
       unit: 'kg CO₂e/kg',
-      waste_categoriesid: Number(catRecycle.id),
+      wasteCategoryId: Number(catRecycle.id),
     }),
     materialRepo.create({
       name: 'กระดาษ',
-      emission_factor: 1.17,
+      emissionFactor: 1.17,
       unit: 'kg CO₂e/kg',
-      waste_categoriesid: Number(catRecycle.id),
+      wasteCategoryId: Number(catRecycle.id),
     }),
     materialRepo.create({
       name: 'แก้ว',
-      emission_factor: 0.86,
+      emissionFactor: 0.86,
       unit: 'kg CO₂e/kg',
-      waste_categoriesid: Number(catRecycle.id),
+      wasteCategoryId: Number(catRecycle.id),
     }),
     materialRepo.create({
       name: 'อลูมิเนียม',
-      emission_factor: 8.14,
+      emissionFactor: 8.14,
       unit: 'kg CO₂e/kg',
-      waste_categoriesid: Number(catRecycle.id),
+      wasteCategoryId: Number(catRecycle.id),
     }),
     materialRepo.create({
       name: 'เศษอาหาร',
-      emission_factor: 0.58,
+      emissionFactor: 0.58,
       unit: 'kg CO₂e/kg',
-      waste_categoriesid: Number(catOrganic.id),
+      wasteCategoryId: Number(catOrganic.id),
     }),
     materialRepo.create({
       name: 'ถ่านไฟฉาย / แบตเตอรี่',
-      emission_factor: 3.5,
+      emissionFactor: 3.5,
       unit: 'kg CO₂e/kg',
-      waste_categoriesid: Number(catHazardous.id),
+      wasteCategoryId: Number(catHazardous.id),
     }),
     materialRepo.create({
       name: 'โฟม (Styrofoam)',
-      emission_factor: 3.3,
+      emissionFactor: 3.3,
       unit: 'kg CO₂e/kg',
-      waste_categoriesid: Number(catGeneral.id),
+      wasteCategoryId: Number(catGeneral.id),
     }),
     materialRepo.create({
       name: 'ผ้า / สิ่งทอ',
-      emission_factor: 1.5,
+      emissionFactor: 1.5,
       unit: 'kg CO₂e/kg',
-      waste_categoriesid: Number(catGeneral.id),
+      wasteCategoryId: Number(catGeneral.id),
     }),
   ]);
 
@@ -162,30 +162,30 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
     wasteRepo.create({
       name: 'ขวดน้ำพลาสติก',
       barcode: 8851028001010,
-      waste_categoriesid: Number(catRecycle.id),
+      wasteCategoryId: Number(catRecycle.id),
     }),
     wasteRepo.create({
       name: 'กล่องกระดาษ',
       barcode: 8851028002020,
-      waste_categoriesid: Number(catRecycle.id),
+      wasteCategoryId: Number(catRecycle.id),
     }),
     wasteRepo.create({
       name: 'ขวดแก้ว',
       barcode: 8851028003030,
-      waste_categoriesid: Number(catRecycle.id),
+      wasteCategoryId: Number(catRecycle.id),
     }),
     wasteRepo.create({
       name: 'กระป๋องอลูมิเนียม',
       barcode: 8851028004040,
-      waste_categoriesid: Number(catRecycle.id),
+      wasteCategoryId: Number(catRecycle.id),
     }),
     wasteRepo.create({
       name: 'เปลือกผลไม้',
-      waste_categoriesid: Number(catOrganic.id),
+      wasteCategoryId: Number(catOrganic.id),
     }),
     wasteRepo.create({
       name: 'กล่องโฟมใส่อาหาร',
-      waste_categoriesid: Number(catGeneral.id),
+      wasteCategoryId: Number(catGeneral.id),
     }),
   ]);
 
@@ -201,16 +201,16 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
   const manualWastes = await wasteRepo.save([
     wasteRepo.create({
       name: 'ซองขนม',
-      waste_categoriesid: Number(catGeneral.id),
+      wasteCategoryId: Number(catGeneral.id),
     }),
     wasteRepo.create({
       name: 'กล่องนม',
-      waste_categoriesid: Number(catRecycle.id),
+      wasteCategoryId: Number(catRecycle.id),
     }),
     wasteRepo.create({
       name: 'ขวดแก้วน้ำผลไม้',
       barcode: 8851028005050,
-      waste_categoriesid: Number(catRecycle.id),
+      wasteCategoryId: Number(catRecycle.id),
     }),
   ]);
 
@@ -380,7 +380,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       wastesid: Number(wasteBottle.id),
       userid: savedUser.id as unknown as number,
       calculation_status: 'completed',
-      // Carbon = (amount * guide_weight * emission_factor) + transport
+      // Carbon = (amount * guide_weight * emissionFactor) + transport
       // 10 * 0.03 * 2.29 + 15.0 * 0.21 = 0.687 + 3.15 = 3.837
       carbon_footprint: 10 * 0.03 * 2.29 + 15.0 * 0.21,
       retry_count: 0,
@@ -447,7 +447,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       wastesid: null, // Manual entry can have null waste reference
       userid: savedUser.id as unknown as number,
       calculation_status: 'completed',
-      // Carbon = amount * emission_factor + transport
+      // Carbon = amount * emissionFactor + transport
       // 2.5 * 2.29 + 15.0 * 0.21 = 5.725 + 3.15 = 8.875
       carbon_footprint: 2.5 * 2.29 + 15.0 * 0.21,
       retry_count: 0,

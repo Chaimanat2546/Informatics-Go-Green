@@ -115,15 +115,15 @@ export class WasteMaterialService {
 
     // Handle image removal
     if (updateDto.removeImage || updateDto.materialImage === null) {
-      material.meterial_image = '';
+      material.materialImage = '';
     } else if (updateDto.materialImage) {
-      material.meterial_image = updateDto.materialImage;
+      material.materialImage = updateDto.materialImage;
     }
 
     // Update other fields
     if (updateDto.name) material.name = updateDto.name;
     if (updateDto.emissionFactor !== undefined)
-      material.emission_factor = updateDto.emissionFactor;
+      material.emissionFactor = updateDto.emissionFactor;
     if (updateDto.unit) material.unit = updateDto.unit;
 
     return await this.wasteMaterialRepository.save(material);

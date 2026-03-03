@@ -25,7 +25,7 @@ export class CarbonFootprintCalculatorService {
 
   /**
    * คำนวณ Carbon Footprint จาก amount และ emission factor
-   * สูตร: Carbon Footprint (kg CO2e) = amount × emission_factor
+   * สูตร: Carbon Footprint (kg CO2e) = amount × emissionFactor
    *
    * @param amount - ปริมาณขยะ
    * @param emissionFactor - ค่า emission factor
@@ -63,20 +63,20 @@ export class CarbonFootprintCalculatorService {
     }
 
     if (
-      material.emission_factor === null ||
-      material.emission_factor === undefined
+      material.emissionFactor === null ||
+      material.emissionFactor === undefined
     ) {
       throw new Error(
         `Emission factor is not set for material: ${material.name}`,
       );
     }
 
-    const carbonFootprint = this.calculate(amount, material.emission_factor);
+    const carbonFootprint = this.calculate(amount, material.emissionFactor);
 
     return {
       carbonFootprint,
       amount,
-      emissionFactor: material.emission_factor,
+      emissionFactor: material.emissionFactor,
       unit: material.unit || 'kg CO2e',
     };
   }
@@ -124,13 +124,13 @@ export class CarbonFootprintCalculatorService {
     }>
   > {
     const materials = await this.wasteMaterialRepository.find({
-      select: ['id', 'name', 'emission_factor', 'unit'],
+      select: ['id', 'name', 'emissionFactor', 'unit'],
     });
 
     return materials.map((m) => ({
       id: Number(m.id),
       name: m.name,
-      emissionFactor: m.emission_factor,
+      emissionFactor: m.emissionFactor,
       unit: m.unit,
     }));
   }
