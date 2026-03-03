@@ -32,7 +32,12 @@ export class WasteMaterial {
   @UpdateDateColumn({ type: 'date' })
   updated_at: Date;
 
-  @Column({ type: 'varchar', length: 255, nullable: true, name: 'meterial_image' })
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    name: 'meterial_image',
+  })
   materialImage: string;
 
   @Column({ type: 'bigint', nullable: true, name: 'waste_categoriesid' })

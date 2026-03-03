@@ -42,7 +42,7 @@ import { UploadModule } from '../upload/upload.module';
     WasteScannerController,
     WasteHistoryController,
     WasteCategoryController,
-    WasteMaterialController,  
+    WasteMaterialController,
     WasteSortingController,
     StatisticsController,
   ],

@@ -1,9 +1,9 @@
-import { 
-  IsString, 
-  IsNumber, 
-  IsOptional, 
-  IsNotEmpty, 
-  IsInt, 
+import {
+  IsString,
+  IsNumber,
+  IsOptional,
+  IsNotEmpty,
+  IsInt,
   Min,
   IsPositive,
   IsBoolean,
@@ -12,19 +12,19 @@ import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class GetWasteMaterialsQueryDto {
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     description: 'Search keyword for name, unit, or category',
-    example: 'ขวด'
+    example: 'ขวด',
   })
   @IsOptional()
   @IsString()
   search?: string;
 
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     description: 'Page number',
     example: 1,
     default: 1,
-    minimum: 1
+    minimum: 1,
   })
   @IsOptional()
   @Type(() => Number)
@@ -32,11 +32,11 @@ export class GetWasteMaterialsQueryDto {
   @Min(1)
   page?: number = 1;
 
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     description: 'Number of items per page',
     example: 10,
     default: 10,
-    minimum: 1
+    minimum: 1,
   })
   @IsOptional()
   @Type(() => Number)
@@ -46,17 +46,17 @@ export class GetWasteMaterialsQueryDto {
 }
 
 export class CreateWasteMaterialDto {
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'Name of the waste material',
-    example: 'ขวดพลาสติก PET ใส' 
+    example: 'ขวดพลาสติก PET ใส',
   })
   @IsString()
   @IsNotEmpty({ message: 'กรุณากรอกชื่อวัสดุ' })
   name: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'Emission factor value',
-    example: 2.1500 
+    example: 2.15,
   })
   @IsNumber({}, { message: 'ค่าสัมประสิทธิ์ต้องเป็นตัวเลข' })
   @IsPositive({ message: 'ค่าสัมประสิทธิ์ต้องมากกว่า 0' })
@@ -64,25 +64,25 @@ export class CreateWasteMaterialDto {
   @Type(() => Number)
   emissionFactor: number;
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'Unit of measurement',
-    example: 'kg' 
+    example: 'kg',
   })
   @IsString()
   @IsNotEmpty({ message: 'กรุณากรอกหน่วย' })
   unit: string;
 
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     description: 'Image URL (optional)',
-    example: 'https://example.com/image.jpg' 
+    example: 'https://example.com/image.jpg',
   })
   @IsString()
   @IsOptional()
   materialImage?: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'Waste category ID',
-    example: 1 
+    example: 1,
   })
   @Type(() => Number)
   @IsInt({ message: 'หมวดหมู่ต้องเป็นตัวเลข' })
@@ -92,15 +92,15 @@ export class CreateWasteMaterialDto {
 }
 
 export class UpdateWasteMaterialDto {
-  @ApiPropertyOptional({ 
-    description: 'Name of the waste material'
+  @ApiPropertyOptional({
+    description: 'Name of the waste material',
   })
   @IsString()
   @IsOptional()
   name?: string;
 
-  @ApiPropertyOptional({ 
-    description: 'Emission factor value'
+  @ApiPropertyOptional({
+    description: 'Emission factor value',
   })
   @IsNumber()
   @IsPositive({ message: 'ค่าสัมประสิทธิ์ต้องมากกว่า 0' })
@@ -108,22 +108,22 @@ export class UpdateWasteMaterialDto {
   @Type(() => Number)
   emissionFactor?: number;
 
-  @ApiPropertyOptional({ 
-    description: 'Unit of measurement'
+  @ApiPropertyOptional({
+    description: 'Unit of measurement',
   })
   @IsString()
   @IsOptional()
   unit?: string;
 
-  @ApiPropertyOptional({ 
-    description: 'Image URL (null = remove image)'
+  @ApiPropertyOptional({
+    description: 'Image URL (null = remove image)',
   })
   @IsString()
   @IsOptional()
   materialImage?: string;
 
-  @ApiPropertyOptional({ 
-    description: 'Waste category ID'
+  @ApiPropertyOptional({
+    description: 'Waste category ID',
   })
   @Type(() => Number)
   @IsInt()
@@ -131,8 +131,8 @@ export class UpdateWasteMaterialDto {
   @IsOptional()
   wasteCategoryId?: number;
 
-  @ApiPropertyOptional({ 
-    description: 'Force remove image'
+  @ApiPropertyOptional({
+    description: 'Force remove image',
   })
   @IsBoolean()
   @IsOptional()

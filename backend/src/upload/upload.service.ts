@@ -11,7 +11,11 @@ export class UploadService {
 
   constructor(private configService: ConfigService) {
     this.profileUploadPath = path.join(process.cwd(), 'uploads', 'profiles');
-    this.wasteMaterialUploadPath = path.join(process.cwd(), 'uploads', 'waste-materials');
+    this.wasteMaterialUploadPath = path.join(
+      process.cwd(),
+      'uploads',
+      'waste-materials',
+    );
     this.ensureUploadDirectories();
   }
 
@@ -51,12 +55,12 @@ export class UploadService {
   async deleteProfilePicture(filename: string): Promise<void> {
     const sanitized = this.sanitizeFilename(filename);
     const filePath = path.join(this.profileUploadPath, sanitized);
-    
+
     // Security check: ensure path is within upload directory
     if (!filePath.startsWith(this.profileUploadPath)) {
       throw new BadRequestException('Invalid filename');
     }
-    
+
     if (fs.existsSync(filePath)) {
       await fs.promises.unlink(filePath);
     }
@@ -101,7 +105,7 @@ export class UploadService {
     // Security: sanitize filename to prevent path traversal
     const sanitized = this.sanitizeFilename(filename);
     const filePath = path.join(this.wasteMaterialUploadPath, sanitized);
-    
+
     // Ensure the resolved path is still within the upload directory
     if (!filePath.startsWith(this.wasteMaterialUploadPath)) {
       throw new BadRequestException('Invalid filename');

@@ -14,7 +14,10 @@ import { WasteMaterialService } from '../services/waste-material.service';
 import { UploadService } from '../../upload/upload.service';
 import { JwtAuthGuard } from '../../auth/guards';
 import { AdminGuard } from '../../admin/admin.guard';
-import { CreateWasteMaterialDto, UpdateWasteMaterialDto } from '../dto/waste-material.dto';
+import {
+  CreateWasteMaterialDto,
+  UpdateWasteMaterialDto,
+} from '../dto/waste-material.dto';
 
 @Controller('admin/waste-materials')
 @UseGuards(JwtAuthGuard, AdminGuard)
@@ -26,7 +29,7 @@ export class WasteMaterialController {
 
   @Get()
   async getAllWasteMaterials(
-    @Query() query: { search?: string; page?: number; limit?: number }
+    @Query() query: { search?: string; page?: number; limit?: number },
   ) {
     return this.wasteMaterialService.getAllWasteMaterials(
       query.search,
@@ -53,8 +56,13 @@ export class WasteMaterialController {
     // ถ้ามีรูปใหม่ ลบรูปเก่าก่อน
     if (updateDto.materialImage) {
       const existing = await this.wasteMaterialService.getWasteMaterialById(id);
-      if (existing.meterial_image && existing.meterial_image !== updateDto.materialImage) {
-        const oldFilename = this.uploadService.extractFilenameFromUrl(existing.meterial_image);
+      if (
+        existing.materialImage &&
+        existing.materialImage !== updateDto.materialImage
+      ) {
+        const oldFilename = this.uploadService.extractFilenameFromUrl(
+          existing.materialImage,
+        );
         if (oldFilename) {
           await this.uploadService.deleteWasteMaterialPicture(oldFilename);
         }
@@ -66,8 +74,11 @@ export class WasteMaterialController {
 
   @Delete(':id')
   async deleteWasteMaterial(@Param('id', ParseIntPipe) id: number) {
-    return this.wasteMaterialService.deleteWasteMaterialWithImage(id, async (filename) => {
-      await this.uploadService.deleteWasteMaterialPicture(filename);
-    });
+    return this.wasteMaterialService.deleteWasteMaterialWithImage(
+      id,
+      async (filename) => {
+        await this.uploadService.deleteWasteMaterialPicture(filename);
+      },
+    );
   }
 }

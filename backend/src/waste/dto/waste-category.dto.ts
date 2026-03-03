@@ -6,7 +6,7 @@ export class CreateWasteCategoryDto {
     description: 'Category name',
     example: 'พลาสติก',
     minLength: 1,
-    maxLength: 255
+    maxLength: 255,
   })
   @IsString()
   @IsNotEmpty({ message: 'กรุณากรอกชื่อหมวดหมู่' })
