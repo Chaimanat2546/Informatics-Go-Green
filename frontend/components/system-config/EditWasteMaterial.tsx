@@ -246,7 +246,7 @@ export default function EditWasteMaterial({ materialId }: Props) {
 
       if (response.ok) {
         toast.success("อัพเดตข้อมูลสำเร็จ!");
-        router.push(`/systemConfig/manageEmissionFactors/${materialId}`);
+        router.push(`/systemConfig/emission-factor/${materialId}`);
       } else if (response.status === 401) {
         toast.error("Session หมดอายุ");
         localStorage.removeItem("token");

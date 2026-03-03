@@ -32,7 +32,7 @@ interface WasteMaterial {
   name: string;
   emissionFactor: number;
   unit: string;
-  meterialImage?: string;
+  materialImage?: string;
   wasteCategory: {
     id: number;
     name: string;

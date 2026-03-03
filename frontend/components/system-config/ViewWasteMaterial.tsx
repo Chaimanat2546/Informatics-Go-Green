@@ -19,8 +19,8 @@ interface WasteMaterial {
   unit: string;
   createdAt: string;
   updatedAt: string;
-  meterialImage?: string;
-  wasteCategoriesId: number;
+  materialImage?: string;
+  wasteCategoryId: number;
   wasteCategory: WasteCategory;
 }
 
@@ -164,10 +164,10 @@ export default function ViewWasteMaterial({ materialId }: Props) {
               <h3 className="text-lg font-semibold text-slate-700 mb-4">รูปภาพ</h3>
 
               <div className="relative border-2 border-dashed border-slate-300 bg-slate-50/50 rounded-2xl overflow-hidden">
-                {material.meterialImage ? (
+                {material.materialImage ? (
                   <div className="aspect-square">
                     <img
-                      src={material.meterialImage}
+                      src={material.materialImage}
                       alt={material.name}
                       className="w-full h-full object-cover"
                       onError={(e) => {
