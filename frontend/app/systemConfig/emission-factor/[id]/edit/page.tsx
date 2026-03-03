@@ -1,15 +1,13 @@
 import EditWasteMaterial from "@/components/system-config/EditWasteMaterial";
 
-export default async function EditEmissionFactorPage({ 
-  params 
-}: { 
-  params: Promise<{ id: string }> 
+export default function EditEmissionFactorPage({
+  params
+}: {
+  params: { id: string }
 }) {
-  const { id } = await params;
-  
   return (
     <div>
-      <EditWasteMaterial materialId={parseInt(id)} />
+      <EditWasteMaterial materialId={parseInt(params.id)} />
     </div>
   );
 }
