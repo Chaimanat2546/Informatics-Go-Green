@@ -17,9 +17,9 @@ export default function CreateWasteMaterial() {
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [formData, setFormData] = useState({
     name: "",
-    categoryId: "",           
+    categoryId: "",
     emissionFactor: "",
-    unit: "",
+    unit: "kg CO₂e/kg",
   });
 
   const [showAddCategory, setShowAddCategory] = useState(false);
@@ -29,14 +29,14 @@ export default function CreateWasteMaterial() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
   // ✅ Fetch Categories
   useEffect(() => {
     const fetchCategories = async () => {
       const token = localStorage.getItem("token");
-      
+
       if (!token) {
         toast.error("กรุณาเข้าสู่ระบบ");
         router.push("/auth/login");
@@ -45,9 +45,9 @@ export default function CreateWasteMaterial() {
 
       try {
         setIsLoading(true);
-        
+
         const url = `${API_URL}/admin/waste-categories`;
-        
+
         const response = await fetch(url, {
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -152,7 +152,7 @@ export default function CreateWasteMaterial() {
         const data = await response.json();
         return data.url;
       }
-      
+
       return null;
     } catch (error) {
       console.error("Error uploading image:", error);
@@ -191,7 +191,7 @@ export default function CreateWasteMaterial() {
 
     try {
       let imageUrl = '';
-      
+
       // Upload image ถ้ามี
       if (selectedFile) {
         const uploadedUrl = await uploadImage(selectedFile);
@@ -284,7 +284,7 @@ export default function CreateWasteMaterial() {
   return (
     <div>
       <div className="max-w-6xl mx-auto px-6 py-12">
-        <div className="mb-10 animate-fade-up">
+        <div className="mb-6 animate-fade-up">
           <h1 className="text-4xl font-bold text-slate-800 mb-2">
             เพิ่มค่าสัมประสิทธิ์
           </h1>
@@ -299,11 +299,10 @@ export default function CreateWasteMaterial() {
               </h3>
 
               <div
-                className={`relative border-3 border-dashed rounded-2xl transition-all duration-300 overflow-hidden ${
-                  dragActive
+                className={`relative border-3 border-dashed rounded-2xl transition-all duration-300 overflow-hidden ${dragActive
                     ? "border-emerald-500 bg-emerald-50/50 scale-[1.02]"
                     : "border-slate-300 bg-slate-50/50 hover:border-emerald-400 hover:bg-slate-100/50"
-                }`}
+                  }`}
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
@@ -516,14 +515,14 @@ export default function CreateWasteMaterial() {
                     <input
                       type="text"
                       name="unit"
-                      value={formData.unit}
-                      onChange={handleInputChange}
-                      placeholder="เช่น PET, kg, ตัน"
-                      className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 outline-none transition-all duration-200 bg-white/50 hover:bg-white"
-                      disabled={isSubmitting}
+                      value="kg CO₂e/kg" 
+                      
+                      className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 bg-slate-100 text-slate-500 cursor-not-allowed outline-none" // ปรับสีพื้นหลังและเมาส์ให้ดูเป็นการ disabled
+                      disabled 
+                      readOnly
                     />
                   </div>
-                </div> 
+                </div>
               </div>
 
               <div className="flex gap-4 pt-6">

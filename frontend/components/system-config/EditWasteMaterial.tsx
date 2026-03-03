@@ -323,11 +323,11 @@ export default function EditWasteMaterial({ materialId }: Props) {
 
   return (
     <div>
-      <div className="max-w-6xl mx-auto px-6 py-12">
+      <div className="max-w-6xl mx-auto ">
         {/* Header with Back Button */}
-        <div className="mb-10 animate-fade-up">
+        <div className="mb-6 animate-fade-up">
           <button
-            onClick={() => router.back()}
+            onClick={() => router.push("/systemConfig/emission-factor")}
             className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -570,7 +570,8 @@ export default function EditWasteMaterial({ materialId }: Props) {
                       onChange={handleInputChange}
                       placeholder="เช่น PET, kg, ตัน"
                       className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 outline-none transition-all duration-200 bg-white/50 hover:bg-white"
-                      disabled={isSubmitting}
+                      disabled
+                      readOnly
                     />
                   </div>
                 </div>

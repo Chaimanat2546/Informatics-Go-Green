@@ -141,11 +141,11 @@ export default function ViewWasteMaterial({ materialId }: Props) {
 
   return (
     <div>
-      <div className="max-w-6xl mx-auto px-6 py-12">
+      <div className="max-w-6xl mx-auto ">
         {/* Header */}
-        <div className="mb-10 animate-fade-up">
+        <div className="mb-6 animate-fade-up">
           <button
-            onClick={() => router.back()}
+            onClick={() => router.push("/systemConfig/emission-factor")}
             className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />

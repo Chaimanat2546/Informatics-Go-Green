@@ -63,7 +63,7 @@ export default function WasteMaterialTable() {
 
   const fetchWasteMaterials = useCallback(async () => {
     const token = localStorage.getItem("token");
-    
+
     // ✅ ถ้าไม่มี token ให้ redirect ไป login เท่านั้น
     if (!token) {
       toast.error("กรุณาเข้าสู่ระบบ");
@@ -177,20 +177,24 @@ export default function WasteMaterialTable() {
   };
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">
-        รายการค่าสัมประสิทธิ์ (EmissionFactor)
-      </h1>
-
-      {/* Header Section */}
-      <div className="flex justify-between items-center mb-6">
-        <Button
+    <div className="max-w-6xl mx-auto  mt-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-4xl font-bold flex items-center gap-2">
+            รายการค่าสัมประสิทธิ์ (EmissionFactor)
+          </h1>
+        </div>
+        <div className="flex gap-2 h-full bg-white">
+          <Button
           onClick={handleAddNew}
           className="bg-[#72B01D] hover:bg-[#5f9318] text-white rounded-md px-4 py-2 flex gap-2"
         >
           <Plus className="w-4 h-4" /> เพิ่มค่าสัมประสิทธิ์
         </Button>
+
+        </div>
       </div>
+      
 
       {/* Search Bar */}
       <form onSubmit={handleSearch} className="mb-6">
@@ -201,7 +205,7 @@ export default function WasteMaterialTable() {
             placeholder="ค้นหาชื่อ หมวดหมู่ หรือหน่วย..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-10 bg-white"
           />
         </div>
       </form>
@@ -241,7 +245,7 @@ export default function WasteMaterialTable() {
                     {wasteMaterial.wasteCategory.name}
                   </TableCell>
                   <TableCell className="text-gray-600">
-                    {wasteMaterial.emissionFactor?.toFixed(4)}
+                    {wasteMaterial.emissionFactor?.toFixed(4)} {wasteMaterial.unit}
                   </TableCell>
 
                   <TableCell>
