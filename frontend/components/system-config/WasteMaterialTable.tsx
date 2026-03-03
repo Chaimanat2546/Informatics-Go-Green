@@ -8,6 +8,7 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
+  Trash2,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -57,6 +58,10 @@ export default function WasteMaterialTable() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const limit = 10;
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deletingItem, setDeletingItem] = useState<{ id: number; name: string } | null>(null);
 
   const API_URL =
     process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
@@ -138,31 +143,41 @@ export default function WasteMaterialTable() {
     router.push(`/systemConfig/emission-factor/${wasteMaterialId}/edit`);
   };
 
-  const handleDelete = async (wasteMaterialId: number, name: string) => {
-    if (!confirm(`ต้องการลบ "${name}" ใช่หรือไม่?`)) return;
+  const openDeleteModal = (wasteMaterialId: number, name: string) => {
+    setDeletingItem({ id: wasteMaterialId, name });
+    setIsDeleteModalOpen(true);
+  };
 
+
+  const executeDelete = async () => {
+    if (!deletingItem) return;
+
+    setIsDeleting(true); // เริ่ม Loading
     const token = localStorage.getItem("token");
+
     if (!token) {
       toast.error("กรุณาเข้าสู่ระบบ");
       router.push("/auth/login");
+      setIsDeleting(false);
       return;
     }
 
     try {
       const response = await fetch(
-        `${API_URL}/admin/waste-materials/${wasteMaterialId}`,
+        `${API_URL}/admin/waste-materials/${deletingItem.id}`, // ใช้ ID จาก State
         {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
-        },
+        }
       );
 
       if (response.ok) {
         toast.success("ลบข้อมูลสำเร็จ");
-        fetchWasteMaterials();
+        setIsDeleteModalOpen(false); // ปิด Modal
+        fetchWasteMaterials(); // โหลดตารางใหม่
       } else if (response.status === 401) {
         toast.error("Session หมดอายุ");
         localStorage.removeItem("token");
@@ -173,6 +188,8 @@ export default function WasteMaterialTable() {
     } catch (error) {
       console.error("Delete Error:", error);
       toast.error("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+    } finally {
+      setIsDeleting(false); // ปิด Loading เสมอ
     }
   };
 
@@ -186,15 +203,15 @@ export default function WasteMaterialTable() {
         </div>
         <div className="flex gap-2 h-full bg-white">
           <Button
-          onClick={handleAddNew}
-          className="bg-[#72B01D] hover:bg-[#5f9318] text-white rounded-md px-4 py-2 flex gap-2"
-        >
-          <Plus className="w-4 h-4" /> เพิ่มค่าสัมประสิทธิ์
-        </Button>
+            onClick={handleAddNew}
+            className="bg-[#72B01D] hover:bg-[#5f9318] text-white rounded-md px-4 py-2 flex gap-2"
+          >
+            <Plus className="w-4 h-4" /> เพิ่มค่าสัมประสิทธิ์
+          </Button>
 
         </div>
       </div>
-      
+
 
       {/* Search Bar */}
       <form onSubmit={handleSearch} className="mb-6">
@@ -273,9 +290,7 @@ export default function WasteMaterialTable() {
                           แก้ไข
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() =>
-                            handleDelete(wasteMaterial.id, wasteMaterial.name)
-                          }
+                          onClick={() => openDeleteModal(wasteMaterial.id, wasteMaterial.name)} // <--- เปลี่ยนตรงนี้
                           className="text-red-500 cursor-pointer"
                         >
                           ลบ
@@ -316,6 +331,40 @@ export default function WasteMaterialTable() {
           </Button>
         </div>
       </div>
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 transition-all">
+          <div className="bg-white rounded-[24px] p-8 w-full max-w-sm flex flex-col items-center text-center shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="mb-5">
+              <Trash2 className="w-16 h-16 text-slate-800" strokeWidth={1.5} />
+            </div>
+
+            <h3 className="text-[22px] font-semibold text-slate-800 mb-2">
+              ยืนยันการลบข้อมูล
+            </h3>
+            <p className="text-slate-500 mb-8 text-[15px]">
+              ต้องการลบ "{deletingItem?.name}" ใช่หรือไม่?<br />
+              เมื่อยืนยันแล้วข้อมูลจะถูกลบออกจากระบบ
+            </p>
+
+            <div className="flex gap-3 w-full">
+              <button
+                onClick={() => setIsDeleteModalOpen(false)}
+                disabled={isDeleting}
+                className="flex-1 py-3 px-4 bg-white border border-slate-200 rounded-xl text-slate-700 font-medium hover:bg-slate-50 transition-colors disabled:opacity-50"
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={executeDelete}
+                disabled={isDeleting}
+                className="flex-1 py-3 px-4 bg-[#ef4444] hover:bg-red-600 rounded-xl text-white font-medium transition-colors disabled:opacity-50 flex items-center justify-center"
+              >
+                {isDeleting ? "กำลังลบ..." : "ยืนยัน"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

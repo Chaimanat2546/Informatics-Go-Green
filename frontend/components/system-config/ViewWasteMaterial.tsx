@@ -33,6 +33,9 @@ export default function ViewWasteMaterial({ materialId }: Props) {
   const [material, setMaterial] = useState<WasteMaterial | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
   useEffect(() => {
@@ -87,13 +90,16 @@ export default function ViewWasteMaterial({ materialId }: Props) {
     return url;
   };
 
+
   const handleDelete = async () => {
-    if (!confirm(`ต้องการลบ "${material?.name}" ใช่หรือไม่?`)) return;
+    setIsDeleting(true);
+    
 
     const token = localStorage.getItem("token");
     if (!token) {
       toast.error("กรุณาเข้าสู่ระบบ");
       router.push("/auth/login");
+      setIsDeleting(false);
       return;
     }
 
@@ -105,6 +111,7 @@ export default function ViewWasteMaterial({ materialId }: Props) {
 
       if (response.ok) {
         toast.success("ลบข้อมูลสำเร็จ");
+        setIsDeleteModalOpen(false); 
         router.push("/systemConfig/emission-factor");
       } else if (response.status === 401) {
         toast.error("Session หมดอายุ");
@@ -118,6 +125,9 @@ export default function ViewWasteMaterial({ materialId }: Props) {
     } catch (error) {
       console.error("Delete error:", error);
       toast.error("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteModalOpen(false);
     }
   };
 
@@ -262,7 +272,7 @@ export default function ViewWasteMaterial({ materialId }: Props) {
               {/* Action Buttons */}
               <div className="flex gap-4 pt-6">
                 <button
-                  onClick={handleDelete}
+                  onClick={() => setIsDeleteModalOpen(true)} // เปลี่ยนตรงนี้
                   className="flex-1 bg-white border-2 border-red-300 hover:border-red-400 hover:bg-red-50 text-red-600 font-medium py-3.5 px-6 rounded-xl transition-all duration-300 active:scale-95 flex items-center justify-center gap-2"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -275,11 +285,55 @@ export default function ViewWasteMaterial({ materialId }: Props) {
                   <Pencil className="w-4 h-4" />
                   แก้ไข
                 </button>
+
               </div>
+
             </div>
           </div>
         </div>
       </div>
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40  p-4 transition-all">
+          {/* Modal Box */}
+          <div className="bg-white rounded-[24px] p-8 w-full max-w-sm flex flex-col items-center text-center shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+
+            {/* Icon */}
+            <div className="mb-5">
+              <Trash2
+                className="w-16 h-16 text-slate-800"
+                strokeWidth={1.5}
+              />
+            </div>
+
+            {/* Texts */}
+            <h3 className="text-[22px] font-semibold text-slate-800 mb-2">
+              ยืนยันการลบข้อมูล
+            </h3>
+            <p className="text-slate-500 mb-8 text-[15px]">
+              เมื่อยืนยันแล้วข้อมูลจะลบในระบบ
+            </p>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 w-full">
+              <button
+                onClick={() => setIsDeleteModalOpen(false)}
+                disabled={isDeleting}
+                className="flex-1 py-3 px-4 bg-white border border-slate-200 rounded-xl text-slate-700 font-medium hover:bg-slate-50 transition-colors disabled:opacity-50"
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="flex-1 py-3 px-4 bg-[#ef4444] hover:bg-red-600 rounded-xl text-white font-medium transition-colors disabled:opacity-50 flex items-center justify-center"
+              >
+                {isDeleting ? "กำลังลบ..." : "ยืนยัน"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+
   );
 }
