@@ -12,6 +12,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { UploadService } from './upload.service';
 import { JwtAuthGuard } from '../auth/guards';
+import { AdminGuard } from '../admin/admin.guard';
 
 const ALLOWED_MIME_TYPES = [
   'image/jpeg',
@@ -60,6 +61,47 @@ export class UploadController {
     const result = await this.uploadService.saveProfilePicture(file);
     return {
       message: 'อัปโหลดรูปโปรไฟล์สำเร็จ',
+      ...result,
+    };
+  }
+
+  // ✅ เพิ่ม endpoint สำหรับ Waste Material Picture
+  @Post('waste-material-picture')
+  @UseGuards(JwtAuthGuard, AdminGuard) // ✅ ต้องเป็น Admin
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+      fileFilter: (req, file, callback) => {
+        if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+          callback(null, true);
+        } else {
+          callback(
+            new BadRequestException(
+              `ประเภทไฟล์ไม่ถูกต้อง (รองรับ JPEG, PNG, GIF, WEBP เท่านั้น)`,
+            ),
+            false,
+          );
+        }
+      },
+    }),
+  )
+  async uploadWasteMaterialPicture(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5MB
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('กรุณาเลือกไฟล์รูปภาพ');
+    }
+
+    const result = await this.uploadService.saveWasteMaterialPicture(file);
+    return {
+      message: 'อัปโหลดรูป Waste Material สำเร็จ',
       ...result,
     };
   }
