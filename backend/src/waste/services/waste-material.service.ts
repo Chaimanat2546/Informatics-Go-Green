@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { WasteMaterial } from '../entities/waste-material.entity';
+import { WasteCategory } from '../entities/waste-category.entity';
 import { CreateWasteMaterialDto, UpdateWasteMaterialDto } from '../dto/waste-material.dto';
 
 @Injectable()
@@ -9,6 +10,9 @@ export class WasteMaterialService {
   constructor(
     @InjectRepository(WasteMaterial)
     private wasteMaterialRepository: Repository<WasteMaterial>,
+    @InjectRepository(WasteCategory)
+    private wasteCategoryRepository: Repository<WasteCategory>,
+    private dataSource: DataSource,
   ) {}
 
   async getAllWasteMaterials(
@@ -23,24 +27,22 @@ export class WasteMaterialService {
     totalPages: number;
   }> {
     const skip = (page - 1) * limit;
-    const whereCondition: Record<string, unknown>[] = [];
+    
+    const queryBuilder = this.wasteMaterialRepository
+      .createQueryBuilder('material')
+      .leftJoinAndSelect('material.wasteCategory', 'category')
+      .orderBy('material.id', 'ASC')
+      .skip(skip)
+      .take(limit);
 
-    if (search && search.trim()) {
-      const searchTerm = `%${search.trim()}%`;
-      whereCondition.push(
-        { name: Like(searchTerm) },
-        { unit: Like(searchTerm) },
-        { wasteCategory: { name: Like(searchTerm) } },
+    if (search?.trim()) {
+      queryBuilder.where(
+        '(material.name LIKE :search OR material.unit LIKE :search OR category.name LIKE :search)',
+        { search: `%${search.trim()}%` }
       );
     }
 
-    const [data, total] = await this.wasteMaterialRepository.findAndCount({
-      where: whereCondition.length > 0 ? whereCondition : undefined,
-      relations: ['wasteCategory'],
-      order: { id: 'ASC' },
-      skip,
-      take: limit,
-    });
+    const [data, total] = await queryBuilder.getManyAndCount();
 
     return {
       data,
@@ -65,7 +67,19 @@ export class WasteMaterialService {
   }
 
   async createWasteMaterial(createDto: CreateWasteMaterialDto): Promise<WasteMaterial> {
-    const material = this.wasteMaterialRepository.create(createDto);
+    // Validate category exists
+    const category = await this.wasteCategoryRepository.findOne({
+      where: { id: createDto.wasteCategoryId },
+    });
+    if (!category) {
+      throw new BadRequestException(`Category ID ${createDto.wasteCategoryId} not found`);
+    }
+
+    const material = this.wasteMaterialRepository.create({
+      ...createDto,
+      wasteCategory: category,
+    });
+    
     return await this.wasteMaterialRepository.save(material);
   }
 
@@ -74,12 +88,81 @@ export class WasteMaterialService {
     updateDto: UpdateWasteMaterialDto,
   ): Promise<WasteMaterial> {
     const material = await this.getWasteMaterialById(id);
-    Object.assign(material, updateDto);
+
+    // Validate category if provided
+    if (updateDto.wasteCategoryId) {
+      const category = await this.wasteCategoryRepository.findOne({
+        where: { id: updateDto.wasteCategoryId },
+      });
+      if (!category) {
+        throw new BadRequestException(`Category ID ${updateDto.wasteCategoryId} not found`);
+      }
+      material.wasteCategory = category;
+    }
+
+    // Handle image removal
+    if (updateDto.removeImage || updateDto.materialImage === null) {
+      material.materialImage = null;
+    } else if (updateDto.materialImage) {
+      material.materialImage = updateDto.materialImage;
+    }
+
+    // Update other fields
+    if (updateDto.name) material.name = updateDto.name;
+    if (updateDto.emissionFactor !== undefined) material.emissionFactor = updateDto.emissionFactor;
+    if (updateDto.unit) material.unit = updateDto.unit;
+
     return await this.wasteMaterialRepository.save(material);
   }
 
   async deleteWasteMaterial(id: number): Promise<void> {
     const material = await this.getWasteMaterialById(id);
     await this.wasteMaterialRepository.remove(material);
+  }
+
+  // Transaction-based delete with image cleanup
+  async deleteWasteMaterialWithImage(
+    id: number,
+    deleteImageCallback?: (filename: string) => Promise<void>,
+  ): Promise<{ message: string }> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const material = await queryRunner.manager.findOne(WasteMaterial, {
+        where: { id },
+      });
+
+      if (!material) {
+        throw new NotFoundException(`Waste material with ID ${id} not found`);
+      }
+
+      const imageUrl = material.materialImage;
+
+      // Delete from DB first (transaction)
+      await queryRunner.manager.remove(material);
+      await queryRunner.commitTransaction();
+
+      // Then delete file (outside transaction - non-critical)
+      if (imageUrl && deleteImageCallback) {
+        const filename = imageUrl.split('/').pop();
+        if (filename) {
+          try {
+            await deleteImageCallback(filename);
+          } catch (error) {
+            console.error('Failed to delete image file:', error);
+            // Don't throw - DB is already deleted
+          }
+        }
+      }
+
+      return { message: 'ลบข้อมูลสำเร็จ' };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 }

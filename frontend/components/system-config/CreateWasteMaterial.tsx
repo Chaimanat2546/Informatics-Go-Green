@@ -140,7 +140,7 @@ export default function CreateWasteMaterial() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch(`${API_URL}/upload/waste-material-picture`, {
+      const response = await fetch(`${API_URL}/admin/upload/waste-material-picture`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -204,11 +204,11 @@ export default function CreateWasteMaterial() {
         name: formData.name.trim(),
         emissionFactor: parseFloat(formData.emissionFactor),
         unit: formData.unit.trim(),
-        wasteCategoriesId: parseInt(formData.categoryId),
-        ...(imageUrl && { meterialImage: imageUrl }),
+        wasteCategoryId: parseInt(formData.categoryId),
+        ...(imageUrl && { materialImage: imageUrl }),
       };
 
-      const response = await fetch(`${API_URL}/admin/waste-materials/add`, {
+      const response = await fetch(`${API_URL}/admin/waste-materials`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

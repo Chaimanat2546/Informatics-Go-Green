@@ -9,17 +9,14 @@ import {
   Query,
   ParseIntPipe,
   UseGuards,
-  UseInterceptors,
-  UploadedFile,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { WasteMaterialService } from '../services/waste-material.service';
 import { UploadService } from '../../upload/upload.service';
 import { JwtAuthGuard } from '../../auth/guards';
 import { AdminGuard } from '../../admin/admin.guard';
 import { CreateWasteMaterialDto, UpdateWasteMaterialDto } from '../dto/waste-material.dto';
 
-@Controller('admin')
+@Controller('admin/waste-materials')
 @UseGuards(JwtAuthGuard, AdminGuard)
 export class WasteMaterialController {
   constructor(
@@ -27,95 +24,50 @@ export class WasteMaterialController {
     private uploadService: UploadService,
   ) {}
 
-  @Get('waste-materials')
-async getAllWasteMaterials(
-  @Query() query: { search?: string; page?: number; limit?: number }
-) {
-  return this.wasteMaterialService.getAllWasteMaterials(
-    query.search,
-    query.page, 
-    query.limit,
-  );
-}
+  @Get()
+  async getAllWasteMaterials(
+    @Query() query: { search?: string; page?: number; limit?: number }
+  ) {
+    return this.wasteMaterialService.getAllWasteMaterials(
+      query.search,
+      query.page || 1,
+      query.limit || 10,
+    );
+  }
 
-  @Get('waste-materials/:id')
+  @Get(':id')
   async getWasteMaterialById(@Param('id', ParseIntPipe) id: number) {
     return this.wasteMaterialService.getWasteMaterialById(id);
   }
 
-  @Post('waste-materials/add')
-  @UseInterceptors(FileInterceptor('image'))
-  async createWasteMaterial(
-    @Body() createDto: CreateWasteMaterialDto,
-    @UploadedFile() file?: Express.Multer.File,
-  ) {
-    let imageUrl = '';
-
-    // อัพโหลดรูป (ถ้ามี)
-    if (file) {
-      const result = await this.uploadService.saveWasteMaterialPicture(file);
-      imageUrl = result.url;
-    }
-
-    return this.wasteMaterialService.createWasteMaterial({
-      ...createDto,
-      meterialImage: imageUrl,
-    });
+  @Post()
+  async createWasteMaterial(@Body() createDto: CreateWasteMaterialDto) {
+    return this.wasteMaterialService.createWasteMaterial(createDto);
   }
 
-  @Put('waste-materials/:id')
-  @UseInterceptors(FileInterceptor('image'))
+  @Put(':id')
   async updateWasteMaterial(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateDto: UpdateWasteMaterialDto,
-    @UploadedFile() file?: Express.Multer.File,
   ) {
-    // ดึงข้อมูลเดิม
-    const existingMaterial = await this.wasteMaterialService.getWasteMaterialById(id);
-
-    let imageUrl = existingMaterial.meterial_image;
-
-    // ถ้ามีรูปใหม่
-    if (file) {
-      // ลบรูปเก่า (ถ้ามี)
-      if (existingMaterial.meterial_image) {
-        const oldFilename = this.uploadService.extractFilenameFromUrl(
-          existingMaterial.meterial_image,
-        );
+    // ถ้ามีรูปใหม่ ลบรูปเก่าก่อน
+    if (updateDto.materialImage) {
+      const existing = await this.wasteMaterialService.getWasteMaterialById(id);
+      if (existing.materialImage && existing.materialImage !== updateDto.materialImage) {
+        const oldFilename = this.uploadService.extractFilenameFromUrl(existing.materialImage);
         if (oldFilename) {
           await this.uploadService.deleteWasteMaterialPicture(oldFilename);
         }
       }
-
-      // อัพโหลดรูปใหม่
-      const result = await this.uploadService.saveWasteMaterialPicture(file);
-      imageUrl = result.url;
     }
 
-    return this.wasteMaterialService.updateWasteMaterial(id, {
-      ...updateDto,
-      meterialImage: imageUrl,
-    });
+    return this.wasteMaterialService.updateWasteMaterial(id, updateDto);
   }
 
-  @Delete('waste-materials/:id')
+  @Delete(':id')
   async deleteWasteMaterial(@Param('id', ParseIntPipe) id: number) {
-    // ดึงข้อมูลเดิม
-    const material = await this.wasteMaterialService.getWasteMaterialById(id);
-
-    // ลบรูป (ถ้ามี)
-    if (material.meterial_image) {
-      const filename = this.uploadService.extractFilenameFromUrl(
-        material.meterial_image,
-      );
-      if (filename) {
-        await this.uploadService.deleteWasteMaterialPicture(filename);
-      }
-    }
-
-    // ลบข้อมูล
-    await this.wasteMaterialService.deleteWasteMaterial(id);
-    
-    return { message: 'ลบข้อมูลสำเร็จ' };
+    return this.wasteMaterialService.deleteWasteMaterialWithImage(id, async (filename) => {
+      await this.uploadService.deleteWasteMaterialPicture(filename);
+    });
   }
 }

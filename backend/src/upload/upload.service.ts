@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -16,22 +16,24 @@ export class UploadService {
   }
 
   private ensureUploadDirectories(): void {
-    // สร้างโฟลเดอร์ profiles
     if (!fs.existsSync(this.profileUploadPath)) {
       fs.mkdirSync(this.profileUploadPath, { recursive: true });
     }
-    
-    // สร้างโฟลเดอร์ waste-materials
     if (!fs.existsSync(this.wasteMaterialUploadPath)) {
       fs.mkdirSync(this.wasteMaterialUploadPath, { recursive: true });
     }
+  }
+
+  private sanitizeFilename(filename: string): string {
+    // Remove path traversal attempts and special characters
+    return filename.replace(/[^a-zA-Z0-9.-]/g, '_');
   }
 
   // Profile Picture Methods
   async saveProfilePicture(
     file: Express.Multer.File,
   ): Promise<{ url: string; filename: string }> {
-    const fileExtension = path.extname(file.originalname);
+    const fileExtension = path.extname(file.originalname).toLowerCase();
     const filename = `${uuidv4()}${fileExtension}`;
     const filePath = path.join(this.profileUploadPath, filename);
 
@@ -47,7 +49,14 @@ export class UploadService {
   }
 
   async deleteProfilePicture(filename: string): Promise<void> {
-    const filePath = path.join(this.profileUploadPath, filename);
+    const sanitized = this.sanitizeFilename(filename);
+    const filePath = path.join(this.profileUploadPath, sanitized);
+    
+    // Security check: ensure path is within upload directory
+    if (!filePath.startsWith(this.profileUploadPath)) {
+      throw new BadRequestException('Invalid filename');
+    }
+    
     if (fs.existsSync(filePath)) {
       await fs.promises.unlink(filePath);
     }
@@ -60,16 +69,20 @@ export class UploadService {
     // Validate file type
     const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg'];
     if (!allowedMimeTypes.includes(file.mimetype)) {
-      throw new Error('Only JPEG and PNG files are allowed');
+      throw new BadRequestException('Only JPEG and PNG files are allowed');
     }
 
     // Validate file size (5MB)
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
-      throw new Error('File size must be less than 5MB');
+      throw new BadRequestException('File size must be less than 5MB');
     }
 
-    const fileExtension = path.extname(file.originalname);
+    const fileExtension = path.extname(file.originalname).toLowerCase();
+    if (!['.jpg', '.jpeg', '.png'].includes(fileExtension)) {
+      throw new BadRequestException('Invalid file extension');
+    }
+
     const filename = `waste-${uuidv4()}${fileExtension}`;
     const filePath = path.join(this.wasteMaterialUploadPath, filename);
 
@@ -85,7 +98,15 @@ export class UploadService {
   }
 
   async deleteWasteMaterialPicture(filename: string): Promise<void> {
-    const filePath = path.join(this.wasteMaterialUploadPath, filename);
+    // Security: sanitize filename to prevent path traversal
+    const sanitized = this.sanitizeFilename(filename);
+    const filePath = path.join(this.wasteMaterialUploadPath, sanitized);
+    
+    // Ensure the resolved path is still within the upload directory
+    if (!filePath.startsWith(this.wasteMaterialUploadPath)) {
+      throw new BadRequestException('Invalid filename');
+    }
+
     if (fs.existsSync(filePath)) {
       await fs.promises.unlink(filePath);
     }
@@ -93,7 +114,15 @@ export class UploadService {
 
   extractFilenameFromUrl(url: string): string | null {
     if (!url) return null;
-    const parts = url.split('/');
-    return parts[parts.length - 1];
+    try {
+      const urlObj = new URL(url);
+      const parts = urlObj.pathname.split('/');
+      const filename = parts[parts.length - 1];
+      return this.sanitizeFilename(filename);
+    } catch {
+      // If not a valid URL, try simple split
+      const parts = url.split('/');
+      return this.sanitizeFilename(parts[parts.length - 1]);
+    }
   }
 }

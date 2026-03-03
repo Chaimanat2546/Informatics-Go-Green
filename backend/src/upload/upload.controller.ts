@@ -21,12 +21,12 @@ const ALLOWED_MIME_TYPES = [
   'image/webp',
 ];
 
-@Controller('upload')
+@Controller('admin/upload')
+@UseGuards(JwtAuthGuard, AdminGuard)
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
   @Post('profile-picture')
-  @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),
@@ -65,9 +65,7 @@ export class UploadController {
     };
   }
 
-  // ✅ เพิ่ม endpoint สำหรับ Waste Material Picture
   @Post('waste-material-picture')
-  @UseGuards(JwtAuthGuard, AdminGuard) // ✅ ต้องเป็น Admin
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),

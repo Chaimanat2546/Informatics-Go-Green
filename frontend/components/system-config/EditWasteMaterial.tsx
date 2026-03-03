@@ -72,15 +72,15 @@ export default function EditWasteMaterial({ materialId }: Props) {
           // Set form data จากข้อมูลที่ดึงมา
           setFormData({
             name: materialData.name,
-            categoryId: materialData.wasteCategoriesId.toString(),
+            categoryId: materialData.wasteCategoryId.toString(),
             emissionFactor: materialData.emissionFactor.toString(),
             unit: materialData.unit,
-            imageUrl: materialData.meterialImage || "",
+            imageUrl: materialData.materialImage || "",
           });
 
           // Set preview image ถ้ามี
-          if (materialData.meterialImage) {
-            setPreviewUrl(materialData.meterialImage);
+          if (materialData.materialImage) {
+            setPreviewUrl(materialData.materialImage);
           }
         } else if (materialRes.status === 404) {
           toast.error("ไม่พบข้อมูล");
@@ -164,7 +164,7 @@ export default function EditWasteMaterial({ materialId }: Props) {
       const uploadData = new FormData();
       uploadData.append("file", file);
 
-      const response = await fetch(`${API_URL}/upload/waste-material-picture`, {
+      const response = await fetch(`${API_URL}/admin/upload/waste-material-picture`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -228,8 +228,8 @@ export default function EditWasteMaterial({ materialId }: Props) {
         name: formData.name.trim(),
         emissionFactor: parseFloat(formData.emissionFactor),
         unit: formData.unit.trim(),
-        wasteCategoriesId: parseInt(formData.categoryId),
-        ...(imageUrl && { meterialImage: imageUrl }),
+        wasteCategoryId: parseInt(formData.categoryId),
+        ...(imageUrl && { materialImage: imageUrl }),
       };
 
       const response = await fetch(

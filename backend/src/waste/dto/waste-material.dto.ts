@@ -5,7 +5,8 @@ import {
   IsNotEmpty, 
   IsInt, 
   Min,
-  IsPositive 
+  IsPositive,
+  IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -60,11 +61,12 @@ export class CreateWasteMaterialDto {
   @IsNumber({}, { message: 'ค่าสัมประสิทธิ์ต้องเป็นตัวเลข' })
   @IsPositive({ message: 'ค่าสัมประสิทธิ์ต้องมากกว่า 0' })
   @IsNotEmpty({ message: 'กรุณากรอกค่าสัมประสิทธิ์' })
+  @Type(() => Number)
   emissionFactor: number;
 
   @ApiProperty({ 
     description: 'Unit of measurement',
-    example: 'PET' 
+    example: 'kg' 
   })
   @IsString()
   @IsNotEmpty({ message: 'กรุณากรอกหน่วย' })
@@ -76,7 +78,7 @@ export class CreateWasteMaterialDto {
   })
   @IsString()
   @IsOptional()
-  meterialImage?: string;
+  materialImage?: string;
 
   @ApiProperty({ 
     description: 'Waste category ID',
@@ -86,7 +88,7 @@ export class CreateWasteMaterialDto {
   @IsInt({ message: 'หมวดหมู่ต้องเป็นตัวเลข' })
   @IsPositive({ message: 'กรุณาเลือกหมวดหมู่' })
   @IsNotEmpty({ message: 'กรุณาเลือกหมวดหมู่' })
-  wasteCategoriesId: number;
+  wasteCategoryId: number;
 }
 
 export class UpdateWasteMaterialDto {
@@ -103,6 +105,7 @@ export class UpdateWasteMaterialDto {
   @IsNumber()
   @IsPositive({ message: 'ค่าสัมประสิทธิ์ต้องมากกว่า 0' })
   @IsOptional()
+  @Type(() => Number)
   emissionFactor?: number;
 
   @ApiPropertyOptional({ 
@@ -113,11 +116,11 @@ export class UpdateWasteMaterialDto {
   unit?: string;
 
   @ApiPropertyOptional({ 
-    description: 'Image URL'
+    description: 'Image URL (null = remove image)'
   })
   @IsString()
   @IsOptional()
-  meterialImage?: string;
+  materialImage?: string;
 
   @ApiPropertyOptional({ 
     description: 'Waste category ID'
@@ -126,5 +129,12 @@ export class UpdateWasteMaterialDto {
   @IsInt()
   @IsPositive()
   @IsOptional()
-  wasteCategoriesId?: number;
+  wasteCategoryId?: number;
+
+  @ApiPropertyOptional({ 
+    description: 'Force remove image'
+  })
+  @IsBoolean()
+  @IsOptional()
+  removeImage?: boolean;
 }
