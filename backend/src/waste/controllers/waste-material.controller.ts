@@ -53,8 +53,8 @@ export class WasteMaterialController {
     // ถ้ามีรูปใหม่ ลบรูปเก่าก่อน
     if (updateDto.materialImage) {
       const existing = await this.wasteMaterialService.getWasteMaterialById(id);
-      if (existing.materialImage && existing.materialImage !== updateDto.materialImage) {
-        const oldFilename = this.uploadService.extractFilenameFromUrl(existing.materialImage);
+      if (existing.meterial_image && existing.meterial_image !== updateDto.materialImage) {
+        const oldFilename = this.uploadService.extractFilenameFromUrl(existing.meterial_image);
         if (oldFilename) {
           await this.uploadService.deleteWasteMaterialPicture(oldFilename);
         }

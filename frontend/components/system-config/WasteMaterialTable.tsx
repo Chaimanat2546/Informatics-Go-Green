@@ -241,7 +241,7 @@ export default function WasteMaterialTable() {
                     {wasteMaterial.wasteCategory.name}
                   </TableCell>
                   <TableCell className="text-gray-600">
-                    {wasteMaterial.emissionFactor.toFixed(4)}
+                    {wasteMaterial.emissionFactor?.toFixed(4)}
                   </TableCell>
 
                   <TableCell>

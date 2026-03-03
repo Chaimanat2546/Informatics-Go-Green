@@ -102,14 +102,14 @@ export class WasteMaterialService {
 
     // Handle image removal
     if (updateDto.removeImage || updateDto.materialImage === null) {
-      material.materialImage = null;
+      material.meterial_image = "";
     } else if (updateDto.materialImage) {
-      material.materialImage = updateDto.materialImage;
+      material.meterial_image = updateDto.materialImage;
     }
 
     // Update other fields
     if (updateDto.name) material.name = updateDto.name;
-    if (updateDto.emissionFactor !== undefined) material.emissionFactor = updateDto.emissionFactor;
+    if (updateDto.emissionFactor !== undefined) material.emission_factor = updateDto.emissionFactor;
     if (updateDto.unit) material.unit = updateDto.unit;
 
     return await this.wasteMaterialRepository.save(material);
@@ -138,7 +138,7 @@ export class WasteMaterialService {
         throw new NotFoundException(`Waste material with ID ${id} not found`);
       }
 
-      const imageUrl = material.materialImage;
+      const imageUrl = material.meterial_image;
 
       // Delete from DB first (transaction)
       await queryRunner.manager.remove(material);
