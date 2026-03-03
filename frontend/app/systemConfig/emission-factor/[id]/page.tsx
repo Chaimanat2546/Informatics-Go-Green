@@ -1,13 +1,14 @@
 import ViewWasteMaterial from "@/components/system-config/ViewWasteMaterial";
 
-export default function ViewEmissionFactorPage({ 
+export default async function ViewEmissionFactorPage({ 
   params 
 }: { 
-  params: { id: string } 
+  params: Promise<{ id: string }> 
 }) {
+  const { id } = await params;
   return (
     <div>
-      <ViewWasteMaterial materialId={parseInt(params.id)} />
+      <ViewWasteMaterial materialId={parseInt(id)} />
     </div>
   );
 }
