@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import Image from "next/image";
 
 interface Category {
   id: number;
@@ -310,10 +311,11 @@ export default function CreateWasteMaterial() {
               >
                 {previewUrl ? (
                   <div className="relative aspect-square group">
-                    <img
+                    <Image
                       src={previewUrl}
                       alt="Preview"
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
                     />
                     <button
                       onClick={() => {

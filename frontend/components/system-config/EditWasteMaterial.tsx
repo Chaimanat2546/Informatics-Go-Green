@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
+import Image from "next/image";
 
 interface Category {
   id: number;
@@ -359,10 +360,11 @@ export default function EditWasteMaterial({ materialId }: Props) {
               >
                 {previewUrl ? (
                   <div className="relative aspect-square group">
-                    <img
+                    <Image
                       src={previewUrl}
                       alt="Preview"
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
                     />
                     <button
                       onClick={() => {

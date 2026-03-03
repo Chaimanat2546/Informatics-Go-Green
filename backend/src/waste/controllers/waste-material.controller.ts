@@ -17,6 +17,7 @@ import { WasteMaterialService } from '../services/waste-material.service';
 import { UploadService } from '../../upload/upload.service';
 import { JwtAuthGuard } from '../../auth/guards';
 import { AdminGuard } from '../../admin/admin.guard';
+import { CreateWasteMaterialDto, UpdateWasteMaterialDto } from '../dto/waste-material.dto';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, AdminGuard)
@@ -27,13 +28,15 @@ export class WasteMaterialController {
   ) {}
 
   @Get('waste-materials')
-  async getAllWasteMaterials(@Query() query: any) {
-    return this.wasteMaterialService.getAllWasteMaterials(
-      query.search,
-      query.page,
-      query.limit,
-    );
-  }
+async getAllWasteMaterials(
+  @Query() query: { search?: string; page?: number; limit?: number }
+) {
+  return this.wasteMaterialService.getAllWasteMaterials(
+    query.search,
+    query.page, 
+    query.limit,
+  );
+}
 
   @Get('waste-materials/:id')
   async getWasteMaterialById(@Param('id', ParseIntPipe) id: number) {
@@ -43,7 +46,7 @@ export class WasteMaterialController {
   @Post('waste-materials/add')
   @UseInterceptors(FileInterceptor('image'))
   async createWasteMaterial(
-    @Body() createDto: any,
+    @Body() createDto: CreateWasteMaterialDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
     let imageUrl = '';
@@ -64,7 +67,7 @@ export class WasteMaterialController {
   @UseInterceptors(FileInterceptor('image'))
   async updateWasteMaterial(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateDto: any,
+    @Body() updateDto: UpdateWasteMaterialDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
     // ดึงข้อมูลเดิม

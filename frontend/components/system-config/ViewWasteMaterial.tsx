@@ -36,41 +36,43 @@ export default function ViewWasteMaterial({ materialId }: Props) {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
   useEffect(() => {
-    fetchMaterialData();
-  }, []);
-
-  const fetchMaterialData = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      toast.error("กรุณาเข้าสู่ระบบ");
-      router.push("/auth/login");
-      return;
-    }
-
-    try {
-      const response = await fetch(`${API_URL}/admin/waste-materials/${materialId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setMaterial(data);
-      } else if (response.status === 401) {
-        toast.error("Session หมดอายุ");
-        localStorage.removeItem("token");
+    const fetchMaterialData = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("กรุณาเข้าสู่ระบบ");
         router.push("/auth/login");
-      } else if (response.status === 404) {
-        toast.error("ไม่พบข้อมูล");
-        router.push("/systemConfig/emission-factor");
-      } else {
-        toast.error("เกิดข้อผิดพลาดในการโหลดข้อมูล");
+        return;
       }
-    } catch (error) {
-      toast.error("เกิดข้อผิดพลาดในการโหลดข้อมูล");
-    } finally {
-      setLoading(false);
-    }
-  };
+
+      setLoading(true);
+      try {
+        const response = await fetch(`${API_URL}/admin/waste-materials/${materialId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setMaterial(data);
+        } else if (response.status === 401) {
+          toast.error("Session หมดอายุ");
+          localStorage.removeItem("token");
+          router.push("/auth/login");
+        } else if (response.status === 404) {
+          toast.error("ไม่พบข้อมูล");
+          router.push("/systemConfig/emission-factor");
+        } else {
+          toast.error("เกิดข้อผิดพลาดในการโหลดข้อมูล");
+        }
+      } catch (error) {
+        console.error("Fetch error:", error);
+        toast.error("เกิดข้อผิดพลาดในการโหลดข้อมูล");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMaterialData();
+  }, [API_URL, materialId, router]); // ✅ ใส่ dependencies ครบ
 
   const handleDelete = async () => {
     if (!confirm(`ต้องการลบ "${material?.name}" ใช่หรือไม่?`)) return;
@@ -101,6 +103,7 @@ export default function ViewWasteMaterial({ materialId }: Props) {
         toast.error("ไม่สามารถลบข้อมูลได้");
       }
     } catch (error) {
+      console.error("Delete error:", error);
       toast.error("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
     }
   };

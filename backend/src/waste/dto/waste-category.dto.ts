@@ -1,8 +1,8 @@
-import { IsString, IsNotEmpty, IsOptional, MinLength, MaxLength } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsString, IsNotEmpty, MinLength, MaxLength } from 'class-validator'; // ลบ IsOptional ออก
+import { ApiProperty } from '@nestjs/swagger'; // ลบ ApiPropertyOptional ออก
 
 export class CreateWasteCategoryDto {
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'Category name',
     example: 'พลาสติก',
     minLength: 1,

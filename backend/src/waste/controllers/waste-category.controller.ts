@@ -10,6 +10,7 @@ import {
 import { WasteCategoryService } from '../services/waste-category.service';
 import { JwtAuthGuard } from '../../auth/guards';
 import { AdminGuard } from '../../admin/admin.guard';
+import { CreateWasteCategoryDto } from '../dto/waste-category.dto';
 
 @Controller('admin')  // ✅ ตรงนี้สำคัญ
 @UseGuards(JwtAuthGuard, AdminGuard)
@@ -27,7 +28,7 @@ export class WasteCategoryController {
   }
 
   @Post('waste-categories')
-  async create(@Body() createDto: any) {
+  async create(@Body() createDto: CreateWasteCategoryDto) { 
     return this.wasteCategoryService.create(createDto);
-  }
+}
 }
