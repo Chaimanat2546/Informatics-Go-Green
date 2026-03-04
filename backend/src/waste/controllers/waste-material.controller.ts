@@ -14,7 +14,10 @@ import { WasteMaterialService } from '../services/waste-material.service';
 import { UploadService } from '../../upload/upload.service';
 import { JwtAuthGuard } from '../../auth/guards';
 import { AdminGuard } from '../../admin/admin.guard';
-import { CreateWasteMaterialDto, UpdateWasteMaterialDto } from '../dto/waste-material.dto';
+import {
+  CreateWasteMaterialDto,
+  UpdateWasteMaterialDto,
+} from '../dto/waste-material.dto';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, AdminGuard)
@@ -26,7 +29,7 @@ export class WasteMaterialController {
 
   @Get('waste-materials')
   async getAllWasteMaterials(
-    @Query() query: { search?: string; page?: number; limit?: number }
+    @Query() query: { search?: string; page?: number; limit?: number },
   ) {
     return this.wasteMaterialService.getAllWasteMaterials(
       query.search,
@@ -53,7 +56,8 @@ export class WasteMaterialController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateDto: UpdateWasteMaterialDto,
   ) {
-    const existingMaterial = await this.wasteMaterialService.getWasteMaterialById(id);
+    const existingMaterial =
+      await this.wasteMaterialService.getWasteMaterialById(id);
 
     // Delete old image if a new URL is provided and differs from the existing one
     if (
