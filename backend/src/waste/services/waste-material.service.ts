@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
 import { WasteMaterial } from '../entities/waste-material.entity';
+import { WasteCategory } from '../entities/waste-category.entity';
 import { CreateWasteMaterialDto, UpdateWasteMaterialDto } from '../dto/waste-material.dto';
 
 @Injectable()
@@ -9,6 +10,8 @@ export class WasteMaterialService {
   constructor(
     @InjectRepository(WasteMaterial)
     private wasteMaterialRepository: Repository<WasteMaterial>,
+    @InjectRepository(WasteCategory)
+    private wasteCategoryRepository: Repository<WasteCategory>,
   ) {}
 
   async getAllWasteMaterials(
@@ -65,12 +68,17 @@ export class WasteMaterialService {
   }
 
   async createWasteMaterial(createDto: CreateWasteMaterialDto): Promise<WasteMaterial> {
+    const category = await this.wasteCategoryRepository.findOne({ where: { id: createDto.wasteCategoryId } });
+    if (!category) {
+      throw new NotFoundException(`หมวดหมู่ ID ${createDto.wasteCategoryId} ไม่พบในระบบ`);
+    }
+
     const material = this.wasteMaterialRepository.create({
       name: createDto.name,
       emission_factor: createDto.emissionFactor,
       unit: createDto.unit,
       material_image: createDto.materialImage,
-      waste_categoriesid: createDto.wasteCategoriesId,
+      waste_categoriesid: createDto.wasteCategoryId,
     });
     return await this.wasteMaterialRepository.save(material);
   }
@@ -80,11 +88,19 @@ export class WasteMaterialService {
     updateDto: UpdateWasteMaterialDto,
   ): Promise<WasteMaterial> {
     const material = await this.getWasteMaterialById(id);
+
+    if (updateDto.wasteCategoryId !== undefined) {
+      const category = await this.wasteCategoryRepository.findOne({ where: { id: updateDto.wasteCategoryId } });
+      if (!category) {
+        throw new NotFoundException(`หมวดหมู่ ID ${updateDto.wasteCategoryId} ไม่พบในระบบ`);
+      }
+    }
+
     if (updateDto.name !== undefined) material.name = updateDto.name;
     if (updateDto.emissionFactor !== undefined) material.emission_factor = updateDto.emissionFactor;
     if (updateDto.unit !== undefined) material.unit = updateDto.unit;
     if (updateDto.materialImage !== undefined) material.material_image = updateDto.materialImage;
-    if (updateDto.wasteCategoriesId !== undefined) material.waste_categoriesid = updateDto.wasteCategoriesId;
+    if (updateDto.wasteCategoryId !== undefined) material.waste_categoriesid = updateDto.wasteCategoryId;
     return await this.wasteMaterialRepository.save(material);
   }
 

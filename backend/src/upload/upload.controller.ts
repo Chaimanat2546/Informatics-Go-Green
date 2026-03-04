@@ -14,18 +14,13 @@ import { UploadService } from './upload.service';
 import { JwtAuthGuard } from '../auth/guards';
 import { AdminGuard } from '../admin/admin.guard';
 
-const ALLOWED_MIME_TYPES = [
-  'image/jpeg',
-  'image/png',
-  'image/gif',
-  'image/webp',
-];
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/png'];
 
-@Controller('upload')
+@Controller()
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
-  @Post('profile-picture')
+  @Post('upload/profile-picture')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('file', {
@@ -65,9 +60,8 @@ export class UploadController {
     };
   }
 
-  // ✅ เพิ่ม endpoint สำหรับ Waste Material Picture
-  @Post('waste-material-picture')
-  @UseGuards(JwtAuthGuard, AdminGuard) // ✅ ต้องเป็น Admin
+  @Post('admin/upload/waste-material-picture')
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),

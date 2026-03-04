@@ -69,7 +69,12 @@ export class UploadService {
       throw new Error('File size must be less than 5MB');
     }
 
-    const fileExtension = path.extname(file.originalname);
+    const MIME_TO_EXT: Record<string, string> = {
+      'image/jpeg': '.jpg',
+      'image/jpg': '.jpg',
+      'image/png': '.png',
+    };
+    const fileExtension = MIME_TO_EXT[file.mimetype] ?? '.jpg';
     const filename = `waste-${uuidv4()}${fileExtension}`;
     const filePath = path.join(this.wasteMaterialUploadPath, filename);
 

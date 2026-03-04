@@ -158,7 +158,7 @@ export default function EditWasteMaterial({ materialId }: Props) {
     try {
       const uploadData = new FormData();
       uploadData.append("file", file);
-      const response = await fetch(`${API_URL}/upload/waste-material-picture`, {
+      const response = await fetch(`${API_URL}/admin/upload/waste-material-picture`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: uploadData,
@@ -199,7 +199,7 @@ export default function EditWasteMaterial({ materialId }: Props) {
         name: formData.name.trim(),
         emissionFactor: parseFloat(formData.emissionFactor),
         unit: formData.unit.trim(),
-        wasteCategoriesId: parseInt(formData.categoryId),
+        wasteCategoryId: parseInt(formData.categoryId),
         ...(imageUrl && { materialImage: imageUrl }),
       };
 

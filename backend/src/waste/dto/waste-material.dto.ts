@@ -86,7 +86,7 @@ export class CreateWasteMaterialDto {
   @IsInt({ message: 'หมวดหมู่ต้องเป็นตัวเลข' })
   @IsPositive({ message: 'กรุณาเลือกหมวดหมู่' })
   @IsNotEmpty({ message: 'กรุณาเลือกหมวดหมู่' })
-  wasteCategoriesId: number;
+  wasteCategoryId: number;
 }
 
 export class UpdateWasteMaterialDto {
@@ -126,5 +126,5 @@ export class UpdateWasteMaterialDto {
   @IsInt()
   @IsPositive()
   @IsOptional()
-  wasteCategoriesId?: number;
+  wasteCategoryId?: number;
 }
