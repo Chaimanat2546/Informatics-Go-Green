@@ -9,10 +9,7 @@ import {
   Query,
   ParseIntPipe,
   UseGuards,
-  UseInterceptors,
-  UploadedFile,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { WasteMaterialService } from '../services/waste-material.service';
 import { UploadService } from '../../upload/upload.service';
 import { JwtAuthGuard } from '../../auth/guards';
@@ -28,94 +25,70 @@ export class WasteMaterialController {
   ) {}
 
   @Get('waste-materials')
-async getAllWasteMaterials(
-  @Query() query: { search?: string; page?: number; limit?: number }
-) {
-  return this.wasteMaterialService.getAllWasteMaterials(
-    query.search,
-    query.page, 
-    query.limit,
-  );
-}
+  async getAllWasteMaterials(
+    @Query() query: { search?: string; page?: number; limit?: number }
+  ) {
+    return this.wasteMaterialService.getAllWasteMaterials(
+      query.search,
+      query.page,
+      query.limit,
+    );
+  }
 
   @Get('waste-materials/:id')
   async getWasteMaterialById(@Param('id', ParseIntPipe) id: number) {
     return this.wasteMaterialService.getWasteMaterialById(id);
   }
 
-  @Post('waste-materials/add')
-  @UseInterceptors(FileInterceptor('image'))
-  async createWasteMaterial(
-    @Body() createDto: CreateWasteMaterialDto,
-    @UploadedFile() file?: Express.Multer.File,
-  ) {
-    let imageUrl = '';
-
-    // อัพโหลดรูป (ถ้ามี)
-    if (file) {
-      const result = await this.uploadService.saveWasteMaterialPicture(file);
-      imageUrl = result.url;
-    }
-
-    return this.wasteMaterialService.createWasteMaterial({
-      ...createDto,
-      meterialImage: imageUrl,
-    });
+  // Bug 5 fixed: was /waste-materials/add, now proper POST /waste-materials
+  // Bug 1 fixed: removed FileInterceptor — frontend uploads image separately via /upload/waste-material-picture
+  @Post('waste-materials')
+  async createWasteMaterial(@Body() createDto: CreateWasteMaterialDto) {
+    return this.wasteMaterialService.createWasteMaterial(createDto);
   }
 
+  // Bug 1 fixed: removed FileInterceptor — image URL comes from DTO directly
   @Put('waste-materials/:id')
-  @UseInterceptors(FileInterceptor('image'))
   async updateWasteMaterial(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateDto: UpdateWasteMaterialDto,
-    @UploadedFile() file?: Express.Multer.File,
   ) {
-    // ดึงข้อมูลเดิม
     const existingMaterial = await this.wasteMaterialService.getWasteMaterialById(id);
 
-    let imageUrl = existingMaterial.meterial_image;
-
-    // ถ้ามีรูปใหม่
-    if (file) {
-      // ลบรูปเก่า (ถ้ามี)
-      if (existingMaterial.meterial_image) {
-        const oldFilename = this.uploadService.extractFilenameFromUrl(
-          existingMaterial.meterial_image,
-        );
-        if (oldFilename) {
-          await this.uploadService.deleteWasteMaterialPicture(oldFilename);
-        }
+    // Delete old image if a new URL is provided and differs from the existing one
+    if (
+      updateDto.materialImage !== undefined &&
+      existingMaterial.material_image &&
+      existingMaterial.material_image !== updateDto.materialImage
+    ) {
+      const oldFilename = this.uploadService.extractFilenameFromUrl(
+        existingMaterial.material_image,
+      );
+      if (oldFilename) {
+        await this.uploadService.deleteWasteMaterialPicture(oldFilename);
       }
-
-      // อัพโหลดรูปใหม่
-      const result = await this.uploadService.saveWasteMaterialPicture(file);
-      imageUrl = result.url;
     }
 
-    return this.wasteMaterialService.updateWasteMaterial(id, {
-      ...updateDto,
-      meterialImage: imageUrl,
-    });
+    return this.wasteMaterialService.updateWasteMaterial(id, updateDto);
   }
 
   @Delete('waste-materials/:id')
   async deleteWasteMaterial(@Param('id', ParseIntPipe) id: number) {
-    // ดึงข้อมูลเดิม
     const material = await this.wasteMaterialService.getWasteMaterialById(id);
 
-    // ลบรูป (ถ้ามี)
-    if (material.meterial_image) {
+    // Bug 3 fixed: delete DB record first, then delete file
+    // This ensures the record is always cleaned up even if file deletion fails
+    await this.wasteMaterialService.deleteWasteMaterial(id);
+
+    if (material.material_image) {
       const filename = this.uploadService.extractFilenameFromUrl(
-        material.meterial_image,
+        material.material_image,
       );
       if (filename) {
         await this.uploadService.deleteWasteMaterialPicture(filename);
       }
     }
 
-    // ลบข้อมูล
-    await this.wasteMaterialService.deleteWasteMaterial(id);
-    
     return { message: 'ลบข้อมูลสำเร็จ' };
   }
 }

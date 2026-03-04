@@ -1,9 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Trash2 } from "lucide-react";
 
 interface WasteCategory {
   id: number;
@@ -15,12 +24,15 @@ interface WasteCategory {
 interface WasteMaterial {
   id: number;
   name: string;
-  emissionFactor: number;
+  emissionFactor?: number;
+  emission_factor?: number;
   unit: string;
   createdAt: string;
   updatedAt: string;
-  meterialImage?: string;
-  wasteCategoriesId: number;
+  materialImage?: string;
+  material_image?: string;
+  image?: string;
+  wasteCategoriesId?: number;
   wasteCategory: WasteCategory;
 }
 
@@ -32,8 +44,10 @@ export default function ViewWasteMaterial({ materialId }: Props) {
   const router = useRouter();
   const [material, setMaterial] = useState<WasteMaterial | null>(null);
   const [loading, setLoading] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+  const API_URL =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
   useEffect(() => {
     const fetchMaterialData = async () => {
@@ -46,12 +60,14 @@ export default function ViewWasteMaterial({ materialId }: Props) {
 
       setLoading(true);
       try {
-        const response = await fetch(`${API_URL}/admin/waste-materials/${materialId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await fetch(
+          `${API_URL}/admin/waste-materials/${materialId}`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
 
         if (response.ok) {
           const data = await response.json();
+          console.log("materialData:", data); // ✅ debug ดู field จริง
           setMaterial(data);
         } else if (response.status === 401) {
           toast.error("Session หมดอายุ");
@@ -59,24 +75,34 @@ export default function ViewWasteMaterial({ materialId }: Props) {
           router.push("/auth/login");
         } else if (response.status === 404) {
           toast.error("ไม่พบข้อมูล");
-          router.push("/systemConfig/emission-factor");
+          router.push("/admin/emission-factor");
         } else {
           toast.error("เกิดข้อผิดพลาดในการโหลดข้อมูล");
         }
       } catch (error) {
         console.error("Fetch error:", error);
-        toast.error("เกิดข้อผิดพลาดในการโหลดข้อมูล");
+        const isNetworkError =
+          error instanceof TypeError &&
+          (error as TypeError).message === "Failed to fetch";
+        if (isNetworkError) {
+          toast.error(
+            "ไม่สามารถเชื่อมต่อ Server ได้ กรุณาตรวจสอบว่า Backend รันอยู่ที่ port 3001",
+          );
+        } else {
+          toast.error(`เกิดข้อผิดพลาด: ${(error as Error).message}`);
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchMaterialData();
-  }, [API_URL, materialId, router]); // ✅ ใส่ dependencies ครบ
+  }, [API_URL, materialId, router]);
+
+  const handleDeleteClick = () => setDeleteDialogOpen(true);
 
   const handleDelete = async () => {
-    if (!confirm(`ต้องการลบ "${material?.name}" ใช่หรือไม่?`)) return;
-
+    setDeleteDialogOpen(false);
     const token = localStorage.getItem("token");
     if (!token) {
       toast.error("กรุณาเข้าสู่ระบบ");
@@ -85,14 +111,17 @@ export default function ViewWasteMaterial({ materialId }: Props) {
     }
 
     try {
-      const response = await fetch(`${API_URL}/admin/waste-materials/${materialId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `${API_URL}/admin/waste-materials/${materialId}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
 
       if (response.ok) {
         toast.success("ลบข้อมูลสำเร็จ");
-        router.push("/systemConfig/emission-factor");
+        router.push("/admin/emission-factor");
       } else if (response.status === 401) {
         toast.error("Session หมดอายุ");
         localStorage.removeItem("token");
@@ -109,14 +138,29 @@ export default function ViewWasteMaterial({ materialId }: Props) {
   };
 
   const handleEdit = () => {
-    router.push(`/systemConfig/emission-factor/${materialId}/edit`);
+    router.push(`/admin/emission-factor/${materialId}/edit`);
+  };
+
+  // ✅ helper รองรับหลาย field name
+  const getEmissionFactor = () => {
+    const val = material?.emissionFactor ?? material?.emission_factor;
+    return val !== undefined && val !== null ? Number(val).toFixed(4) : "-";
+  };
+
+  const getImageUrl = () => {
+    return (
+      material?.materialImage ??
+      material?.material_image ??
+      material?.image ??
+      ""
+    );
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#72B01D]"></div>
           <p className="mt-4 text-gray-600">กำลังโหลดข้อมูล...</p>
         </div>
       </div>
@@ -129,8 +173,8 @@ export default function ViewWasteMaterial({ materialId }: Props) {
         <div className="text-center">
           <p className="text-slate-600 text-lg">ไม่พบข้อมูล</p>
           <button
-            onClick={() => router.push("/systemConfig/emission-factor")}
-            className="mt-4 px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl transition-all duration-200"
+            onClick={() => router.push("/admin/emission-factor")}
+            className="mt-4 px-6 py-2.5 bg-[#72B01D] hover:bg-[#5f9318] text-white rounded-xl transition-all duration-200"
           >
             กลับหน้ารายการ
           </button>
@@ -139,40 +183,34 @@ export default function ViewWasteMaterial({ materialId }: Props) {
     );
   }
 
+  const imageUrl = getImageUrl();
+
   return (
     <div>
       <div className="max-w-6xl mx-auto px-6 py-12">
         {/* Header */}
         <div className="mb-10 animate-fade-up">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span className="font-medium">กลับ</span>
-          </button>
           <h1 className="text-4xl font-bold text-slate-800 mb-2">
             รายละเอียดค่าสัมประสิทธิ์
           </h1>
-          <p className="text-slate-600">ข้อมูลค่าสัมประสิทธิ์การปล่อยมลพิษ</p>
         </div>
 
         <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl shadow-slate-200/50 border border-white/60 overflow-hidden animate-scale">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 p-8">
             {/* Left Section - Image */}
             <div className="lg:col-span-2 space-y-4">
-              <h3 className="text-lg font-semibold text-slate-700 mb-4">รูปภาพ</h3>
+              <h3 className="text-lg font-semibold text-slate-700 mb-4">
+                รูปภาพ
+              </h3>
 
               <div className="relative border-2 border-dashed border-slate-300 bg-slate-50/50 rounded-2xl overflow-hidden">
-                {material.meterialImage ? (
-                  <div className="aspect-square">
-                    <img
-                      src={material.meterialImage}
+                {imageUrl ? (
+                  <div className="relative aspect-square">
+                    <Image
+                      src={imageUrl}
                       alt={material.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                      }}
+                      fill
+                      className="object-cover"
                     />
                   </div>
                 ) : (
@@ -199,7 +237,9 @@ export default function ViewWasteMaterial({ materialId }: Props) {
             {/* Right Section - Details */}
             <div className="lg:col-span-3 space-y-6">
               <div>
-                <h3 className="text-2xl font-bold text-slate-800 mb-2">รายละเอียด</h3>
+                <h3 className="text-2xl font-bold text-slate-800 mb-2">
+                  รายละเอียด
+                </h3>
                 <p className="text-slate-600">ข้อมูลค่าพารามิเตอร์</p>
               </div>
 
@@ -231,7 +271,7 @@ export default function ViewWasteMaterial({ materialId }: Props) {
                       ค่าปัจจัยการปล่อยมลพิษ
                     </label>
                     <div className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 bg-slate-50 text-slate-800">
-                      {material.emissionFactor.toFixed(4)}
+                      {getEmissionFactor()}
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -239,34 +279,73 @@ export default function ViewWasteMaterial({ materialId }: Props) {
                       หน่วย
                     </label>
                     <div className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 bg-slate-50 text-slate-800">
-                      {material.unit}
+                      {material.unit ?? "-"}
                     </div>
                   </div>
                 </div>
-
               </div>
 
               {/* Action Buttons */}
               <div className="flex gap-4 pt-6">
+                {/* ✅ ปุ่มยกเลิก/ย้อนกลับ */}
                 <button
-                  onClick={handleDelete}
-                  className="flex-1 bg-white border-2 border-red-300 hover:border-red-400 hover:bg-red-50 text-red-600 font-medium py-3.5 px-6 rounded-xl transition-all duration-300 active:scale-95 flex items-center justify-center gap-2"
+                  onClick={() => router.back()}
+                  className="flex-1 bg-white border-2 border-slate-300 hover:border-slate-400 text-slate-700 font-medium py-3.5 px-6 rounded-xl transition-all duration-300 active:scale-95 flex items-center justify-center gap-2"
                 >
-                  <Trash2 className="w-4 h-4" />
-                  ลบ
+                  ย้อนกลับ
                 </button>
                 <button
                   onClick={handleEdit}
-                  className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-medium py-3.5 px-6 rounded-xl transition-all duration-300 shadow-lg shadow-emerald-200 hover:shadow-xl active:scale-95 flex items-center justify-center gap-2"
+                  className="flex-1 bg-[#72B01D] hover:bg-[#5f9318] text-white font-medium py-3.5 px-6 rounded-xl transition-all duration-300 shadow-md active:scale-95 flex items-center justify-center gap-2"
                 >
-                  <Pencil className="w-4 h-4" />
                   แก้ไข
+                </button>
+                <button
+                  onClick={handleDeleteClick}
+                  className="flex-1 bg-white border-2 border-red-300 hover:border-red-400 hover:bg-red-50 text-red-600 font-medium py-3.5 px-6 rounded-xl transition-all duration-300 active:scale-95 flex items-center justify-center gap-2"
+                >
+                  ลบ
                 </button>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* ✅ Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-md text-center">
+          <DialogHeader className="items-center">
+            <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-2">
+              <Trash2 className="w-8 h-8 text-red-500" />
+            </div>
+            <DialogTitle className="text-xl">ยืนยันการลบข้อมูล</DialogTitle>
+            <DialogDescription className="text-gray-500">
+              ต้องการลบ{" "}
+              <span className="font-semibold text-gray-800">
+                &quot;{material?.name}&quot;
+              </span>{" "}
+              ใช่หรือไม่?
+              <br />
+              เมื่อยืนยันแล้วข้อมูลจะถูกลบออกจากระบบ
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-3 sm:justify-center mt-2">
+            <button
+              onClick={() => setDeleteDialogOpen(false)}
+              className="flex-1 px-6 py-2.5 bg-white border-2 border-slate-300 hover:border-slate-400 text-slate-700 font-medium rounded-xl transition-all duration-200"
+            >
+              ยกเลิก
+            </button>
+            <button
+              onClick={handleDelete}
+              className="flex-1 px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl transition-all duration-200"
+            >
+              ยืนยัน
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

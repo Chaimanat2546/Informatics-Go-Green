@@ -29,7 +29,7 @@ export class WasteSortingService {
     return {
       material_id: material.id,
       material_name: material.name,
-      material_image: material.meterial_image,
+      material_image: material.material_image,
       waste_category: material.wasteCategory
         ? [
             {
@@ -64,7 +64,7 @@ export class WasteSortingService {
     const savedHistory = await this.wasteHistoryRepo.save(newHistory);
 
     return {
-      meterial_image: material.meterial_image,
+      meterial_image: material.material_image,
       meterial_name: material.name,
       category: material.wasteCategory
         ? [
@@ -118,7 +118,7 @@ export class WasteSortingService {
     const formattedData = results.map((item) => ({
       id: Number(item.id),
       name: item.name,
-      meterial_image: item.meterial_image || '',
+      meterial_image: item.material_image || '',
       waste_categoriesid: item.wasteCategory
         ? {
             id: item.wasteCategory.id,

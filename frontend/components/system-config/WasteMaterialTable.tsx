@@ -8,6 +8,9 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
+  Eye,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -25,14 +28,23 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 interface WasteMaterial {
   id: number;
   name: string;
-  emissionFactor: number;
-  unit: string;
-  meterialImage?: string;
+  emissionFactor?: number;
+  emission_factor?: number;
+  unit?: string;
+  materialImage?: string;
   wasteCategory: {
     id: number;
     name: string;
@@ -56,15 +68,20 @@ export default function WasteMaterialTable() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
-  const limit = 10;
 
+  // ✅ Delete dialog state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
+
+  const limit = 10;
   const API_URL =
     process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
   const fetchWasteMaterials = useCallback(async () => {
     const token = localStorage.getItem("token");
-    
-    // ✅ ถ้าไม่มี token ให้ redirect ไป login เท่านั้น
     if (!token) {
       toast.error("กรุณาเข้าสู่ระบบ");
       router.push("/auth/login");
@@ -78,35 +95,31 @@ export default function WasteMaterialTable() {
         page: page.toString(),
         limit: limit.toString(),
       });
+      if (searchTerm.trim()) params.append("search", searchTerm.trim());
 
-      if (searchTerm.trim()) {
-        params.append("search", searchTerm.trim());
-      }
-
-      // ✅ แก้ไข: เรียก waste-materials (ไม่ใช่ users)
-      const response = await fetch(`${API_URL}/admin/waste-materials?${params}`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${API_URL}/admin/waste-materials?${params}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         },
-      });
+      );
 
       if (response.ok) {
         const data: WasteMaterialResponse = await response.json();
+        console.log("sample item:", data.data?.[0]);
         setWasteMaterials(data.data || []);
         setTotalPages(data.totalPages || 1);
         setTotal(data.total || 0);
       } else if (response.status === 401) {
-        // ✅ Session หมดอายุ → ไป login
         toast.error("Session หมดอายุ กรุณาเข้าสู่ระบบใหม่");
         localStorage.removeItem("token");
         router.push("/auth/login");
       } else {
-        // ✅ ลบการ redirect ไป dashboard ออก
-        // ไม่ redirect ไปไหน แค่แสดง error
         toast.error("ไม่สามารถโหลดข้อมูลได้");
-        console.error("API Error:", response.status);
       }
     } catch (error) {
       console.error("Fetch Error:", error);
@@ -125,21 +138,22 @@ export default function WasteMaterialTable() {
     setPage(1);
     fetchWasteMaterials();
   };
+  const handleViewProfile = (id: number) =>
+    router.push(`/admin/emission-factor/${id}`);
+  const handleAddNew = () => router.push("/admin/emission-factor/add");
+  const handleEdit = (id: number) =>
+    router.push(`/admin/emission-factor/${id}/edit`);
 
-  const handleViewProfile = (wasteMaterialId: number) => {
-    router.push(`/systemConfig/emission-factor/${wasteMaterialId}`);
+  // ✅ เปิด dialog แทน confirm()
+  const handleDeleteClick = (id: number, name: string) => {
+    setDeleteTarget({ id, name });
+    setDeleteDialogOpen(true);
   };
 
-  const handleAddNew = () => {
-    router.push("/systemConfig/emission-factor/add");
-  };
-
-  const handleEdit = (wasteMaterialId: number) => {
-    router.push(`/systemConfig/emission-factor/${wasteMaterialId}/edit`);
-  };
-
-  const handleDelete = async (wasteMaterialId: number, name: string) => {
-    if (!confirm(`ต้องการลบ "${name}" ใช่หรือไม่?`)) return;
+  // ✅ ยืนยันการลบ
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    setDeleteDialogOpen(false);
 
     const token = localStorage.getItem("token");
     if (!token) {
@@ -150,12 +164,12 @@ export default function WasteMaterialTable() {
 
     try {
       const response = await fetch(
-        `${API_URL}/admin/waste-materials/${wasteMaterialId}`,
+        `${API_URL}/admin/waste-materials/${deleteTarget.id}`,
         {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         },
       );
@@ -173,7 +187,14 @@ export default function WasteMaterialTable() {
     } catch (error) {
       console.error("Delete Error:", error);
       toast.error("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+    } finally {
+      setDeleteTarget(null);
     }
+  };
+
+  const getEmissionFactor = (item: WasteMaterial): string => {
+    const val = item.emissionFactor ?? item.emission_factor;
+    return val !== undefined && val !== null ? Number(val).toFixed(4) : "-";
   };
 
   return (
@@ -182,19 +203,9 @@ export default function WasteMaterialTable() {
         รายการค่าสัมประสิทธิ์ (EmissionFactor)
       </h1>
 
-      {/* Header Section */}
+      {/* Header + Search */}
       <div className="flex justify-between items-center mb-6">
-        <Button
-          onClick={handleAddNew}
-          className="bg-[#72B01D] hover:bg-[#5f9318] text-white rounded-md px-4 py-2 flex gap-2"
-        >
-          <Plus className="w-4 h-4" /> เพิ่มค่าสัมประสิทธิ์
-        </Button>
-      </div>
-
-      {/* Search Bar */}
-      <form onSubmit={handleSearch} className="mb-6">
-        <div className="relative max-w-md">
+        <div className="relative max-w-md w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
             type="text"
@@ -204,30 +215,38 @@ export default function WasteMaterialTable() {
             className="pl-10"
           />
         </div>
-      </form>
+        <Button
+          onClick={handleAddNew}
+          className="bg-[#72B01D] hover:bg-[#5f9318] text-white rounded-md px-4 py-2 flex gap-2 ml-4 shrink-0"
+        >
+          <Plus className="w-4 h-4" /> เพิ่มค่าสัมประสิทธิ์
+        </Button>
+      </div>
 
-      {/* Table Section */}
+      {/* Table */}
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50">
-              <TableHead className="font-semibold">ชื่อ</TableHead>
-              <TableHead className="font-semibold">หมวดหมู่</TableHead>
-              <TableHead className="font-semibold">Emission Factor</TableHead>
-              <TableHead className="w-12"></TableHead>
+              <TableHead className="font-semibold w-[30%]">ชื่อ</TableHead>
+              <TableHead className="font-semibold w-[25%]">หมวดหมู่</TableHead>
+              <TableHead className="font-semibold w-[25%]">
+                Emission Factor
+              </TableHead>
+              <TableHead className="font-semibold w-[15%]">หน่วย</TableHead>
+              <TableHead className="w-[5%]"></TableHead>
             </TableRow>
           </TableHeader>
-
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8">
+                <TableCell colSpan={5} className="text-center py-8">
                   กำลังโหลด...
                 </TableCell>
               </TableRow>
             ) : wasteMaterials.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8">
+                <TableCell colSpan={5} className="text-center py-8">
                   ไม่พบข้อมูลค่าสัมประสิทธิ์
                 </TableCell>
               </TableRow>
@@ -238,12 +257,14 @@ export default function WasteMaterialTable() {
                     {wasteMaterial.name}
                   </TableCell>
                   <TableCell className="text-gray-600">
-                    {wasteMaterial.wasteCategory.name}
+                    {wasteMaterial.wasteCategory?.name ?? "-"}
                   </TableCell>
                   <TableCell className="text-gray-600">
-                    {wasteMaterial.emissionFactor.toFixed(4)}
+                    {getEmissionFactor(wasteMaterial)}
                   </TableCell>
-
+                  <TableCell className="text-gray-600">
+                    {wasteMaterial.unit ?? "-"}
+                  </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -258,23 +279,26 @@ export default function WasteMaterialTable() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
                           onClick={() => handleViewProfile(wasteMaterial.id)}
-                          className="text-gray-700 cursor-pointer"
+                          className="text-gray-700 cursor-pointer flex items-center gap-2"
                         >
-                          ดูข้อมูล
+                          <Eye className="w-4 h-4" /> ดูข้อมูล
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleEdit(wasteMaterial.id)}
-                          className="text-gray-700 cursor-pointer"
+                          className="text-gray-700 cursor-pointer flex items-center gap-2"
                         >
-                          แก้ไข
+                          <Pencil className="w-4 h-4" /> แก้ไข
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() =>
-                            handleDelete(wasteMaterial.id, wasteMaterial.name)
+                            handleDeleteClick(
+                              wasteMaterial.id,
+                              wasteMaterial.name,
+                            )
                           }
-                          className="text-red-500 cursor-pointer"
+                          className="text-red-500 cursor-pointer flex items-center gap-2"
                         >
-                          ลบ
+                          <Trash2 className="w-4 h-4" /> ลบ
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -312,6 +336,42 @@ export default function WasteMaterialTable() {
           </Button>
         </div>
       </div>
+
+      {/* ✅ Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-md text-center">
+          <DialogHeader className="items-center">
+            <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-2">
+              <Trash2 className="w-8 h-8 text-red-500" />
+            </div>
+            <DialogTitle className="text-xl">ยืนยันการลบข้อมูล</DialogTitle>
+            <DialogDescription className="text-gray-500">
+              ต้องการลบ{" "}
+              <span className="font-semibold text-gray-800">
+                &quot;{deleteTarget?.name}&quot;
+              </span>{" "}
+              ใช่หรือไม่?
+              <br />
+              เมื่อยืนยันแล้วข้อมูลจะถูกลบออกจากระบบ
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-3 sm:justify-center mt-2">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+              className="flex-1 border-gray-300 text-gray-700"
+            >
+              ยกเลิก
+            </Button>
+            <Button
+              onClick={handleDeleteConfirm}
+              className="flex-1 bg-red-500 hover:bg-red-600 text-white"
+            >
+              ยืนยัน
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

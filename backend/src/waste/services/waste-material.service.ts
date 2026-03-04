@@ -65,7 +65,13 @@ export class WasteMaterialService {
   }
 
   async createWasteMaterial(createDto: CreateWasteMaterialDto): Promise<WasteMaterial> {
-    const material = this.wasteMaterialRepository.create(createDto);
+    const material = this.wasteMaterialRepository.create({
+      name: createDto.name,
+      emission_factor: createDto.emissionFactor,
+      unit: createDto.unit,
+      material_image: createDto.materialImage,
+      waste_categoriesid: createDto.wasteCategoriesId,
+    });
     return await this.wasteMaterialRepository.save(material);
   }
 
@@ -74,7 +80,11 @@ export class WasteMaterialService {
     updateDto: UpdateWasteMaterialDto,
   ): Promise<WasteMaterial> {
     const material = await this.getWasteMaterialById(id);
-    Object.assign(material, updateDto);
+    if (updateDto.name !== undefined) material.name = updateDto.name;
+    if (updateDto.emissionFactor !== undefined) material.emission_factor = updateDto.emissionFactor;
+    if (updateDto.unit !== undefined) material.unit = updateDto.unit;
+    if (updateDto.materialImage !== undefined) material.material_image = updateDto.materialImage;
+    if (updateDto.wasteCategoriesId !== undefined) material.waste_categoriesid = updateDto.wasteCategoriesId;
     return await this.wasteMaterialRepository.save(material);
   }
 
