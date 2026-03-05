@@ -17,14 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { WasteData } from "@/interfaces/Waste";
 
-interface Error {
-    response?: {
-        data?: {
-            message?: string | string[];
-        };
-    };
-    message?: string;
-}
+
 
 export default function WasteDetailPage() {
     const params = useParams();
@@ -62,20 +55,30 @@ export default function WasteDetailPage() {
                 const res = await fetch(`${API_URL}/waste/scan/${barcode.trim()}`);
                 if (!res.ok) {
                     if (res.status === 404) {
-                        throw new Error("NOT_FOUND");
+                        setError("NOT_FOUND");
+                        return;
                     }
-                    throw new Error("SERVER_ERROR");
+                    // Try to parse backend error message
+                    let serverMsg = 'เกิดข้อผิดพลาดจากเซิร์ฟเวอร์';
+                    try {
+                        const errBody = await res.json();
+                        if (typeof errBody.message === 'string') {
+                            serverMsg = errBody.message;
+                        } else if (Array.isArray(errBody.message)) {
+                            serverMsg = errBody.message.join(', ');
+                        }
+                    } catch { /* ignore parse error */ }
+                    toast.error('เกิดข้อผิดพลาด', { description: serverMsg });
+                    setError(serverMsg);
+                    return;
                 }
                 const data = await res.json();
                 setWaste(data);
             } catch (err: unknown) {
-                const error = err as Error;
-                console.error("Error Details:", error.response?.data?.message || error);
-                const serverMessage = Array.isArray(error.response?.data?.message)
-                    ? error.response?.data?.message.join(', ')
-                    : "เกิดข้อผิดพลาดในการบันทึก";
-
-                toast.error("บันทึกไม่สำเร็จ", { description: serverMessage });
+                console.error("Error fetching waste:", err);
+                const networkMsg = 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต';
+                toast.error('เชื่อมต่อล้มเหลว', { description: networkMsg });
+                setError(networkMsg);
             } finally {
                 setLoading(false);
             }
@@ -94,7 +97,7 @@ export default function WasteDetailPage() {
         if (!waste) return;
         setIsSaving(true);
         try {
-            await fetch(`${API_URL}/waste/record`, {
+            const res = await fetch(`${API_URL}/waste/record`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -105,6 +108,20 @@ export default function WasteDetailPage() {
                     source: 'scan'
                 }),
             });
+
+            if (!res.ok) {
+                let serverMsg = 'เกิดข้อผิดพลาดในการบันทึก';
+                try {
+                    const errBody = await res.json();
+                    if (typeof errBody.message === 'string') {
+                        serverMsg = errBody.message;
+                    } else if (Array.isArray(errBody.message)) {
+                        serverMsg = errBody.message.join(', ');
+                    }
+                } catch { /* ignore parse error */ }
+                throw new Error(serverMsg);
+            }
+
             setIsConfirmOpen(false);
             toast.success("บันทึกข้อมูลเรียบร้อย", {
                 description: "ข้อมูลถูกบันทึกลงในระบบแล้ว",
@@ -114,13 +131,9 @@ export default function WasteDetailPage() {
             }, 1000);
 
         } catch (err: unknown) {
-            const error = err as Error;
-            console.error("Error Details:", error.response?.data?.message || error);
-            const serverMessage = Array.isArray(error.response?.data?.message)
-                ? error.response?.data?.message.join(', ')
-                : "เกิดข้อผิดพลาดในการบันทึก";
-
-            toast.error("บันทึกไม่สำเร็จ", { description: serverMessage });
+            console.error("Save error:", err);
+            const errorMessage = err instanceof globalThis.Error ? err.message : 'เกิดข้อผิดพลาดในการบันทึก';
+            toast.error("บันทึกไม่สำเร็จ", { description: errorMessage });
         } finally {
             setIsSaving(false);
         }

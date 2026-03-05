@@ -76,13 +76,18 @@ export default function AddWastePage() {
                 if (catRes.ok) {
                     const catData = await catRes.json();
                     setCategories(catData.data || catData || []);
+                } else {
+                    toast.error('โหลดหมวดหมู่ไม่สำเร็จ', { description: `เซิร์ฟเวอร์ตอบกลับสถานะ ${catRes.status}` });
                 }
                 if (matRes.ok) {
                     const matData = await matRes.json();
                     setMaterials(matData.data || matData || []);
+                } else {
+                    toast.error('โหลดประเภทวัสดุไม่สำเร็จ', { description: `เซิร์ฟเวอร์ตอบกลับสถานะ ${matRes.status}` });
                 }
             } catch (e) {
                 console.error('Error fetching dropdown data:', e);
+                toast.error('ไม่สามารถโหลดข้อมูลได้', { description: 'กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตและลองใหม่' });
             } finally {
                 setLoading(false);
             }
@@ -195,8 +200,18 @@ export default function AddWastePage() {
 
             if (!res.ok) {
                 const errorData = await res.json().catch(() => ({}));
-                const errMsg = (errorData as Record<string, string>).message || 'เกิดข้อผิดพลาดในการบันทึก';
-                throw new Error(typeof errMsg === 'string' ? errMsg : JSON.stringify(errMsg));
+                let errMsg = 'เกิดข้อผิดพลาดในการบันทึก';
+                if (errorData && typeof errorData === 'object') {
+                    const rawMsg = (errorData as Record<string, unknown>).message;
+                    if (typeof rawMsg === 'string') {
+                        errMsg = rawMsg;
+                    } else if (Array.isArray(rawMsg)) {
+                        errMsg = rawMsg.join(', ');
+                    } else if (rawMsg) {
+                        errMsg = JSON.stringify(rawMsg);
+                    }
+                }
+                throw new Error(errMsg);
             }
 
             toast.success('เพิ่มข้อมูลขยะสำเร็จ!', {
@@ -207,9 +222,9 @@ export default function AddWastePage() {
                 router.push('/wasteTracking/home');
             }, 1200);
         } catch (err: unknown) {
-            const error = err as Error;
-            console.error('Submit error:', error);
-            toast.error('บันทึกไม่สำเร็จ', { description: error.message });
+            console.error('Submit error:', err);
+            const errorMessage = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการบันทึก';
+            toast.error('บันทึกไม่สำเร็จ', { description: errorMessage });
         } finally {
             setSubmitting(false);
         }

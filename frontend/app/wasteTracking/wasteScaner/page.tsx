@@ -4,8 +4,9 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { BrowserMultiFormatReader, IScannerControls } from '@zxing/browser';
 import { NotFoundException, Result, DecodeHintType, BarcodeFormat } from '@zxing/library';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, Keyboard, ZoomIn, ZoomOut, Flashlight, FlashlightOff, Camera } from 'lucide-react';
+import { ChevronLeft, Keyboard, ZoomIn, ZoomOut, Flashlight, FlashlightOff, Camera, AlertCircle } from 'lucide-react';
 import MenuBar from '@/components/wasteTracking/MenuBar';
+import { toast } from 'sonner';
 
 export default function ScanBarcodePage() {
     const router = useRouter();
@@ -22,6 +23,7 @@ export default function ScanBarcodePage() {
     const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
     const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0);
     const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
+    const [manualError, setManualError] = useState('');
 
     // Validate EAN-13 check digit
     const isValidEAN13 = (barcode: string): boolean => {
@@ -115,9 +117,27 @@ export default function ScanBarcodePage() {
     // Handle manual input submit
     const handleManualSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (manualBarcode.trim()) {
-            handleScan(manualBarcode.trim());
+        setManualError('');
+        const trimmed = manualBarcode.trim().replace(/\s/g, '');
+
+        if (!trimmed) {
+            setManualError('กรุณากรอกหมายเลขบาร์โค้ด');
+            return;
         }
+
+        if (!/^\d{8}(\d{5})?$/.test(trimmed)) {
+            setManualError('รูปแบบบาร์โค้ดไม่ถูกต้อง (ต้องเป็นตัวเลข 8 หรือ 13 หลัก)');
+            toast.error('บาร์โค้ดไม่ถูกต้อง', { description: 'กรุณากรอกบาร์โค้ด EAN-8 (8 หลัก) หรือ EAN-13 (13 หลัก)' });
+            return;
+        }
+
+        if (trimmed.length === 13 && !isValidEAN13(trimmed)) {
+            setManualError('เลข Check Digit ไม่ถูกต้อง กรุณาตรวจสอบบาร์โค้ดอีกครั้ง');
+            toast.error('บาร์โค้ดไม่ถูกต้อง', { description: 'เลข Check Digit ไม่ตรง' });
+            return;
+        }
+
+        handleScan(trimmed);
     };
 
     // Request camera permission explicitly
@@ -391,17 +411,30 @@ export default function ScanBarcodePage() {
                             <input
                                 type="text"
                                 value={manualBarcode}
-                                onChange={(e) => setManualBarcode(e.target.value)}
+                                onChange={(e) => {
+                                    setManualBarcode(e.target.value);
+                                    if (manualError) setManualError('');
+                                }}
                                 placeholder="เช่น 8851234567890"
-                                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-lg text-center tracking-wider focus:border-green-500 focus:outline-none mb-4"
+                                className={`w-full px-4 py-3 border-2 rounded-xl text-lg text-center tracking-wider focus:outline-none mb-1 ${
+                                    manualError ? 'border-red-400 focus:border-red-500' : 'border-gray-200 focus:border-green-500'
+                                }`}
                                 autoFocus
                             />
+                            {manualError && (
+                                <div className="flex items-center gap-1.5 mb-3 mt-1 px-1">
+                                    <AlertCircle size={14} className="text-red-500 shrink-0" />
+                                    <p className="text-red-500 text-xs">{manualError}</p>
+                                </div>
+                            )}
+                            {!manualError && <div className="mb-3" />}
                             <div className="flex gap-3">
                                 <button
                                     type="button"
                                     onClick={() => {
                                         setShowManualInput(false);
                                         setManualBarcode('');
+                                        setManualError('');
                                     }}
                                     className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
                                 >
@@ -422,10 +455,17 @@ export default function ScanBarcodePage() {
 
             {/* Error Message */}
             {errorMsg && (
-                <div className="absolute top-24 left-4 right-4 z-30">
-                    <div className="bg-red-500/90 backdrop-blur-md px-4 py-3 rounded-xl text-center">
+                <div className="absolute top-24 left-4 right-4 z-30 animate-[fadeIn_0.3s_ease-out]">
+                    <div className="bg-red-500/90 backdrop-blur-md px-4 py-3 rounded-xl flex items-center gap-2 justify-center">
+                        <AlertCircle size={18} className="text-white shrink-0" />
                         <p className="text-white text-sm font-medium">{errorMsg}</p>
                     </div>
+                    <button
+                        onClick={() => setErrorMsg('')}
+                        className="w-full mt-2 text-white/60 text-xs text-center hover:text-white/90 transition-colors"
+                    >
+                        ปิดข้อความนี้
+                    </button>
                 </div>
             )}
 
