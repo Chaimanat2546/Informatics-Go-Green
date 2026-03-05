@@ -32,7 +32,8 @@ export default function WasteStatsPage() {
             try {
                 setLoading(true);
                 const today = new Date().toISOString().split('T')[0];
-                const response = await fetch(`http://localhost:3001/api/waste/dashboard-stats?type=${period}&date=${today}`);
+                const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+                const response = await fetch(`${API_URL}/waste/dashboard-stats?type=${period}&date=${today}`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch data');
                 }

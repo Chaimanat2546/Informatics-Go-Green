@@ -23,6 +23,11 @@ const nextConfig: NextConfig = {
         port: "3001",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "igg.hooppul.codes",
+        pathname: "/**",
+      },
     ],
   },
 };
