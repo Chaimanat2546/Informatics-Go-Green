@@ -23,12 +23,39 @@ export default function ScanBarcodePage() {
     const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0);
     const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
 
+    // Validate EAN-13 check digit
+    const isValidEAN13 = (barcode: string): boolean => {
+        if (!/^\d{13}$/.test(barcode)) return false;
+        let sum = 0;
+        for (let i = 0; i < 12; i++) {
+            sum += parseInt(barcode[i]) * (i % 2 === 0 ? 1 : 3);
+        }
+        const checkDigit = (10 - (sum % 10)) % 10;
+        return checkDigit === parseInt(barcode[12]);
+    };
+
     // Handle successful scan
     const handleScan = useCallback((barcode: string) => {
         if (!barcode) return;
+        
+        // Clean barcode
+        const cleanBarcode = barcode.trim().replace(/\s/g, '');
+        
+        // Validate EAN-13
+        if (!/^\d{8}(\d{5})?$/.test(cleanBarcode)) {
+            console.log('Invalid barcode format:', cleanBarcode);
+            return; // ไม่ใช่ EAN-8 หรือ EAN-13
+        }
+        
+        if (cleanBarcode.length === 13 && !isValidEAN13(cleanBarcode)) {
+            console.log('Invalid EAN-13 check digit:', cleanBarcode);
+            return; // Check digit ผิด
+        }
+        
+        console.log('Valid barcode:', cleanBarcode);
         controlsRef.current?.stop();
         setIsScanning(false);
-        router.push(`/wasteTracking/wasteScaner/id=${encodeURIComponent(barcode)}`);
+        router.push(`/wasteTracking/wasteScaner/id=${encodeURIComponent(cleanBarcode)}`);
     }, [router]);
 
     // Toggle flashlight/torch
@@ -113,18 +140,12 @@ export default function ScanBarcodePage() {
     useEffect(() => {
         if (!isScanning || showManualInput) return;
 
-        // Create hints for better scanning
+        // Create hints for better scanning - จำกัดเฉพาะ EAN-13 และ EAN-8 (สินค้าไทย)
         const hints = new Map();
         hints.set(DecodeHintType.TRY_HARDER, true);
         hints.set(DecodeHintType.POSSIBLE_FORMATS, [
             BarcodeFormat.EAN_13,
-            BarcodeFormat.EAN_8,
-            BarcodeFormat.UPC_A,
-            BarcodeFormat.UPC_E,
-            BarcodeFormat.CODE_128,
-            BarcodeFormat.CODE_39,
-            BarcodeFormat.QR_CODE,
-            BarcodeFormat.DATA_MATRIX
+            BarcodeFormat.EAN_8
         ]);
 
         const codeReader = new BrowserMultiFormatReader(hints);
