@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import GlobalHeader from "@/components/GlobalHeader";
 import { Suspense } from "react";
+import RouteGuard from "@/components/RouteGuard";
 
 const ibmPlexSansThai = IBM_Plex_Sans_Thai({
   variable: "--font-ibm-plex-sans-thai",
@@ -24,24 +25,26 @@ export default function RootLayout({
   return (
     <html lang="th">
       <body className={`${ibmPlexSansThai.variable} antialiased`}>
-        <Toaster
-          position="top-center"
-          toastOptions={{
-            classNames: {
-              success: "!bg-green-500 !text-white !border-none",
-              error: "!bg-red-400 !text-white !border-none",
-              warning: "!bg-yellow-500 !text-white !border-none",
+        <RouteGuard>
+          <Toaster
+            position="top-center"
+            toastOptions={{
+              classNames: {
+                success: "!bg-green-500 !text-white !border-none",
+                error: "!bg-red-400 !text-white !border-none",
+                warning: "!bg-yellow-500 !text-white !border-none",
 
-              description: "!text-white/90",
-              actionButton: "!bg-white !text-black",
-              cancelButton: "!bg-white/20 !text-white",
-            },
-          }}
-        />
-        <GlobalHeader />
-        <Suspense>
-          <main className="pb-20">{children}</main>
-        </Suspense>
+                description: "!text-white/90",
+                actionButton: "!bg-white !text-black",
+                cancelButton: "!bg-white/20 !text-white",
+              },
+            }}
+          />
+          <GlobalHeader />
+          <Suspense>
+            <main className="pb-20">{children}</main>
+          </Suspense>
+        </RouteGuard>
       </body>
     </html>
   );

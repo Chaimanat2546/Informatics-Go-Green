@@ -178,7 +178,7 @@ export default function CreateWasteMaterial() {
       toast.error("กรุณาเลือกหมวดหมู่");
       return;
     }
-    if (!formData.emissionFactor) {
+    if (formData.emissionFactor === "") {
       toast.error("กรุณากรอกค่าสัมประสิทธิ์");
       return;
     }

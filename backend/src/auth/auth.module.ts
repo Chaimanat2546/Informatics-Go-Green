@@ -18,10 +18,7 @@ import { EmailService } from './services/email.service';
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET', 'your-secret-key'),
         signOptions: {
-          expiresIn: configService.get<number>(
-            'JWT_EXPIRES_IN_SECONDS',
-            604800,
-          ), // 7 days in seconds
+          expiresIn: configService.get<number>('JWT_EXPIRES_IN_SECONDS', 3600), // 1 hour in seconds
         },
       }),
       inject: [ConfigService],

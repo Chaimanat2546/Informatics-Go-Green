@@ -178,7 +178,7 @@ export default function AddWastePage() {
                 materialGuides: materialGuides.map((g) => ({
                     waste_meterialid: g.waste_meterialid,
                     recommendation: g.recommendation,
-                    weight: g.weight ? parseFloat(g.weight) : undefined,
+                    weight: g.weight !== '' && g.weight != null ? parseFloat(String(g.weight)) : undefined,
                 })),
             };
             formData.append('data', JSON.stringify(jsonPayload));
