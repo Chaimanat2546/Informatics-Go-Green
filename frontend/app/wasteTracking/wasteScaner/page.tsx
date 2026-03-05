@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { BrowserMultiFormatReader, IScannerControls } from '@zxing/browser';
 import { NotFoundException, Result, DecodeHintType, BarcodeFormat } from '@zxing/library';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, Keyboard, ZoomIn, ZoomOut, Flashlight, FlashlightOff } from 'lucide-react';
+import { ChevronLeft, Keyboard, ZoomIn, ZoomOut, Flashlight, FlashlightOff, Camera } from 'lucide-react';
 import MenuBar from '@/components/wasteTracking/MenuBar';
 
 export default function ScanBarcodePage() {
@@ -19,6 +19,9 @@ export default function ScanBarcodePage() {
     const [zoom, setZoom] = useState(1);
     const [hasFlash, setHasFlash] = useState(false);
     const [permissionStatus, setPermissionStatus] = useState<'pending' | 'granted' | 'denied'>('pending');
+    const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
+    const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0);
+    const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
 
     // Handle successful scan
     const handleScan = useCallback((barcode: string) => {
@@ -35,18 +38,38 @@ export default function ScanBarcodePage() {
         try {
             const stream = videoRef.current.srcObject as MediaStream;
             const track = stream.getVideoTracks()[0];
-            const capabilities = track.getCapabilities() as any;
+            const capabilities = track.getCapabilities() as MediaTrackCapabilities & { torch?: boolean };
             
             if (capabilities.torch) {
                 await track.applyConstraints({
-                    advanced: [{ torch: !torchOn }] as any
-                });
+                    advanced: [{ torch: !torchOn } as MediaTrackConstraintSet]
+                } as MediaTrackConstraints);
                 setTorchOn(!torchOn);
             }
         } catch (err) {
             console.error('Torch error:', err);
         }
     }, [torchOn]);
+
+    // Toggle camera (front/back)
+    const switchCamera = useCallback(() => {
+        if (videoDevices.length < 2) return;
+        setCurrentDeviceIndex((prev) => (prev + 1) % videoDevices.length);
+    }, [videoDevices.length]);
+
+    // Get camera label for display
+    const getCameraLabel = useCallback((index: number) => {
+        const device = videoDevices[index];
+        if (!device) return 'กล้อง';
+        const label = device.label.toLowerCase();
+        if (label.includes('back') || label.includes('rear') || label.includes('environment')) {
+            return 'กล้องหลัง';
+        }
+        if (label.includes('front') || label.includes('user') || label.includes('selfie')) {
+            return 'กล้องหน้า';
+        }
+        return `กล้อง ${index + 1}`;
+    }, [videoDevices]);
 
     // Check flash availability after stream starts
     const checkFlashAvailability = useCallback(() => {
@@ -55,7 +78,7 @@ export default function ScanBarcodePage() {
         try {
             const stream = videoRef.current.srcObject as MediaStream;
             const track = stream.getVideoTracks()[0];
-            const capabilities = track.getCapabilities() as any;
+            const capabilities = track.getCapabilities() as MediaTrackCapabilities & { torch?: boolean };
             setHasFlash(!!capabilities.torch);
         } catch (err) {
             console.error('Check flash error:', err);
@@ -120,7 +143,11 @@ export default function ScanBarcodePage() {
                     return;
                 }
 
-                // Sort cameras: prioritize back/rear cameras
+                // Store devices and check if multiple cameras available
+                setVideoDevices(videoInputDevices);
+                setHasMultipleCameras(videoInputDevices.length > 1);
+
+                // Sort cameras: prioritize back/rear cameras for initial selection
                 const sortedDevices = videoInputDevices.sort((a, b) => {
                     const aLabel = a.label.toLowerCase();
                     const bLabel = b.label.toLowerCase();
@@ -129,7 +156,8 @@ export default function ScanBarcodePage() {
                     return (bIsBack ? 1 : 0) - (aIsBack ? 1 : 0);
                 });
 
-                const selectedDeviceId = sortedDevices[0]?.deviceId;
+                // Use current device index if available, otherwise use first (back camera)
+                const selectedDeviceId = sortedDevices[currentDeviceIndex]?.deviceId || sortedDevices[0]?.deviceId;
 
                 if (!selectedDeviceId) {
                     setErrorMsg('ไม่พบกล้องที่เหมาะสม');
@@ -162,12 +190,13 @@ export default function ScanBarcodePage() {
                     controls.stop();
                 }
 
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error("Error starting scanner:", err);
-                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                const error = err as { name?: string; message?: string };
+                if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
                     setErrorMsg('กรุณาอนุญาตการเข้าถึงกล้องในการตั้งค่าเบราว์เซอร์');
                     setPermissionStatus('denied');
-                } else if (err.name === 'NotFoundError') {
+                } else if (error.name === 'NotFoundError') {
                     setErrorMsg('ไม่พบกล้องบนอุปกรณ์นี้');
                 } else {
                     setErrorMsg('ไม่สามารถเปิดกล้องได้ กรุณาลองใหม่อีกครั้ง');
@@ -184,7 +213,7 @@ export default function ScanBarcodePage() {
                 controlsRef.current = null;
             }
         };
-    }, [isScanning, showManualInput, handleScan, checkFlashAvailability]);
+    }, [isScanning, showManualInput, handleScan, checkFlashAvailability, currentDeviceIndex]);
 
     // Permission denied view
     if (permissionStatus === 'denied') {
@@ -263,6 +292,11 @@ export default function ScanBarcodePage() {
                 <p className="mt-6 text-white/90 text-sm font-medium drop-shadow-md">
                     วางบาร์โค้ดให้อยู่ในกรอบเพื่อสแกน
                 </p>
+                {hasMultipleCameras && (
+                    <p className="mt-2 text-white/60 text-xs drop-shadow-md">
+                        กำลังใช้: {getCameraLabel(currentDeviceIndex)}
+                    </p>
+                )}
             </div>
 
             {/* Top Controls */}
@@ -290,6 +324,17 @@ export default function ScanBarcodePage() {
                         ) : (
                             <FlashlightOff className="text-white" size={24} />
                         )}
+                    </button>
+                )}
+
+                {/* Camera Switch Button */}
+                {hasMultipleCameras && (
+                    <button 
+                        onClick={switchCamera}
+                        className="bg-white/20 backdrop-blur-md p-2.5 rounded-xl border border-white/20 shadow-lg active:scale-95 transition-transform"
+                        title={getCameraLabel(currentDeviceIndex)}
+                    >
+                        <Camera className="text-white" size={24} />
                     </button>
                 )}
             </div>
