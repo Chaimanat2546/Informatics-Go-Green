@@ -5,6 +5,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Query,
 } from '@nestjs/common';
 import { CreateWasteRecordDto } from '../dto/create-waste-record.dto';
 import { WasteScannerService } from '../services/waste-scanbarcode.service';
@@ -12,6 +13,17 @@ import { WasteScannerService } from '../services/waste-scanbarcode.service';
 @Controller('waste')
 export class WasteScannerController {
   constructor(private readonly wasteService: WasteScannerService) {}
+
+  @Get('items')
+  async getWasteItems(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 6,
+  ) {
+    return await this.wasteService.findAllWasteItems(
+      Number(page),
+      Number(limit),
+    );
+  }
 
   @Get('scan/:barcode')
   async scanBarcode(@Param('barcode', ParseIntPipe) barcode: number) {

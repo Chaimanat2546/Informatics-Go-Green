@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import MenuBar from "@/components/wasteTracking/MenuBar";
 import { AlertCircle, CheckCircle2, Leaf, Loader2, Save } from "lucide-react";
-import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -141,7 +140,17 @@ export default function WasteDetailPage() {
                 <AlertCircle size={60} className="text-red-400 mb-4" />
                 <p className="text-xl font-bold text-gray-700 mb-2">ไม่พบข้อมูลสินค้า</p>
                 <p className="text-sm text-gray-400 mb-6">Barcode: {barcode}</p>
-                <Button onClick={() => router.push('/wasteTracking/wasteScaner')} variant="outline">ลองสแกนใหม่</Button>
+                <div className="flex flex-col gap-3 w-full max-w-xs">
+                    <Button
+                        onClick={() => router.push(`/wasteTracking/addWaste?barcode=${encodeURIComponent(barcode)}`)}
+                        className="w-full bg-[#5EA500] hover:bg-green-700 text-white h-12 text-base font-semibold"
+                    >
+                        + เพิ่มข้อมูลขยะเข้าระบบ
+                    </Button>
+                    <Button onClick={() => router.push('/wasteTracking/wasteScaner')} variant="outline" className="w-full h-12 text-base">
+                        ลองสแกนใหม่
+                    </Button>
+                </div>
                 <div className="fixed bottom-0 w-full"><MenuBar activeTab="recycle" /></div>
             </div>
         );
@@ -183,7 +192,8 @@ export default function WasteDetailPage() {
             <Card className=" px-4 mx-6 gap-1 -mt-10 z-10 relative rounded-[24px] shadow-sm border-none bg-white">
                 <div className=" w-62.5 h-62.5 mx-auto text-center  flex justify-center contain-content items-center bg-gray-100 rounded-xl overflow-hidden  ">
                     {waste.waste_image ? (
-                        <Image src={waste.waste_image} alt={waste.name} className="w-full h-full object-contain rounded-2xl" />
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={waste.waste_image} alt={waste.name} className="w-full h-full object-contain rounded-2xl" />
                     ) : (
                         <span className="text-gray-400">No Image</span>
                     )}
@@ -221,18 +231,19 @@ export default function WasteDetailPage() {
                                 <div className="flex justify-between items-center mb-3 px-2">
                                     <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden">
                                         {waste.waste_image && (
-                                            <Image
+                                            // eslint-disable-next-line @next/next/no-img-element
+                                            <img
                                                 src={waste.waste_image}
                                                 alt="Original"
                                                 className="w-full h-full object-cover"
                                             />
-
                                         )}
                                     </div>
                                     <span className="text-green-700 font-bold text-xl">=</span>
                                     <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden">
                                         {comp.guide_image ? (
-                                            <Image
+                                            // eslint-disable-next-line @next/next/no-img-element
+                                            <img
                                                 src={comp.guide_image}
                                                 alt="Component"
                                                 className="w-full h-full object-cover"

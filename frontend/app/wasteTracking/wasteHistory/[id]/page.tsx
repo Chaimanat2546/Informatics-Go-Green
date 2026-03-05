@@ -4,7 +4,6 @@ import { Card } from "@/components/ui/card";
 import MenuBar from "@/components/wasteTracking/MenuBar";
 import { useParams, useRouter } from "next/navigation";
 import { CheckCircle2, Leaf, Loader2, } from "lucide-react";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { WasteData } from "@/interfaces/Waste";
@@ -64,7 +63,8 @@ export default function WasteHistoryDetail() {
             <Card className=" px-4 mx-6 gap-1 -mt-10 z-10 relative rounded-[24px] shadow-sm border-none bg-white">
                 <div className=" w-62.5 h-62.5 mx-auto text-center  flex justify-center contain-content items-center bg-gray-100 rounded-xl overflow-hidden  ">
                     {waste.waste_image ? (
-                        <Image src={waste.waste_image} alt={waste.name} className="w-full h-full object-contain rounded-2xl" />
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={waste.waste_image} alt={waste.name} className="w-full h-full object-contain rounded-2xl" />
                     ) : (
                         <span className="text-gray-400">No Image</span>
                     )}
@@ -107,7 +107,8 @@ export default function WasteHistoryDetail() {
                                 <div className="flex justify-between items-center mb-3 px-2">
                                     <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden">
                                         {waste.waste_image && (
-                                            <Image
+                                            // eslint-disable-next-line @next/next/no-img-element
+                                            <img
                                                 src={waste.waste_image}
                                                 alt="Original"
                                                 className="w-full h-full object-cover"
@@ -119,7 +120,8 @@ export default function WasteHistoryDetail() {
 
                                     <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden">
                                         {comp.guide_image ? (
-                                            <Image
+                                            // eslint-disable-next-line @next/next/no-img-element
+                                            <img
                                                 src={comp.guide_image}
                                                 alt="Component"
                                                 className="w-full h-full object-cover"

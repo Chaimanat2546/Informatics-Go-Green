@@ -15,7 +15,7 @@ import {
     DialogFooter,
     DialogClose,
 } from "@/components/ui/dialog";
-import Image from "next/image";
+// Using standard img tags for external backend images
 import { CardContentLarge } from "@/components/ui/card";
 import { Categories, WasteMaterial } from "@/interfaces/Waste";
 
@@ -112,13 +112,17 @@ export default function WasteSortingPage() {
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="sm:max-w-xs rounded-2xl p-6 bg-white [&>button]:hidden">
                     <DialogHeader className="flex flex-col items-center gap-4">
-                        <div className="w-48 h-48 bg-gray-100 rounded-lg overflow-hidden relative shadow-sm">
-                            <Image
-                                src={selectedItem?.meterial_image || ""}
-                                alt={selectedItem?.name || "waste"}
-                                fill
-                                className="object-cover"
-                            />
+                        <div className="w-48 h-48 bg-gray-100 rounded-lg overflow-hidden relative shadow-sm flex items-center justify-center">
+                            {selectedItem?.meterial_image ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                    src={selectedItem.meterial_image}
+                                    alt={selectedItem?.name || "waste"}
+                                    className="object-cover w-full h-full"
+                                />
+                            ) : (
+                                <span className="text-gray-300 text-sm">No Image</span>
+                            )}
                         </div>
                         <DialogTitle className="text-lg font-bold text-gray-800 text-center">
                             {selectedItem?.name}
@@ -200,13 +204,17 @@ export default function WasteSortingPage() {
                                         }}
                                         className="bg-[#E6F9EE] rounded-xl p-3 flex flex-col items-center gap-2 cursor-pointer hover:shadow-md transition-all active:scale-95"
                                     >
-                                        <div className="w-full aspect-square bg-white rounded-lg overflow-hidden relative">
-                                            <Image
-                                                src={item.meterial_image || ""}
-                                                alt={item.name}
-                                                fill
-                                                className="object-cover"
-                                            />
+                                        <div className="w-full aspect-square bg-white rounded-lg overflow-hidden relative flex items-center justify-center">
+                                            {item.meterial_image ? (
+                                                // eslint-disable-next-line @next/next/no-img-element
+                                                <img
+                                                    src={item.meterial_image}
+                                                    alt={item.name}
+                                                    className="object-cover w-full h-full"
+                                                />
+                                            ) : (
+                                                <span className="text-gray-300 text-sm">No Image</span>
+                                            )}
                                         </div>
                                         <div className="flex flex-col items-center">
                                             <span className="text-xs font-semibold text-green-900 text-center line-clamp-1">

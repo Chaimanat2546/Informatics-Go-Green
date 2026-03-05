@@ -64,6 +64,11 @@ export class WasteHistoryService {
         history.waste?.wasteCategory?.name ||
         history.wasteMaterial?.wasteCategory?.name ||
         'N/A';
+      const points =
+        history.record_type === 'weight_entry'
+          ? Math.floor(history.amount * 100)
+          : Math.floor(history.amount * 100);
+
       return {
         id: Number(history.id),
         waste_category: categoryName,
@@ -77,6 +82,7 @@ export class WasteHistoryService {
         user_id: history.userid,
         user_name: history.user.firstName + ' ' + history.user.lastName,
         carbon_footprint: history.carbon_footprint,
+        points: points,
       };
     });
   }

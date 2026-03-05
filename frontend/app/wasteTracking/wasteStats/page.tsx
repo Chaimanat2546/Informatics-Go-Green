@@ -23,7 +23,7 @@ interface DashboardStats {
 }
 
 export default function WasteStatsPage() {
-    const [period, setPeriod] = useState<"daily" | "monthly" | "yearly">("daily");
+    const [period, setPeriod] = useState<"daily" | "monthly" | "yearly">("monthly");
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [loading, setLoading] = useState(true);
 

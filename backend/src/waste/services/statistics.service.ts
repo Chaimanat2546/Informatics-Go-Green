@@ -104,18 +104,30 @@ export class StatisticsService {
   async getCarbonStats(type: 'daily' | 'monthly' | 'yearly', dateStr: string) {
     const { start, end, groupBy } = getDateRange(type, dateStr);
 
-    // ✅ Casting ตรงนี้ให้ชัดเจน
-    const summary = await this.logRepository
+    // Query from WasteCalculateLog first
+    const logSummary = await this.logRepository
       .createQueryBuilder('log')
       .select('SUM(log.total_carbon_footprint)', 'totalCarbon')
       .where('log.create_at BETWEEN :start AND :end', { start, end })
       .getRawOne<CarbonSummaryRaw>();
 
-    const totalCarbon = parseFloat(summary?.totalCarbon || '0') || 0;
+    let totalCarbon = parseFloat(logSummary?.totalCarbon || '0') || 0;
+
+    // Fallback: if WasteCalculateLog has no data, use WasteHistory.carbon_footprint
+    if (totalCarbon === 0) {
+      const historySummary = await this.historyRepository
+        .createQueryBuilder('history')
+        .select('SUM(history.carbon_footprint)', 'totalCarbon')
+        .where('history.create_at BETWEEN :start AND :end', { start, end })
+        .getRawOne<CarbonSummaryRaw>();
+
+      totalCarbon = parseFloat(historySummary?.totalCarbon || '0') || 0;
+    }
+
     const treeEquivalent = totalCarbon / 9;
 
-    // ✅ Casting Array ตรงนี้ให้ชัดเจน
-    const rawGraphData = await this.logRepository
+    // Graph data from WasteCalculateLog
+    let rawGraphData = await this.logRepository
       .createQueryBuilder('log')
       .select(groupBy, 'time_label')
       .addSelect('SUM(log.total_carbon_footprint)', 'carbon_value')
@@ -123,6 +135,18 @@ export class StatisticsService {
       .groupBy('time_label')
       .orderBy('time_label', 'ASC')
       .getRawMany<GraphItem>();
+
+    // Fallback graph from WasteHistory if log is empty
+    if (rawGraphData.length === 0) {
+      rawGraphData = await this.historyRepository
+        .createQueryBuilder('history')
+        .select(groupBy, 'time_label')
+        .addSelect('SUM(history.carbon_footprint)', 'carbon_value')
+        .where('history.create_at BETWEEN :start AND :end', { start, end })
+        .groupBy('time_label')
+        .orderBy('time_label', 'ASC')
+        .getRawMany<GraphItem>();
+    }
 
     const emptyGraph = this.generateEmptyGraph(type, dateStr);
     const fullGraphData = this.fillMissingData(emptyGraph, rawGraphData);
@@ -184,10 +208,10 @@ export class StatisticsService {
 
     return {
       totalWeight: parseFloat(
-        parseFloat(result?.totalWeight || '0').toFixed(0),
+        parseFloat(result?.totalWeight || '0').toFixed(2),
       ),
       totalCarbon: parseFloat(
-        parseFloat(result?.totalCarbon || '0').toFixed(0),
+        parseFloat(result?.totalCarbon || '0').toFixed(2),
       ),
     };
   }

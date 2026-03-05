@@ -22,6 +22,8 @@ import { WasteCategoryController } from './controllers/waste-category.controller
 import { WasteCategoryService } from './services/waste-category.service';
 import { WasteMaterialController } from './controllers/waste-material.controller';
 import { WasteMaterialService } from './services/waste-material.service';
+import { WasteManageController } from './controllers/waste-manage.controller';
+import { WasteManageService } from './services/waste-manage.service';
 import { UploadModule } from '../upload/upload.module';
 
 @Module({
@@ -45,6 +47,7 @@ import { UploadModule } from '../upload/upload.module';
     WasteMaterialController,
     WasteSortingController,
     StatisticsController,
+    WasteManageController,
   ],
   providers: [
     WasteScannerService,
@@ -53,6 +56,7 @@ import { UploadModule } from '../upload/upload.module';
     StatisticsService,
     WasteCategoryService,
     WasteMaterialService,
+    WasteManageService,
   ],
   exports: [TypeOrmModule],
 })

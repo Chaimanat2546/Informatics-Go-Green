@@ -29,7 +29,7 @@ export class WasteSortingService {
     return {
       material_id: material.id,
       material_name: material.name,
-      material_image: material.materialImage,
+      meterial_image: material.materialImage,
       waste_category: material.wasteCategory
         ? [
             {
@@ -118,7 +118,7 @@ export class WasteSortingService {
     const formattedData = results.map((item) => ({
       id: Number(item.id),
       name: item.name,
-      material_image: item.materialImage || '',
+      meterial_image: item.materialImage || '',
       waste_categoriesid: item.wasteCategory
         ? {
             id: item.wasteCategory.id,

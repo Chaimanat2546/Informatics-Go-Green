@@ -145,7 +145,7 @@ export default function HomePage({ title }: props) {
                             <div className="flex-1">
                                 <p className="text-gray-800 text-sm mb-1">น้ำหนักรวม</p>
                                 <div className="flex items-baseline gap-1">
-                                    <span className="text-[#5EA500] text-5xl font-bold">
+                                    <span className="text-[#5EA500] text-4xl font-bold">
                                         {summary.totalWeight}
                                     </span>
                                     <span className="text-[#5EA500] text-lg font-medium">กก.</span>
@@ -155,7 +155,7 @@ export default function HomePage({ title }: props) {
                             <div className="flex-1 pl-2">
                                 <p className="text-gray-800 text-sm mb-1">Carbon Footprint</p>
                                 <div className="flex items-baseline gap-1">
-                                    <span className="text-[#5EA500] text-5xl font-bold">
+                                    <span className="text-[#5EA500] text-4xl font-bold">
                                         {summary.totalCarbon}
                                     </span>
                                     <span className="text-[#5EA500] text-lg font-medium">kgCO2e</span>

@@ -189,6 +189,7 @@ export default function ViewWasteMaterial({ materialId }: Props) {
               <div className="relative border-2 border-dashed border-slate-300 bg-slate-50/50 rounded-2xl overflow-hidden">
                 {material.materialImage ? (
                   <div className="aspect-square">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={getImageUrl(material.materialImage)}
                       alt={material.name}
