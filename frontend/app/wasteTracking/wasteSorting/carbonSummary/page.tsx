@@ -13,7 +13,7 @@ import {
     DialogDescription,
     DialogClose,
 } from "@/components/ui/dialog";
-import Image from "next/image";
+// Using standard img tags for external backend images
 import { CardContentLarge } from "@/components/ui/card";
 import { WasteMaterial } from "@/interfaces/Waste";
 
@@ -128,11 +128,11 @@ export default function CarbonSummaryPage() {
             <CardContentLarge className="">
                 <div className="w-full aspect-square bg-gray-100 rounded-2xl overflow-hidden mb-5 shadow-inner relative">
                     {materialData?.meterial_image && materialData.meterial_image.trim() !== "" ? (
-                        <Image
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
                             src={materialData.meterial_image}
                             alt={materialData.material_name || "waste"}
-                            fill
-                            className="object-cover mix-blend-multiply"
+                            className="object-cover mix-blend-multiply w-full h-full"
                         />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-400">ไม่มีรูปภาพ</div>

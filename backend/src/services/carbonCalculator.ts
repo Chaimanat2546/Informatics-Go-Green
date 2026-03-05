@@ -22,7 +22,7 @@ interface TrashItem {
     | Array<{ name: string; ratio: number }>
     | WasteSortingArrayItem[];
   type?: string;
-  emission_factor?: number;
+  emissionFactor?: number;
 }
 
 interface WasteSortingArrayItem {
@@ -103,7 +103,7 @@ export class CarbonFootprintCalculator {
   /**
    * Load Emission Factors from Database (TypeORM)
    * Fix: Use material_guides lookup chain:
-   * materialName -> waste_sorting_id -> waste_material_id -> emission_factor
+   * materialName -> waste_sorting_id -> waste_material_id -> emissionFactor
    */
   async loadEmissionFactors(): Promise<void> {
     this.log('🔄 Loading emission factors from database...');
@@ -153,15 +153,15 @@ export class CarbonFootprintCalculator {
         }
       }
 
-      // Build materialIdMap: id -> emission_factor (for numeric lookup)
+      // Build materialIdMap: id -> emissionFactor (for numeric lookup)
       for (const material of wasteMaterials) {
         if (
-          material.emission_factor !== null &&
-          material.emission_factor !== undefined
+          material.emissionFactor !== null &&
+          material.emissionFactor !== undefined
         ) {
-          this.materialIdMap.set(Number(material.id), material.emission_factor);
+          this.materialIdMap.set(Number(material.id), material.emissionFactor);
           this.log(
-            `  ✓ WasteMaterial: ${material.name} (id: ${material.id}): ${material.emission_factor}`,
+            `  ✓ WasteMaterial: ${material.name} (id: ${material.id}): ${material.emissionFactor}`,
           );
         }
       }
@@ -237,12 +237,12 @@ export class CarbonFootprintCalculator {
       return this.calculateFromWasteSortingArray(trash);
     }
 
-    if (trash.type && typeof trash.emission_factor === 'number') {
+    if (trash.type && typeof trash.emissionFactor === 'number') {
       return this.calculateFromSingleType(trash);
     }
 
     throw new Error(
-      'Invalid trash data: must have either waste_sorting (object or array) or (type + emission_factor)',
+      'Invalid trash data: must have either waste_sorting (object or array) or (type + emissionFactor)',
     );
   }
 
@@ -391,10 +391,10 @@ export class CarbonFootprintCalculator {
    * Fix: Add Number.isFinite() validation
    */
   private calculateFromSingleType(trash: TrashItem): CalculationResult {
-    const { type, weight, emission_factor } = trash;
+    const { type, weight, emissionFactor } = trash;
 
-    if (!type || typeof emission_factor !== 'number') {
-      throw new Error('type and emission_factor are required');
+    if (!type || typeof emissionFactor !== 'number') {
+      throw new Error('type and emissionFactor are required');
     }
 
     this.log(`  📊 Calculating from single type: ${type}, weight: ${weight}kg`);
@@ -406,13 +406,13 @@ export class CarbonFootprintCalculator {
       );
     }
 
-    if (!Number.isFinite(emission_factor) || emission_factor < 0) {
-      throw new Error(`Invalid emission_factor: ${emission_factor}`);
+    if (!Number.isFinite(emissionFactor) || emissionFactor < 0) {
+      throw new Error(`Invalid emissionFactor: ${emissionFactor}`);
     }
 
     // Fix: Weight is already in kg, no need to divide by 1000
     const weightDecimal = new Decimal(weight);
-    const efDecimal = new Decimal(emission_factor);
+    const efDecimal = new Decimal(emissionFactor);
 
     const carbon = weightDecimal.mul(efDecimal);
 
@@ -425,7 +425,7 @@ export class CarbonFootprintCalculator {
           ratio: 1.0,
           weightGrams: weight * 1000, // Convert kg to grams for display
           weightKg: weight,
-          emissionFactor: emission_factor,
+          emissionFactor: emissionFactor,
           carbon: carbon.toNumber(),
         },
       },
@@ -439,8 +439,8 @@ export class CarbonFootprintCalculator {
    * Used by Cron Job to calculate using MaterialGuide records
    * Supports two cases:
    *   Case 1: Has MaterialGuide (scanned waste) - sum of material weights × emission factors
-   *   Case 2: No MaterialGuide (manual entry) - amount × wasteMaterial.emission_factor
-   * Formula: totalCarbon = Σ (materialWeight × materialEmissionFactor) OR amount × emission_factor
+   *   Case 2: No MaterialGuide (manual entry) - amount × wasteMaterial.emissionFactor
+   * Formula: totalCarbon = Σ (materialWeight × materialEmissionFactor) OR amount × emissionFactor
    */
   async calculateByWasteId(
     wasteId: number,
@@ -474,7 +474,7 @@ export class CarbonFootprintCalculator {
             continue;
           }
 
-          const emissionFactor = wasteMaterial.emission_factor || 0;
+          const emissionFactor = wasteMaterial.emissionFactor || 0;
           const materialCarbon = new Decimal(materialWeight).mul(
             new Decimal(emissionFactor),
           );
@@ -508,7 +508,7 @@ export class CarbonFootprintCalculator {
         );
       }
 
-      const emissionFactor = wasteMaterial.emission_factor || 0;
+      const emissionFactor = wasteMaterial.emissionFactor || 0;
       const totalCarbon = new Decimal(amount).mul(new Decimal(emissionFactor));
 
       this.log(
@@ -527,7 +527,7 @@ export class CarbonFootprintCalculator {
 
   /**
    * Get Emission Factor from Database using material_guides lookup chain
-   * Lookup chain: materialName -> waste_sorting_id -> waste_material_id -> emission_factor
+   * Lookup chain: materialName -> waste_sorting_id -> waste_material_id -> emissionFactor
    * Fix: Throw error for unknown materials instead of silent fallback
    */
   private getEmissionFactor(material: string | number): number {
@@ -564,11 +564,11 @@ export class CarbonFootprintCalculator {
       );
     }
 
-    // Step 3: Get emission_factor from WasteMaterial
+    // Step 3: Get emissionFactor from WasteMaterial
     const emissionFactor = this.materialIdMap.get(wasteMaterialId);
     if (emissionFactor === undefined) {
       throw new Error(
-        `Unknown material: "${material}". No waste_material found with id ${wasteMaterialId} or missing emission_factor.`,
+        `Unknown material: "${material}". No waste_material found with id ${wasteMaterialId} or missing emissionFactor.`,
       );
     }
 

@@ -10,4 +10,5 @@ export interface HistoryItem {
     record_type: string;
     user_name: string;
     carbon_footprint: number;
+    points: number;
 }

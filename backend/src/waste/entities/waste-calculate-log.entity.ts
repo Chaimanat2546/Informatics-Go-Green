@@ -28,7 +28,7 @@ export class WasteCalculateLog {
   amount: number;
 
   @Column({ type: 'float', nullable: true })
-  material_emission: number; // amount × emission_factor
+  material_emission: number; // amount × emissionFactor
 
   @Column({ type: 'float', nullable: true })
   transport_emission: number; // transport_km × transport_co2e_per_km

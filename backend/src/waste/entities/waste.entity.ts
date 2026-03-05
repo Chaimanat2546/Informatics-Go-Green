@@ -30,8 +30,8 @@ export class Waste {
   @CreateDateColumn({ type: 'date' })
   create_at: Date;
 
-  @Column({ type: 'bigint', nullable: true })
-  waste_categoriesid: number;
+  @Column({ type: 'bigint', nullable: true, name: 'waste_categoriesid' })
+  wasteCategoryId: number;
 
   @Column({ type: 'bigint', nullable: true })
   userid: number;

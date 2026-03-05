@@ -34,8 +34,9 @@ COPY --from=builder /app/package*.json ./
 # Set environment
 ENV NODE_ENV=production
 
-# Create non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
+# Create uploads directory and set permissions BEFORE creating user
+RUN mkdir -p /app/uploads/profiles /app/uploads/waste-materials && \
+    addgroup -g 1001 -S nodejs && \
     adduser -S nestjs -u 1001 && \
     chown -R nestjs:nodejs /app
 

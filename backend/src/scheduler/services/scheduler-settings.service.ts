@@ -177,7 +177,7 @@ export class SchedulerSettingsService implements OnModuleInit {
       return null;
     }
 
-    material.emission_factor = emissionFactor;
+    material.emissionFactor = emissionFactor;
     if (unit) {
       material.unit = unit;
     }

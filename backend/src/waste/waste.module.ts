@@ -18,6 +18,13 @@ import { WasteSortingController } from './controllers/waste-sorting.controller';
 import { WasteSortingService } from './services/waste-sorting.service';
 import { StatisticsService } from './services/statistics.service';
 import { StatisticsController } from './controllers/statistics.controller';
+import { WasteCategoryController } from './controllers/waste-category.controller';
+import { WasteCategoryService } from './services/waste-category.service';
+import { WasteMaterialController } from './controllers/waste-material.controller';
+import { WasteMaterialService } from './services/waste-material.service';
+import { WasteManageController } from './controllers/waste-manage.controller';
+import { WasteManageService } from './services/waste-manage.service';
+import { UploadModule } from '../upload/upload.module';
 
 @Module({
   imports: [
@@ -31,18 +38,25 @@ import { StatisticsController } from './controllers/statistics.controller';
       User,
       WasteCalculateLog,
     ]),
+    UploadModule,
   ],
   controllers: [
     WasteScannerController,
     WasteHistoryController,
+    WasteCategoryController,
+    WasteMaterialController,
     WasteSortingController,
     StatisticsController,
+    WasteManageController,
   ],
   providers: [
     WasteScannerService,
     WasteHistoryService,
     WasteSortingService,
     StatisticsService,
+    WasteCategoryService,
+    WasteMaterialService,
+    WasteManageService,
   ],
   exports: [TypeOrmModule],
 })

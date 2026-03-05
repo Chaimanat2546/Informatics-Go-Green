@@ -21,7 +21,7 @@ describe('CarbonFootprintCalculator', () => {
   let mockLogger: jest.Mocked<Logger>;
 
   // Mock data for the lookup chain:
-  // WasteSorting.name -> MaterialGuide.wastesid -> MaterialGuide.waste_meterialid -> WasteMaterial.emission_factor
+  // WasteSorting.name -> MaterialGuide.wastesid -> MaterialGuide.waste_meterialid -> WasteMaterial.emissionFactor
   const mockWasteSortings: WasteSorting[] = [
     { id: 1, name: 'พลาสติก' } as WasteSorting, // Plastic
     { id: 2, name: 'กระดาษ' } as WasteSorting, // Paper
@@ -42,31 +42,31 @@ describe('CarbonFootprintCalculator', () => {
     {
       id: 1,
       name: 'พลาสติก', // Plastic in Thai
-      emission_factor: 2.5,
+      emissionFactor: 2.5,
       unit: 'kg',
     } as WasteMaterial,
     {
       id: 2,
       name: 'กระดาษ', // Paper in Thai
-      emission_factor: 1.2,
+      emissionFactor: 1.2,
       unit: 'kg',
     } as WasteMaterial,
     {
       id: 3,
       name: 'แก้ว', // Glass in Thai
-      emission_factor: 0.8,
+      emissionFactor: 0.8,
       unit: 'kg',
     } as WasteMaterial,
     {
       id: 4,
       name: 'โลหะ', // Metal in Thai
-      emission_factor: 3.0,
+      emissionFactor: 3.0,
       unit: 'kg',
     } as WasteMaterial,
     {
       id: 5,
       name: 'อิเล็กทรอนิกส์', // Electronics in Thai
-      emission_factor: 5.0,
+      emissionFactor: 5.0,
       unit: 'kg',
     } as WasteMaterial,
   ];
@@ -144,7 +144,7 @@ describe('CarbonFootprintCalculator', () => {
         id: 1,
         weight: 10, // 10 kg
         type: 'plastic',
-        emission_factor: 2.5,
+        emissionFactor: 2.5,
       };
 
       const result = calculator.calculate(trash);
@@ -161,7 +161,7 @@ describe('CarbonFootprintCalculator', () => {
         id: 1,
         weight: 0.5, // 0.5 kg = 500g
         type: 'plastic',
-        emission_factor: 2.0,
+        emissionFactor: 2.0,
       };
 
       const result = calculator.calculate(trash);
@@ -176,7 +176,7 @@ describe('CarbonFootprintCalculator', () => {
         id: 1,
         weight: -5,
         type: 'plastic',
-        emission_factor: 2.5,
+        emissionFactor: 2.5,
       };
 
       expect(() => calculator.calculate(trash)).toThrow('Invalid weight: -5');
@@ -187,7 +187,7 @@ describe('CarbonFootprintCalculator', () => {
         id: 1,
         weight: NaN,
         type: 'plastic',
-        emission_factor: 2.5,
+        emissionFactor: 2.5,
       };
 
       expect(() => calculator.calculate(trash)).toThrow('Invalid weight: NaN');
@@ -198,7 +198,7 @@ describe('CarbonFootprintCalculator', () => {
         id: 1,
         weight: Infinity,
         type: 'plastic',
-        emission_factor: 2.5,
+        emissionFactor: 2.5,
       };
 
       expect(() => calculator.calculate(trash)).toThrow(
@@ -206,16 +206,16 @@ describe('CarbonFootprintCalculator', () => {
       );
     });
 
-    it('should throw error for invalid emission_factor', () => {
+    it('should throw error for invalid emissionFactor', () => {
       const trash: TrashItem = {
         id: 1,
         weight: 10,
         type: 'plastic',
-        emission_factor: NaN,
+        emissionFactor: NaN,
       };
 
       expect(() => calculator.calculate(trash)).toThrow(
-        'Invalid emission_factor: NaN',
+        'Invalid emissionFactor: NaN',
       );
     });
   });
@@ -542,13 +542,13 @@ describe('calculateDailyCarbonFootprint', () => {
     {
       id: 1,
       name: 'พลาสติก',
-      emission_factor: 2.5,
+      emissionFactor: 2.5,
       unit: 'kg',
     } as WasteMaterial,
     {
       id: 2,
       name: 'กระดาษ',
-      emission_factor: 1.2,
+      emissionFactor: 1.2,
       unit: 'kg',
     } as WasteMaterial,
   ];
@@ -589,7 +589,7 @@ describe('calculateDailyCarbonFootprint', () => {
         id: 1,
         weight: 10,
         type: 'พลาสติก',
-        emission_factor: 2.5,
+        emissionFactor: 2.5,
       },
       {
         id: 2,
@@ -619,13 +619,13 @@ describe('calculateDailyCarbonFootprint', () => {
         id: 1,
         weight: 10,
         type: 'พลาสติก',
-        emission_factor: 2.5,
+        emissionFactor: 2.5,
       },
       {
         id: 2,
         weight: -5, // Invalid weight
         type: 'plastic',
-        emission_factor: 2.0,
+        emissionFactor: 2.0,
       },
       {
         id: 3,
@@ -659,7 +659,7 @@ describe('calculateDailyCarbonFootprint', () => {
         id: 1,
         weight: 10,
         type: 'plastic',
-        emission_factor: 2.5,
+        emissionFactor: 2.5,
       },
     ];
 
@@ -680,7 +680,7 @@ describe('calculateDailyCarbonFootprint', () => {
         id: 1,
         weight: 10,
         type: 'plastic',
-        emission_factor: 2.5,
+        emissionFactor: 2.5,
       },
     ];
 
@@ -705,7 +705,7 @@ describe('calculateDailyCarbonFootprint', () => {
         id: 1,
         weight: 2.5, // 2.5 kg
         type: 'plastic',
-        emission_factor: 2.0,
+        emissionFactor: 2.0,
       },
     ];
 
@@ -740,7 +740,7 @@ describe('calculateByWasteId', () => {
   const mockWasteMaterial: WasteMaterial = {
     id: 1,
     name: 'พลาสติก',
-    emission_factor: 2.5,
+    emissionFactor: 2.5,
     unit: 'kg',
   } as WasteMaterial;
 

@@ -53,7 +53,7 @@ export default function AdminSidebar({ user }: AdminSidebarProps) {
         {
           id: "emission-factor",
           label: "ตั้งค่า Emission Factor",
-          path: "/admin/emission-factor",
+          path: "/systemConfig/emission-factor",
         },
         {
           id: "carbon-footprint",

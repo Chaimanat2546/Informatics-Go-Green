@@ -12,7 +12,7 @@ export default function WasteHistoryPage() {
     const router = useRouter();
     const [historyData, setHistoryData] = useState<HistoryItem[]>([]);
     const [loading, setLoading] = useState(true);
-    const [totalPoints, setTotalPoints] = useState(0);
+    const [totalCarbon, setTotalCarbon] = useState(0);
     const formatDate = (dateString: string) => {
         if (!dateString) return "-";
         const date = new Date(dateString);
@@ -36,13 +36,7 @@ export default function WasteHistoryPage() {
         return "bg-green-100 text-green-700";
     };
 
-    // mock calculation points
-    const calculatePoints = (amount: number, record_type: string) => {
-        if (record_type === 'weight_entry' || record_type === 'kg') {
-            return Math.floor(amount * 100);
-        }
-        return Math.floor(amount * 100);
-    };
+    // Points are now calculated by the backend
 
 
     useEffect(() => {
@@ -65,9 +59,9 @@ export default function WasteHistoryPage() {
                 const data: HistoryItem[] = await res.json();
                 setHistoryData(data);
 
-                // คำนวณแต้ม mock
-                const total = data.reduce((sum, item) => sum + calculatePoints(item.amount, item.record_type), 0);
-                setTotalPoints(total);
+                // คำนวณ Carbon Footprint รวมจาก Backend
+                const total = data.reduce((sum, item) => sum + (item.carbon_footprint || 0), 0);
+                setTotalCarbon(total);
 
             } catch (err) {
                 console.error("Error fetching history:", err);
@@ -98,7 +92,7 @@ export default function WasteHistoryPage() {
                 <div>
                     <p className="text-gray-500 text-md font-bold uppercase tracking-wider">CARBON FOOTPRINT</p>
                     <p className="text-3xl font-bold text-green-700 mt-1">
-                        {totalPoints.toLocaleString()} <span className="text-base font-semibold text-green-700">แต้ม</span>
+                        {totalCarbon.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-base font-semibold text-green-700">kgCO2e</span>
                     </p>
                 </div>
             </Card>
@@ -123,9 +117,9 @@ export default function WasteHistoryPage() {
                                                 <span className="bg-slate-200  text-slate-600 text-sm font-bold px-2 py-1 rounded">
                                                     บันทึกน้ำหนัก
                                                 </span>
-                                                {/* <span className={`${getCategoryStyle(item.waste_category)} text-sm font-bold px-3 ml-1 py-1 rounded-full`}>
+                                                <span className={`${getCategoryStyle(item.waste_category)} text-sm font-bold px-3 ml-1 py-1 rounded-full`}>
                                                     {item.waste_category}
-                                                </span> */}
+                                                </span>
                                             </div>
 
 

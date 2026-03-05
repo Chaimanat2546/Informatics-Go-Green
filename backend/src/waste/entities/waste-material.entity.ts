@@ -20,8 +20,8 @@ export class WasteMaterial {
   @Column({ type: 'varchar', length: 255 })
   name: string;
 
-  @Column({ type: 'float', nullable: true })
-  emission_factor: number;
+  @Column({ type: 'float', nullable: true, name: 'emissionFactor' })
+  emissionFactor: number;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   unit: string;
@@ -32,11 +32,16 @@ export class WasteMaterial {
   @UpdateDateColumn({ type: 'date' })
   updated_at: Date;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  meterial_image: string;
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    name: 'meterial_image',
+  })
+  materialImage: string;
 
-  @Column({ type: 'bigint', nullable: true })
-  waste_categoriesid: number;
+  @Column({ type: 'bigint', nullable: true, name: 'waste_categoriesid' })
+  wasteCategoryId: number;
 
   // Relations
   @ManyToOne(() => WasteCategory, (category) => category.materials)

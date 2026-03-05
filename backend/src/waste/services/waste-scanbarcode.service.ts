@@ -133,4 +133,29 @@ export class WasteScannerService {
       data: categories,
     };
   }
+  async findAllWasteItems(page: number = 1, limit: number = 6) {
+    const skip = (page - 1) * limit;
+
+    const [items, total] = await this.wasteRepository.findAndCount({
+      relations: ['wasteCategory'],
+      order: { create_at: 'DESC' },
+      take: limit,
+      skip: skip,
+    });
+
+    return {
+      data: items.map((w) => ({
+        id: Number(w.id),
+        name: w.name,
+        waste_image: w.waste_image,
+        category_name: w.wasteCategory?.name || 'ไม่ระบุ',
+        barcode: w.barcode,
+      })),
+      pagination: {
+        total_items: total,
+        total_pages: Math.ceil(total / limit),
+        current_page: page,
+      },
+    };
+  }
 }
