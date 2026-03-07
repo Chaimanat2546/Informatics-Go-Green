@@ -23,8 +23,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="th">
-      <body className={`${ibmPlexSansThai.variable} antialiased`}>
+    <html lang="th" suppressHydrationWarning>
+      <body className={`${ibmPlexSansThai.variable} antialiased`} suppressHydrationWarning>
         <RouteGuard>
           <Toaster
             position="top-center"

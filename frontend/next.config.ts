@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   // Enable standalone output for Docker production builds
   output: "standalone",
   images: {
-    unoptimized: process.env.NODE_ENV === "development",
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
