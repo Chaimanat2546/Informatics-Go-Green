@@ -59,7 +59,7 @@ export class CreateWasteMaterialDto {
     example: 2.15,
   })
   @IsNumber({}, { message: 'ค่าสัมประสิทธิ์ต้องเป็นตัวเลข' })
-  @IsPositive({ message: 'ค่าสัมประสิทธิ์ต้องมากกว่า 0' })
+  @Min(0, { message: 'ค่าสัมประสิทธิ์ต้องมากกว่าหรือเท่ากับ 0' })
   @IsNotEmpty({ message: 'กรุณากรอกค่าสัมประสิทธิ์' })
   @Type(() => Number)
   emissionFactor: number;
@@ -103,7 +103,7 @@ export class UpdateWasteMaterialDto {
     description: 'Emission factor value',
   })
   @IsNumber()
-  @IsPositive({ message: 'ค่าสัมประสิทธิ์ต้องมากกว่า 0' })
+  @Min(0, { message: 'ค่าสัมประสิทธิ์ต้องมากกว่าหรือเท่ากับ 0' })
   @IsOptional()
   @Type(() => Number)
   emissionFactor?: number;
