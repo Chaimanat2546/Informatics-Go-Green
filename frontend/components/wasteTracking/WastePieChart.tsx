@@ -106,15 +106,22 @@ export default function WastePieChart({ data = [] }: WastePieChartProps) {
 
     if (chartData.length === 0) {
         return (
-            <div className="bg-white rounded-[16px] p-6 shadow-lg border border-gray-50 w-full flex flex-col items-center justify-center min-h-[300px]">
-                <h2 className="text-xl font-bold mb-4 text-gray-900 self-start">ขยะที่คัดแยกทั้งหมด</h2>
-                <div className="text-gray-400 text-sm">ไม่มีข้อมูลในช่วงเวลานี้</div>
+            <div className="bg-white rounded-[16px] p-6 shadow-lg border border-gray-50 relative w-full flex flex-col min-h-[400px]">
+                <h2 className="text-xl font-bold mb-4 text-gray-900">ขยะที่คัดแยกทั้งหมด</h2>
+                
+                <div className="flex-1 flex flex-col items-center justify-center h-64">
+                    <div className="w-48 h-48 rounded-full border-8 border-gray-100 flex flex-col items-center justify-center">
+                         <span className="text-3xl font-bold text-gray-300">0.0</span>
+                         <span className="text-xs text-gray-400 font-medium mt-1">กิโลกรัม</span>
+                    </div>
+                    <p className="text-gray-400 text-sm mt-6">ไม่มีข้อมูลในช่วงเวลานี้</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="bg-white rounded-[16px] p-6 shadow-lg border border-gray-50 relative w-full ">
+        <div className="  bg-white rounded-[16px] p-6 shadow-lg border border-gray-50 relative w-full ">
             <style>{`
                 .recharts-wrapper:focus,
                 .recharts-surface:focus,

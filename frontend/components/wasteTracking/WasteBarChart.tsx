@@ -81,7 +81,7 @@ export default function WasteBarChart({ data, type }: WasteBarChartProps) {
               <Bar 
                 dataKey="carbon_value" 
                 fill="var(--color-carbon_value)" 
-                radius={[8, 8, 8, 8]} 
+                radius={[4, 4, 0, 0]} 
                 barSize={40} 
               >
                 <LabelList
@@ -95,8 +95,15 @@ export default function WasteBarChart({ data, type }: WasteBarChartProps) {
             </BarChart>
           </ChartContainer>
         ) : (
-          <div className="h-[250px] flex items-center justify-center text-gray-400">
-            ไม่มีข้อมูลในช่วงเวลานี้
+          <div className="h-[250px] flex flex-col items-center justify-center text-gray-400">
+            {/* กราฟแท่งจำลองสีเทาจางๆ */}
+            <div className="flex items-end gap-3 h-24 opacity-30 mb-4 border-b-2 border-gray-200 px-4">
+              <div className="w-8 h-10 bg-gray-300 rounded-t-md"></div>
+              <div className="w-8 h-20 bg-gray-300 rounded-t-md"></div>
+              <div className="w-8 h-8 bg-gray-300 rounded-t-md"></div>
+              <div className="w-8 h-14 bg-gray-300 rounded-t-md"></div>
+            </div>
+            <p className="text-sm font-medium text-gray-400">ไม่มีข้อมูลในช่วงเวลานี้</p>
           </div>
         )}
       </CardContent>

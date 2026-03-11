@@ -18,10 +18,12 @@ export class WasteScannerController {
   async getWasteItems(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 6,
+    @Query('search') search?: string,
   ) {
     return await this.wasteService.findAllWasteItems(
       Number(page),
       Number(limit),
+      search,
     );
   }
 

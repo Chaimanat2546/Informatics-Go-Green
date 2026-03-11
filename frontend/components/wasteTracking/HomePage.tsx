@@ -93,6 +93,7 @@ export default function HomePage({ title }: props) {
         };
         validateAndFetch();
     }, [searchParams, API_URL, filterType,]);
+    
 
     return (
         <>
@@ -106,19 +107,9 @@ export default function HomePage({ title }: props) {
                             <Leaf className="text-green-700" size={40} strokeWidth={4} />
                         </div>
                     </div>
-                    <div className="mt-4 h-11 bg-white rounded-[10px] flex items-center gap-2 px-1 shadow-sm border">
-                        <InputGroup className="w-full flex-1 border-none ">
-                            <InputGroupInput
-                                placeholder="Search..."
-                                className="w-full border-none outline-none focus:ring-0 bg-transparent shadow-none"
-                            />
-                            <InputGroupAddon>
-                                <Search className="text-gray-400" />
-                            </InputGroupAddon>
-                        </InputGroup>
-                    </div>
+                    
                 </header>
-                <div className="px-6 -mt-16 relative z-10">
+                <div className="px-6 -mt-20 relative z-10">
                     <div className="bg-white rounded-3xl p-6 shadow-lg flex flex-col gap-4">
                         <div className="flex  justify-between items-center">
                             <div className="flex items-center gap-2 text-black font-semibold text-lg leading-5">
@@ -126,7 +117,7 @@ export default function HomePage({ title }: props) {
                                 <span>สรุปการคัดแยกขยะ</span>
                             </div>
 
-                            <Select
+                            {/* <Select
                                 value={filterType}
                                 onValueChange={(value: FilterType) => setFilterType(value)}
                             >
@@ -138,7 +129,7 @@ export default function HomePage({ title }: props) {
                                     <SelectItem value="monthly">รายเดือน</SelectItem>
                                     <SelectItem value="yearly">รายปี</SelectItem>
                                 </SelectContent>
-                            </Select>
+                            </Select> */}
                         </div>
 
                         <div className="flex items-center pt-0">
@@ -146,6 +137,7 @@ export default function HomePage({ title }: props) {
                                 <p className="text-gray-800 text-sm mb-1">น้ำหนักรวม</p>
                                 <div className="flex items-baseline gap-1">
                                     <span className="text-[#5EA500] text-4xl font-bold">
+                                        
                                         {summary.totalWeight}
                                     </span>
                                     <span className="text-[#5EA500] text-lg font-medium">กก.</span>

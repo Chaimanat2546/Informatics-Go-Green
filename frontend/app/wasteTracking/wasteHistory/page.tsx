@@ -117,10 +117,9 @@ export default function WasteHistoryPage() {
                                                 <span className="bg-slate-200  text-slate-600 text-sm font-bold px-2 py-1 rounded">
                                                     บันทึกน้ำหนัก
                                                 </span>
-                                                <span className={`${getCategoryStyle(item.waste_category)} text-sm font-bold px-3 ml-1 py-1 rounded-full`}>
-                                                    {item.waste_category}
-                                                </span>
+
                                             </div>
+
 
 
                                             <div className="flex flex-row gap-1   items-center text-lg text-green-600 font-bold">
@@ -141,13 +140,18 @@ export default function WasteHistoryPage() {
                                             </div>
                                         </div>
 
+
                                         <div className="-mt-3">
-                                            <p className="text-xl font-bold text-slate-700">{item.meterial_name}</p>
-                                            <p className="text-xs text-gray-400">{formatDate(item.create_at)} น.</p>
+                                            <p className="text-xl font-bold flex items-center justify-between text-slate-700">{item.meterial_name}
+                                                <span className={`${getCategoryStyle(item.waste_category)} text-sm font-bold px-3 ml-1 py-1 rounded-full`}>
+                                                    {item.waste_category}
+                                                </span></p>
                                             <div className="flex items-center gap-2 mt-1">
-                                                <p className="text-sm text-gray-600">ปริมาณ:</p>
-                                                <p className="text-sm font-bold text-slate-800">{item.amount} กก.</p>
+                                                <p className="text-md text-gray-600">ปริมาณ:</p>
+                                                <p className="text-md font-bold text-slate-800">{item.amount} กก.</p>
                                             </div>
+                                            <p className="text-sm text-gray-400">{formatDate(item.create_at)} น.</p>
+
                                         </div>
                                     </Card>
                                 );

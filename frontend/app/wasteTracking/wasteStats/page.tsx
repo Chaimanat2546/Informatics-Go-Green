@@ -29,11 +29,27 @@ export default function WasteStatsPage() {
 
     useEffect(() => {
         const fetchStats = async () => {
+            const storedUser = localStorage.getItem('user');
+            
+            if (!storedUser) {
+                console.warn("No user found in localStorage");
+                setLoading(false);
+                return;
+            }
+
             try {
                 setLoading(true);
+                
+                const user = JSON.parse(storedUser);
+                const userUuid = user.id; 
+
                 const today = new Date().toISOString().split('T')[0];
                 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-                const response = await fetch(`${API_URL}/waste/dashboard-stats?type=${period}&date=${today}`);
+                
+                const response = await fetch(
+                    `${API_URL}/waste/dashboard-stats?type=${period}&date=${today}&uuid=${userUuid}`
+                );
+                
                 if (!response.ok) {
                     throw new Error('Failed to fetch data');
                 }
@@ -69,7 +85,7 @@ export default function WasteStatsPage() {
                                 <SelectValue placeholder="เลือกช่วงเวลา" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="daily">รายวัน</SelectItem>
+                                {/* <SelectItem value="daily">รายวัน</SelectItem> */}
                                 <SelectItem value="monthly">รายเดือน</SelectItem>
                                 <SelectItem value="yearly">รายปี</SelectItem>
                             </SelectContent>
@@ -114,7 +130,7 @@ export default function WasteStatsPage() {
                         </div>
                     </div>
                 </div>
-                <div className="mt-6 px-6 w-full flex justify-between items-center gap-3">
+                <div className="mt-6 px-6  w-full flex justify-between items-center gap-3">
                     <WastePieChart data={stats?.wastePieChart || []} />
                 </div>
                 <WasteBarChart
