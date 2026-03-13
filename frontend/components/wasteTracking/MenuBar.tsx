@@ -52,6 +52,14 @@ export default function MenuBar({ activeTab: initialActiveTab }: props) {
           <div className="fixed bottom-20 left-0 right-0 z-50 animate-in slide-in-from-bottom-5 fade-in duration-200">
             <div className="bg-white rounded-t-[30px] p-6 shadow-[0_-5px_20px_rgba(0,0,0,0.1)] flex flex-col gap-3">
               <Button
+                onClick={() => router.push("/wasteTracking/wasteSorting")}
+                className="w-full h-12 bg-green-700 hover:bg-green-800 active:scale-95 transition-all text-white py-3 rounded-lg flex items-center justify-center gap-2 font-semibold"
+              >
+                <ClipboardList size={20} />
+                บันทึกการคัดแยกขยะ (กิโลกรัม)
+              </Button>
+              
+              <Button
                 onClick={() => router.push("/wasteTracking/wasteScaner")}
                 className="w-full h-12 bg-green-700 hover:bg-green-800 active:scale-95 transition-all text-white py-3 rounded-lg flex items-center justify-center gap-2 font-semibold"
               >
@@ -59,13 +67,7 @@ export default function MenuBar({ activeTab: initialActiveTab }: props) {
                 สแกนบาร์โค้ดขยะ
               </Button>
 
-              <Button
-                onClick={() => router.push("/wasteTracking/wasteSorting")}
-                className="w-full h-12 bg-green-700 hover:bg-green-800 active:scale-95 transition-all text-white py-3 rounded-lg flex items-center justify-center gap-2 font-semibold"
-              >
-                <ClipboardList size={20} />
-                บันทึกการคัดแยกขยะ (กิโลกรัม)
-              </Button>
+              
             </div>
           </div>
         </>

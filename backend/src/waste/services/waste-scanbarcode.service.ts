@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { User } from 'src/users/user.entity';
 import { Waste, WasteCategory, WasteHistory } from '../entities';
 import { CreateWasteRecordDto } from '../dto/create-waste-record.dto';
@@ -133,10 +133,17 @@ export class WasteScannerService {
       data: categories,
     };
   }
-  async findAllWasteItems(page: number = 1, limit: number = 6) {
+  async findAllWasteItems(
+    page: number = 1,
+    limit: number = 6,
+    search?: string,
+  ) {
     const skip = (page - 1) * limit;
 
+    const whereCondition = search ? { name: ILike(`%${search}%`) } : {};
+
     const [items, total] = await this.wasteRepository.findAndCount({
+      where: whereCondition,
       relations: ['wasteCategory'],
       order: { create_at: 'DESC' },
       take: limit,

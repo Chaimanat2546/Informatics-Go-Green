@@ -9,10 +9,19 @@ export class StatisticsController {
   async getStats(
     @Query('type') type: 'daily' | 'monthly' | 'yearly',
     @Query('date') date: string,
+    @Query('uuid') uuid: string,
   ) {
-    const carbonStats = await this.statisticsService.getCarbonStats(type, date);
+    const carbonStats = await this.statisticsService.getCarbonStats(
+      type,
+      date,
+      uuid,
+    );
     const wasteStats =
-      await this.statisticsService.getWasteCategoryDistribution(type, date);
+      await this.statisticsService.getWasteCategoryDistribution(
+        type,
+        date,
+        uuid,
+      );
 
     return {
       carbonCredit: carbonStats.summary.totalCarbon,

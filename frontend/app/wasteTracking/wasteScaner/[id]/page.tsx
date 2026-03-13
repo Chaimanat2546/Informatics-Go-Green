@@ -212,13 +212,13 @@ export default function WasteDetailPage() {
                     )}
                 </div>
 
-                <div className="flex flex-col items-center mt-1 mb-4">
-                    <h2 className="text-2xl font-semibold text-black ">{waste.name}</h2>
-                    <span className="bg-green-100 text-green-700 text-md font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                <div className="flex flex-col items-center mt-2 mb-0">
+                    <h2 className="text-2xl w-full text-center font-semibold text-black ">{waste.name}</h2>
+                    <span className="bg-green-100 text-green-700 text-md mt-1 font-bold px-3 py-1 rounded-full flex items-center gap-1">
                         <Leaf size={20} /> {waste.waste_categoriesid?.map(cat => cat.name) || "ไม่ระบุหมวดหมู่"}
                     </span>
                 </div>
-                <div className="relative pl-2">
+                {/* <div className="relative pl-2">
                     <h3 className="text-green-800 text-xl font-semibold mb-4 border-l-4 border-green-700 pl-3">
                         ขั้นตอนการทิ้ง
                     </h3>
@@ -231,7 +231,7 @@ export default function WasteDetailPage() {
                             </div>
                         ))}
                     </div>
-                </div>
+                </div> */}
             </Card>
             {waste.material_guides.length > 0 && (
                 <Card className="px-4 mx-6 mt-4 mb-24  rounded-[24px] shadow-sm  bg-white">

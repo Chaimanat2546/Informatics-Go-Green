@@ -100,25 +100,43 @@ export class StatisticsService {
       };
     });
   }
+  async getCarbonStats(
+    type: 'daily' | 'monthly' | 'yearly',
+    dateStr: string,
+    uuid: string,
+  ) {
+    const { start, end } = getDateRange(type, dateStr);
 
-  async getCarbonStats(type: 'daily' | 'monthly' | 'yearly', dateStr: string) {
-    const { start, end, groupBy } = getDateRange(type, dateStr);
+    let logGroupBy = '';
+    let historyGroupBy = '';
 
-    // Query from WasteCalculateLog first
+    if (type === 'daily') {
+      logGroupBy = "TO_CHAR(log.create_at, 'HH24:00')";
+      historyGroupBy = "TO_CHAR(history.create_at, 'HH24:00')";
+    } else if (type === 'monthly') {
+      logGroupBy = "TO_CHAR(log.create_at, 'DD')";
+      historyGroupBy = "TO_CHAR(history.create_at, 'DD')";
+    } else if (type === 'yearly') {
+      logGroupBy = "TO_CHAR(log.create_at, 'Mon')";
+      historyGroupBy = "TO_CHAR(history.create_at, 'Mon')";
+    }
+
     const logSummary = await this.logRepository
       .createQueryBuilder('log')
+      .leftJoin('log.wasteHistory', 'history')
       .select('SUM(log.total_carbon_footprint)', 'totalCarbon')
       .where('log.create_at BETWEEN :start AND :end', { start, end })
+      .andWhere('history.userid = :uuid', { uuid })
       .getRawOne<CarbonSummaryRaw>();
 
     let totalCarbon = parseFloat(logSummary?.totalCarbon || '0') || 0;
 
-    // Fallback: if WasteCalculateLog has no data, use WasteHistory.carbon_footprint
     if (totalCarbon === 0) {
       const historySummary = await this.historyRepository
         .createQueryBuilder('history')
         .select('SUM(history.carbon_footprint)', 'totalCarbon')
         .where('history.create_at BETWEEN :start AND :end', { start, end })
+        .andWhere('history.userid = :uuid', { uuid })
         .getRawOne<CarbonSummaryRaw>();
 
       totalCarbon = parseFloat(historySummary?.totalCarbon || '0') || 0;
@@ -126,23 +144,24 @@ export class StatisticsService {
 
     const treeEquivalent = totalCarbon / 9;
 
-    // Graph data from WasteCalculateLog
     let rawGraphData = await this.logRepository
       .createQueryBuilder('log')
-      .select(groupBy, 'time_label')
+      .leftJoin('log.wasteHistory', 'history')
+      .select(logGroupBy, 'time_label')
       .addSelect('SUM(log.total_carbon_footprint)', 'carbon_value')
       .where('log.create_at BETWEEN :start AND :end', { start, end })
+      .andWhere('history.userid = :uuid', { uuid })
       .groupBy('time_label')
       .orderBy('time_label', 'ASC')
       .getRawMany<GraphItem>();
 
-    // Fallback graph from WasteHistory if log is empty
     if (rawGraphData.length === 0) {
       rawGraphData = await this.historyRepository
         .createQueryBuilder('history')
-        .select(groupBy, 'time_label')
+        .select(historyGroupBy, 'time_label')
         .addSelect('SUM(history.carbon_footprint)', 'carbon_value')
         .where('history.create_at BETWEEN :start AND :end', { start, end })
+        .andWhere('history.userid = :uuid', { uuid })
         .groupBy('time_label')
         .orderBy('time_label', 'ASC')
         .getRawMany<GraphItem>();
@@ -163,10 +182,10 @@ export class StatisticsService {
   async getWasteCategoryDistribution(
     type: 'daily' | 'monthly' | 'yearly',
     dateStr: string,
+    uuid: string,
   ) {
     const { start, end } = getDateRange(type, dateStr);
 
-    // ✅ Casting Array ตรงนี้ให้ชัดเจน เพื่อไม่ให้ return เป็น any[]
     const result = await this.historyRepository
       .createQueryBuilder('history')
       .leftJoin('history.waste', 'waste')
@@ -179,6 +198,7 @@ export class StatisticsService {
       )
       .addSelect('SUM(history.amount)', 'totalWeight')
       .where('history.create_at BETWEEN :start AND :end', { start, end })
+      .andWhere('history.userid = :uuid', { uuid })
       .groupBy(
         "COALESCE(categoryFromWaste.name, categoryFromMaterial.name, 'อื่นๆ')",
       )
@@ -186,7 +206,6 @@ export class StatisticsService {
 
     return result;
   }
-
   async getOverallSummary(
     type: 'daily' | 'monthly' | 'yearly',
     dateStr: string,
@@ -197,13 +216,13 @@ export class StatisticsService {
       .createQueryBuilder('history')
       .select('SUM(history.amount)', 'totalWeight')
       .addSelect('SUM(history.carbon_footprint)', 'totalCarbon')
-      .where('history.create_at BETWEEN :start AND :end', { start, end });
+      .where('history.create_at BETWEEN :start AND :end', { start, end })
+      .andWhere("history.calculation_status = 'calculated'");
 
     if (userId) {
       query = query.andWhere('history.userid = :userId', { userId });
     }
 
-    // ✅ Casting ตรงนี้ให้ชัดเจน
     const result = await query.getRawOne<OverallSummaryRaw>();
 
     return {
@@ -304,7 +323,6 @@ export class StatisticsService {
       query = query.andWhere('history.userid = :userId', { userId });
     }
 
-    // ✅ Casting ตรงนี้ให้ชัดเจน
     const result = await query.getRawOne<OverallSummaryRaw>();
 
     return {

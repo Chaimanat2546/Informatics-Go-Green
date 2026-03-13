@@ -51,7 +51,7 @@ export default function SummaryCards({ type, date }: SummaryCardsProps) {
     }
 
     return (
-        <div className="w-full py-2 overflow-x-auto scrollbar-hide">
+        <div className="w-full  py-2 overflow-x-auto scrollbar-hide">
             <div className="flex gap-4 min-w-max">
                 {cards.map((item, index) => (
                     <div

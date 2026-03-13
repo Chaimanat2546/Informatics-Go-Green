@@ -139,33 +139,33 @@ export default function CarbonSummaryPage() {
                     )}
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2 mb-4">
-                    <h2 className="text-xl font-bold text-gray-900">
+                <div className="flex flex-wrap items-center justify-center gap-2 mb-1">
+                    <h2 className="text-2xl font-bold text-gray-900 text-center w-full">
                         {loading ? "กำลังโหลด..." : (materialData?.material_name || "ไม่พบชื่อวัสดุ")}
                     </h2>
-                    <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded-full border border-green-200">
+                    {/* <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded-full border border-green-200">
                         {points} points
-                    </span>
+                    </span> */}
                 </div>
 
-                <div className="space-y-2 mb-4 text-sm text-gray-600">
+                <div className="space-y-2 mb-4 text-lg text-gray-600">
                     <div className="flex items-center gap-2">
                         <span>ประเภทขยะ</span>
-                        <span className="bg-green-200 text-green-700 text-xs font-bold px-3 py-0.5 rounded-full ">
+                        <span className="bg-green-200 text-green-700 text-md font-bold px-3 py-0.5 rounded-full ">
                             {materialData?.waste_category?.[0]?.name || "พลาสติก"}
                         </span>
                     </div>
                     <div className="flex items-center gap-2">
                         <span>ปริมาณ</span>
-                        <span className="text-black font-bold text-base">{weight} กก.</span>
+                        <span className="text-black font-bold text-md">{weight} กก.</span>
                     </div>
-                    <div className="text-gray-500 text-xs">
+                    <div className="text-gray-500 text-md">
                         {formattedDate} • {formattedTime}
                     </div>
                 </div>
 
                 <div className="bg-[#E6F9EE] rounded-2xl p-6 text-left shadow-md border border-green-100 mb-6">
-                    <p className="text-black text-sm mb-1">ปริมาณก๊าซเรือนกระจกที่ลดลง</p>
+                    <p className="text-black text-lg mb-1">ปริมาณก๊าซเรือนกระจกที่ลดลง</p>
                     <p className="text-[#1E8546] text-5xl font-extrabold tracking-tight">
                         {co2Saved} <span className="text-4xl font-semibold">KgCO2e</span>
                     </p>

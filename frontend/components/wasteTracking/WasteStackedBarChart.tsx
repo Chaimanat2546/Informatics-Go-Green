@@ -52,7 +52,7 @@ export default function WasteStackedBarChart() {
   }, [])
 
   return (
-    <Card className="w-full h-full shadow-sm border border-gray-100 rounded-[20px] p-6">
+    <Card className="w-full h-full  shadow-sm border border-gray-100 rounded-[20px]  p-6">
       <CardHeader className="p-0 pb-6">
         <CardTitle className="text-xl font-bold text-gray-900">
           รายงานปริมาณขยะที่คัดแยก (6 เดือนล่าสุด)
