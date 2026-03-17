@@ -8,6 +8,7 @@ import {
   WasteMaterial,
   MaterialGuide,
   WasteCalculateLog,
+  WasteReaction,
 } from './entities';
 import { WasteScannerController } from './controllers/waste-scanbarcode.controller';
 import { WasteScannerService } from './services/waste-scanbarcode.service';
@@ -37,6 +38,7 @@ import { UploadModule } from '../upload/upload.module';
       MaterialGuide,
       User,
       WasteCalculateLog,
+      WasteReaction,
     ]),
     UploadModule,
   ],

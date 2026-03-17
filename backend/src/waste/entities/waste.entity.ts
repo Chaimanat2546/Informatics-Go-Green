@@ -12,6 +12,7 @@ import { User } from '../../users/user.entity';
 import { WasteHistory } from './waste-history.entity';
 import { WasteSorting } from './waste-sorting.entity';
 import { MaterialGuide } from './material-guide.entity';
+import { WasteReaction } from './waste-reaction.entity';
 
 @Entity('wastes')
 export class Waste {
@@ -53,4 +54,7 @@ export class Waste {
 
   @OneToMany(() => MaterialGuide, (guide) => guide.waste)
   materialGuides: MaterialGuide[];
+
+  @OneToMany(() => WasteReaction, (reaction) => reaction.waste)
+  wasteReactions: WasteReaction[];
 }
