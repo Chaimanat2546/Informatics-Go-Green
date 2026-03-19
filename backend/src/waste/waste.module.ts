@@ -8,6 +8,7 @@ import {
   WasteMaterial,
   MaterialGuide,
   WasteCalculateLog,
+  WasteReaction,
 } from './entities';
 import { WasteScannerController } from './controllers/waste-scanbarcode.controller';
 import { WasteScannerService } from './services/waste-scanbarcode.service';
@@ -24,6 +25,8 @@ import { WasteMaterialController } from './controllers/waste-material.controller
 import { WasteMaterialService } from './services/waste-material.service';
 import { WasteManageController } from './controllers/waste-manage.controller';
 import { WasteManageService } from './services/waste-manage.service';
+import { WasteReactionController } from './controllers/waste-reaction.controller';
+import { WasteReactionService } from './services/waste-reaction.service';
 import { UploadModule } from '../upload/upload.module';
 
 @Module({
@@ -37,6 +40,7 @@ import { UploadModule } from '../upload/upload.module';
       MaterialGuide,
       User,
       WasteCalculateLog,
+      WasteReaction,
     ]),
     UploadModule,
   ],
@@ -48,6 +52,7 @@ import { UploadModule } from '../upload/upload.module';
     WasteSortingController,
     StatisticsController,
     WasteManageController,
+    WasteReactionController,
   ],
   providers: [
     WasteScannerService,
@@ -57,6 +62,7 @@ import { UploadModule } from '../upload/upload.module';
     WasteCategoryService,
     WasteMaterialService,
     WasteManageService,
+    WasteReactionService,
   ],
   exports: [TypeOrmModule],
 })

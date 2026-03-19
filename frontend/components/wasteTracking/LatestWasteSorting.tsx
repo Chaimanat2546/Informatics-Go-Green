@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
-import { ChevronLeft, ChevronRight, Loader2, Search, X } from "lucide-react"; 
+import { ChevronLeft, ChevronRight, Loader2, Search, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "../ui/input-group";
 
 interface WasteSystemItem {
@@ -17,6 +18,7 @@ interface PaginationInfo {
 }
 
 export default function LatestWasteSorting() {
+    const router = useRouter();
     const [items, setItems] = useState<WasteSystemItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [isPaging, setIsPaging] = useState(false); 
@@ -141,7 +143,8 @@ export default function LatestWasteSorting() {
                     {items.map((item) => (
                         <div
                             key={item.id}
-                            className="bg-white rounded-xl shadow-sm overflow-hidden flex flex-col"
+                            onClick={() => router.push(`/wasteTracking/viewWaste/${item.id}`)}
+                            className="bg-white rounded-xl shadow-sm overflow-hidden flex flex-col cursor-pointer active:scale-95 transition-transform"
                         >
                             <div className="w-full aspect-square bg-gray-50 flex items-center justify-center overflow-hidden">
                                 {item.waste_image ? (

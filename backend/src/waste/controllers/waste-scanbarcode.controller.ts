@@ -14,6 +14,11 @@ import { WasteScannerService } from '../services/waste-scanbarcode.service';
 export class WasteScannerController {
   constructor(private readonly wasteService: WasteScannerService) {}
 
+  @Get('item/:id')
+  async getWasteById(@Param('id', ParseIntPipe) id: number) {
+    return await this.wasteService.findByWasteId(id);
+  }
+
   @Get('items')
   async getWasteItems(
     @Query('page') page: number = 1,
