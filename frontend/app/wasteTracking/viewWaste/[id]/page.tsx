@@ -48,7 +48,7 @@ export default function ViewWastePage() {
     };
 
     const handleReaction = (type: 'like' | 'dislike') => {
-        if (type === 'dislike' && reactionState.userReaction !== 'dislike' && reactionState.dislikes + 1 >= 2) {
+        if (type === 'dislike' && reactionState.userReaction !== 'dislike' && reactionState.dislikes + 1 >= 50) {
             setShowDislikeWarning(true);
             return;
         }

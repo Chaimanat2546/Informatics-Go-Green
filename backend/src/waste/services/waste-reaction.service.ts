@@ -78,7 +78,7 @@ export class WasteReactionService {
       const dislikeCount = await this.reactionRepository.count({
         where: { wastesid: wasteId, reaction: 'dislike' },
       });
-      if (dislikeCount >= 1 {
+      if (dislikeCount >= 50) {
         await this.reactionRepository.delete({ wastesid: wasteId });
         await this.wasteSortingRepository.delete({ wastesid: wasteId });
         await this.materialGuideRepository.delete({ wastesid: wasteId });
