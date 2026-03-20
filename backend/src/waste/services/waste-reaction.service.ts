@@ -47,45 +47,61 @@ export class WasteReactionService {
   }
 
   async react(wasteId: number, userId: string, reaction: 'like' | 'dislike') {
-    const waste = await this.wasteRepository.findOne({ where: { id: wasteId } });
-    if (!waste) throw new NotFoundException(`ไม่พบขยะ ID: ${wasteId}`);
+    const txResult = await this.reactionRepository.manager.transaction(async (manager) => {
+      const reactionRepo = manager.getRepository(WasteReaction);
+      const wasteRepo = manager.getRepository(Waste);
+      const wasteSortingRepo = manager.getRepository(WasteSorting);
+      const materialGuideRepo = manager.getRepository(MaterialGuide);
+      const wasteHistoryRepo = manager.getRepository(WasteHistory);
 
-    const existing = await this.reactionRepository.findOne({
-      where: { wastesid: wasteId, userid: userId },
+      const waste = await wasteRepo.findOne({ where: { id: wasteId } });
+      if (!waste) {
+        throw new NotFoundException(`ไม่พบขยะ ID: ${wasteId}`);
+      }
+
+      const existing = await reactionRepo.findOne({
+        where: { wastesid: wasteId, userid: userId },
+      });
+
+      if (existing) {
+        if (existing.reaction === reaction) {
+          // กดซ้ำ = ยกเลิก reaction
+          await reactionRepo.remove(existing);
+          return { deleted: false };
+        }
+        // เปลี่ยน reaction
+        existing.reaction = reaction;
+        await reactionRepo.save(existing);
+      } else {
+        // สร้างใหม่
+        const newReaction = reactionRepo.create({
+          wastesid: wasteId,
+          userid: userId,
+          reaction,
+        });
+        await reactionRepo.save(newReaction);
+      }
+
+      // ตรวจสอบ dislike ทุกกรณี (สร้างใหม่ หรือ เปลี่ยน reaction)
+      if (reaction === 'dislike') {
+        const dislikeCount = await reactionRepo.count({
+          where: { wastesid: wasteId, reaction: 'dislike' },
+        });
+        if (dislikeCount >= 50) {
+          await reactionRepo.delete({ wastesid: wasteId });
+          await wasteSortingRepo.delete({ wastesid: wasteId });
+          await materialGuideRepo.delete({ wastesid: wasteId });
+          await wasteHistoryRepo.delete({ wastesid: wasteId });
+          await wasteRepo.delete(wasteId);
+          return { deleted: true };
+        }
+      }
+
+      return { deleted: false };
     });
 
-    if (existing) {
-      if (existing.reaction === reaction) {
-        // กดซ้ำ = ยกเลิก reaction
-        await this.reactionRepository.remove(existing);
-        return this.getReactions(wasteId, userId);
-      }
-      // เปลี่ยน reaction
-      existing.reaction = reaction;
-      await this.reactionRepository.save(existing);
-    } else {
-      // สร้างใหม่
-      const newReaction = this.reactionRepository.create({
-        wastesid: wasteId,
-        userid: userId,
-        reaction,
-      });
-      await this.reactionRepository.save(newReaction);
-    }
-
-    // ตรวจสอบ dislike ทุกกรณี (สร้างใหม่ หรือ เปลี่ยน reaction)
-    if (reaction === 'dislike') {
-      const dislikeCount = await this.reactionRepository.count({
-        where: { wastesid: wasteId, reaction: 'dislike' },
-      });
-      if (dislikeCount >= 50) {
-        await this.reactionRepository.delete({ wastesid: wasteId });
-        await this.wasteSortingRepository.delete({ wastesid: wasteId });
-        await this.materialGuideRepository.delete({ wastesid: wasteId });
-        await this.wasteHistoryRepository.delete({ wastesid: wasteId });
-        await this.wasteRepository.delete(wasteId);
-        return { deleted: true };
-      }
+    if (txResult.deleted) {
+      return { deleted: true };
     }
 
     return this.getReactions(wasteId, userId);
