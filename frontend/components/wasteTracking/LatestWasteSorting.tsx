@@ -141,7 +141,8 @@ export default function LatestWasteSorting() {
             ) : (
                 <div className={`grid grid-cols-2 gap-3 transition-opacity duration-200 ${isPaging ? 'opacity-50' : 'opacity-100'}`}>
                     {items.map((item) => (
-                        <div
+                        <button
+                            type="button"
                             key={item.id}
                             onClick={() => router.push(`/wasteTracking/viewWaste/${item.id}`)}
                             className="bg-white rounded-xl shadow-sm overflow-hidden flex flex-col cursor-pointer active:scale-95 transition-transform"
@@ -167,7 +168,7 @@ export default function LatestWasteSorting() {
                                     {item.category_name}
                                 </span>
                             </div>
-                        </div>
+                        </button>
                     ))}
                 </div>
             )}
