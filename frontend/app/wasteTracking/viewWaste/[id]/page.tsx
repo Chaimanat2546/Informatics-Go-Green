@@ -25,6 +25,9 @@ export default function ViewWastePage() {
     const [showDislikeWarning, setShowDislikeWarning] = useState(false);
     const router = useRouter();
 
+    const DISLIKE_THRESHOLD =
+        Number(process.env.NEXT_PUBLIC_WASTE_DISLIKE_THRESHOLD) || 50;
+
     const submitReaction = async (type: 'like' | 'dislike') => {
         if (!userId) return;
         const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
@@ -48,7 +51,11 @@ export default function ViewWastePage() {
     };
 
     const handleReaction = (type: 'like' | 'dislike') => {
-        if (type === 'dislike' && reactionState.userReaction !== 'dislike' && reactionState.dislikes + 1 >= 50) {
+        if (
+            type === 'dislike' &&
+            reactionState.userReaction !== 'dislike' &&
+            reactionState.dislikes + 1 >= DISLIKE_THRESHOLD
+        ) {
             setShowDislikeWarning(true);
             return;
         }
