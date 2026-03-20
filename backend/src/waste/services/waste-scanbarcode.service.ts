@@ -135,7 +135,7 @@ export class WasteScannerService {
     });
 
     if (!waste) {
-      throw new NotFoundException(`ไม่พบสินค้ารหัส: ${wasteId}`);
+      throw new NotFoundException(`ไม่พบขยะรหัส: ${wasteId}`);
     }
 
     return {
