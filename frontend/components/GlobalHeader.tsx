@@ -49,11 +49,18 @@ export default function GlobalHeader() {
     } 
     if (pathname.startsWith("/wasteTracking/wasteScaner/")) {
       currentPage = {
-        title: "สแกนบาร์โค้ดขยะ", 
-        showBack: false,     
+        title: "สแกนบาร์โค้ดขยะ",
+        showBack: false,
         icon: ScanLine,
       };
-    } 
+    }
+    if (pathname.startsWith("/wasteTracking/viewWaste/")) {
+      currentPage = {
+        title: "ข้อมูลขยะ",
+        showBack: true,
+        icon: undefined,
+      };
+    }
   }
 
   if (!currentPage) {

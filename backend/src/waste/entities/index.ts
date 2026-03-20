@@ -6,3 +6,4 @@ export { WasteMaterial } from './waste-material.entity';
 export { MaterialGuide } from './material-guide.entity';
 export { WasteManagementMethod } from './waste-management-method.entity';
 export { WasteCalculateLog } from './waste-calculate-log.entity';
+export { WasteReaction } from './waste-reaction.entity';

@@ -122,6 +122,49 @@ export class WasteScannerService {
     };
   }
 
+  async findByWasteId(wasteId: number) {
+    const waste = await this.wasteRepository.findOne({
+      where: { id: wasteId },
+      relations: [
+        'wasteCategory',
+        'wasteSortings',
+        'materialGuides',
+        'materialGuides.wasteMaterial',
+        'user',
+      ],
+    });
+
+    if (!waste) {
+      throw new NotFoundException(`ไม่พบขยะรหัส: ${wasteId}`);
+    }
+
+    return {
+      id: waste.id,
+      barcode: waste.barcode,
+      name: waste.name,
+      waste_image: waste.waste_image,
+      amount: 1,
+      create_at: waste.create_at,
+      waste_categoriesid: waste.wasteCategory
+        ? [{ id: waste.wasteCategory.id, name: waste.wasteCategory.name }]
+        : [],
+      user_id: waste.userid,
+      waste_sorting:
+        waste.wasteSortings?.map((sorting) => ({
+          id: sorting.id,
+          name: sorting.name,
+          description: sorting.description,
+        })) || [],
+      material_guides:
+        waste.materialGuides?.map((guide) => ({
+          id: guide.id,
+          guide_image: guide.guide_image,
+          recommendation: guide.recommendation,
+          waste_meterial_name: guide.wasteMaterial?.name || 'ไม่ระบุวัสดุ',
+        })) || [],
+    };
+  }
+
   async findAllCategories() {
     const categories = await this.wasteCategoryRepository.find({
       order: {
