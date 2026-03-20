@@ -1,5 +1,10 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseEnumPipe, ParseIntPipe, Post, Query } from '@nestjs/common';
 import { WasteReactionService } from '../services/waste-reaction.service';
+
+export enum ReactionType {
+  LIKE = 'like',
+  DISLIKE = 'dislike',
+}
 
 @Controller('waste')
 export class WasteReactionController {
@@ -17,7 +22,7 @@ export class WasteReactionController {
   async react(
     @Param('id', ParseIntPipe) wasteId: number,
     @Body('userId') userId: string,
-    @Body('reaction') reaction: 'like' | 'dislike',
+    @Body('reaction', new ParseEnumPipe(ReactionType)) reaction: ReactionType,
   ) {
     return this.wasteReactionService.react(wasteId, userId, reaction);
   }
