@@ -69,7 +69,11 @@ export default function ViewWastePage() {
         }
 
         const fetchData = async () => {
-            if (!wasteId) return;
+            if (!wasteId) {
+                setError(true);
+                setLoading(false);
+                return;
+            }
             try {
                 const [wasteRes, reactionRes] = await Promise.all([
                     fetch(`${API_URL}/waste/item/${wasteId}`),
