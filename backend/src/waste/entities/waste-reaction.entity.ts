@@ -10,6 +10,11 @@ import {
 import { Waste } from './waste.entity';
 import { User } from '../../users/user.entity';
 
+export enum WasteReactionType {
+  LIKE = 'like',
+  DISLIKE = 'dislike',
+}
+
 @Entity('waste_reactions')
 @Unique(['wastesid', 'userid'])
 export class WasteReaction {
@@ -22,8 +27,12 @@ export class WasteReaction {
   @Column({ type: 'varchar' })
   userid: string;
 
-  @Column({ type: 'varchar', length: 10 })
-  reaction: string; // 'like' or 'dislike'
+  @Column({
+    type: 'enum',
+    enum: WasteReactionType,
+    enumName: 'waste_reaction_type',
+  })
+  reaction: WasteReactionType; // 'like' or 'dislike'
 
   @CreateDateColumn({ type: 'timestamp' })
   create_at: Date;
