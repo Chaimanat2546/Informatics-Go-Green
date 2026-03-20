@@ -23,30 +23,56 @@ export default function ViewWastePage() {
     const [reactionState, setReactionState] = useState<ReactionState>({ likes: 0, dislikes: 0, userReaction: null });
     const [userId, setUserId] = useState<string | null>(null);
     const [showDislikeWarning, setShowDislikeWarning] = useState(false);
+    const [reactionError, setReactionError] = useState<string | null>(null);
+    const [submittingReaction, setSubmittingReaction] = useState(false);
     const router = useRouter();
 
     const DISLIKE_THRESHOLD =
         Number(process.env.NEXT_PUBLIC_WASTE_DISLIKE_THRESHOLD) || 50;
 
     const submitReaction = async (type: 'like' | 'dislike') => {
-        if (!userId) return;
+        if (!userId || submittingReaction) return;
         const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+        setReactionError(null);
+        setSubmittingReaction(true);
         try {
             const res = await fetch(`${API_URL}/waste/${wasteId}/reaction`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId, reaction: type }),
             });
-            if (res.ok) {
-                const data = await res.json();
-                if (data.deleted) {
-                    router.replace('/wasteTracking/home');
-                    return;
+            if (!res.ok) {
+                let message = `Failed to submit reaction (status ${res.status})`;
+                try {
+                    const errorBody = await res.json();
+                    if (errorBody && typeof errorBody.message === 'string') {
+                        message = errorBody.message;
+                    }
+                } catch {
+                    try {
+                        const text = await res.text();
+                        if (text) {
+                            message = text;
+                        }
+                    } catch {
+                        // ignore secondary parsing errors
+                    }
                 }
-                setReactionState(data);
+                console.error(message);
+                setReactionError(message);
+                return;
             }
+            const data = await res.json();
+            if (data.deleted) {
+                router.replace('/wasteTracking/home');
+                return;
+            }
+            setReactionState(data);
         } catch (err) {
             console.error(err);
+            setReactionError('ไม่สามารถบันทึก reaction ได้ กรุณาลองใหม่อีกครั้ง');
+        } finally {
+            setSubmittingReaction(false);
         }
     };
 
