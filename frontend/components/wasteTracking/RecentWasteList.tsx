@@ -7,10 +7,12 @@ export default function RecentWasteList() {
 
   const [activities, setActivities] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://igg.hooppul.codes/api';
+
   useEffect(() => {
     const fetchRecentWaste = async () => {
       try {
-        const res = await fetch('http://localhost:3001/api/waste/history/all?page=1&limit=5');
+        const res = await fetch(`${API_URL}/waste/history/all?page=1&limit=5`);
         const json = await res.json();
 
         if (json.data) {
@@ -24,7 +26,7 @@ export default function RecentWasteList() {
     }
 
     fetchRecentWaste();
-  }, []);
+  }, [API_URL]);
 
   const getCategoryColor = (category: string) => {
     switch (category) {
