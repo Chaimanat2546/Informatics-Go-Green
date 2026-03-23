@@ -30,8 +30,8 @@ export class WasteReactionController {
   @Get(':id/reaction')
   async getReactions(
     @Param('id', ParseIntPipe) wasteId: number,
-    @Query('userId') queryUserId?: string,
     @Req() req: AuthenticatedRequest,
+    @Query('userId') queryUserId?: string,
   ) {
     // Use userId from JWT token if available, otherwise from query
     const userId = req.user?.id || queryUserId;
