@@ -30,7 +30,7 @@ export default function CO2ReductionChart({ year = new Date().getFullYear() }: C
   const [isMounted, setIsMounted] = useState(false)
   const [chartData, setChartData] = useState([]); 
   const [loading, setLoading] = useState(true);
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://igg.hooppul.codes/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
   useEffect(() => {
     setIsMounted(true);

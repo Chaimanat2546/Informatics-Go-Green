@@ -80,7 +80,14 @@ export class WasteHistoryService {
         amount: history.amount,
         record_type: history.record_type,
         user_id: history.userid,
-        user_name: history.user.firstName + ' ' + history.user.lastName,
+        user_name: history.user
+          ? `${history.user.firstName} ${history.user.lastName}`
+          : (() => {
+              console.warn(
+                `WasteHistory id=${history.id} has no associated user (userid=${history.userid}). Possible broken FK or cascade deletion.`,
+              );
+              return 'Unknown';
+            })(),
         carbon_footprint: history.carbon_footprint,
         points: points,
       };

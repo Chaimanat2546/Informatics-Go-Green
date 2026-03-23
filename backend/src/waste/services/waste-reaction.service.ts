@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -12,6 +13,8 @@ import { WasteHistory } from '../entities/waste-history.entity';
 
 @Injectable()
 export class WasteReactionService {
+  private readonly dislikeThreshold: number;
+
   constructor(
     @InjectRepository(WasteReaction)
     private reactionRepository: Repository<WasteReaction>,
@@ -27,7 +30,14 @@ export class WasteReactionService {
 
     @InjectRepository(WasteHistory)
     private wasteHistoryRepository: Repository<WasteHistory>,
-  ) {}
+
+    private readonly configService: ConfigService,
+  ) {
+    this.dislikeThreshold = this.configService.get<number>(
+      'WASTE_DISLIKE_THRESHOLD',
+      50,
+    );
+  }
 
   async getReactions(wasteId: number, userId?: string) {
     const waste = await this.wasteRepository.findOne({
@@ -97,7 +107,7 @@ export class WasteReactionService {
           const dislikeCount = await reactionRepo.count({
             where: { wastesid: wasteId, reaction: WasteReactionType.DISLIKE },
           });
-          if (dislikeCount >= 50) {
+          if (dislikeCount >= this.dislikeThreshold) {
             await reactionRepo.delete({ wastesid: wasteId });
             await wasteSortingRepo.delete({ wastesid: wasteId });
             await materialGuideRepo.delete({ wastesid: wasteId });

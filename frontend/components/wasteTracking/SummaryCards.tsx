@@ -1,9 +1,10 @@
 'use client'
 
+import type { ReactNode } from 'react';
 import { useState, useEffect } from 'react';
 import { Recycle, Leaf, CreditCard, Trees } from 'lucide-react';
 
-const iconMap: Record<string, React.ReactNode> = {
+const iconMap: Record<string, ReactNode> = {
     weight: <Recycle size={20} className="text-black" />,
     carbon: <Leaf size={20} className="text-black" />,
     cost: <CreditCard size={20} className="text-black" />,
@@ -26,7 +27,7 @@ interface SummaryCardsProps {
 export default function SummaryCards({ type, date }: SummaryCardsProps) {
     const [cards, setCards] = useState<CardData[]>([]);
     const [loading, setLoading] = useState(true);
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://igg.hooppul.codes/api';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
     useEffect(() => {
         const fetchCardsData = async () => {
