@@ -26,12 +26,13 @@ interface SummaryCardsProps {
 export default function SummaryCards({ type, date }: SummaryCardsProps) {
     const [cards, setCards] = useState<CardData[]>([]);
     const [loading, setLoading] = useState(true);
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://igg.hooppul.codes/api';
 
     useEffect(() => {
         const fetchCardsData = async () => {
             setLoading(true);
             try {
-                const response = await fetch(`http://localhost:3001/api/waste/cards-summary?type=${type}&date=${date}`);
+                const response = await fetch(`${API_URL}/waste/cards-summary?type=${type}&date=${date}`);
                 if (!response.ok) throw new Error('Failed to fetch data');
                 
                 const data = await response.json();
@@ -44,7 +45,7 @@ export default function SummaryCards({ type, date }: SummaryCardsProps) {
         };
 
         fetchCardsData();
-    }, [type, date]); 
+    }, [type, date, API_URL]); 
 
     if (loading) {
         return <div className="text-center py-4 text-gray-500 text-sm animate-pulse">กำลังโหลดข้อมูล...</div>;

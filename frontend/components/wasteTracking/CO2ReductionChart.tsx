@@ -30,6 +30,7 @@ export default function CO2ReductionChart({ year = new Date().getFullYear() }: C
   const [isMounted, setIsMounted] = useState(false)
   const [chartData, setChartData] = useState([]); 
   const [loading, setLoading] = useState(true);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://igg.hooppul.codes/api';
 
   useEffect(() => {
     setIsMounted(true);
@@ -37,7 +38,7 @@ export default function CO2ReductionChart({ year = new Date().getFullYear() }: C
     const fetchChartData = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`http://localhost:3001/api/waste/monthly-co2?year=${year}`);
+        const res = await fetch(`${API_URL}/waste/monthly-co2?year=${year}`);
         const data = await res.json();
         setChartData(data);
       } catch (error) {
@@ -48,7 +49,7 @@ export default function CO2ReductionChart({ year = new Date().getFullYear() }: C
     };
 
     fetchChartData();
-  }, [year]);
+  }, [year, API_URL]);
 
   return (
     <Card className="w-full h-full shadow-sm border border-gray-100 rounded-[20px] p-6">

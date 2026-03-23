@@ -30,13 +30,14 @@ export default function WasteStackedBarChart() {
   const [isMounted, setIsMounted] = useState(false)
   const [chartData, setChartData] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://igg.hooppul.codes/api';
 
   useEffect(() => {
     setIsMounted(true)
 
     const fetchChartData = async () => {
       try {
-        const response = await fetch("http://localhost:3001/api/waste/waste-weight-categories");
+        const response = await fetch(`${API_URL}/waste/waste-weight-categories`);
         if (!response.ok) throw new Error("Failed to fetch data");
         
         const data = await response.json();
@@ -49,7 +50,7 @@ export default function WasteStackedBarChart() {
     };
 
     fetchChartData();
-  }, [])
+  }, [API_URL])
 
   return (
     <Card className="w-full h-full  shadow-sm border border-gray-100 rounded-[20px]  p-6">
