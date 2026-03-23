@@ -6,12 +6,21 @@ import {
   ParseEnumPipe,
   ParseIntPipe,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { WasteReactionService } from '../services/waste-reaction.service';
 import { WasteReactionType } from '../entities/waste-reaction.entity';
+
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    email: string;
+  };
+}
 
 @Controller('waste')
 export class WasteReactionController {
@@ -21,9 +30,11 @@ export class WasteReactionController {
   @Get(':id/reaction')
   async getReactions(
     @Param('id', ParseIntPipe) wasteId: number,
-    @Req() req: any,
+    @Query('userId') queryUserId?: string,
+    @Req() req: AuthenticatedRequest,
   ) {
-    const userId: string | undefined = req?.user?.id;
+    // Use userId from JWT token if available, otherwise from query
+    const userId = req.user?.id || queryUserId;
     return this.wasteReactionService.getReactions(wasteId, userId);
   }
 
@@ -31,11 +42,13 @@ export class WasteReactionController {
   @Post(':id/reaction')
   async react(
     @Param('id', ParseIntPipe) wasteId: number,
-    @Req() req: any,
+    @Body('userId') bodyUserId: string,
     @Body('reaction', new ParseEnumPipe(WasteReactionType))
     reaction: WasteReactionType,
+    @Req() req: AuthenticatedRequest,
   ) {
-    const userId: string = req.user.id;
+    // Use userId from JWT token if available, otherwise from body
+    const userId = req.user?.id || bodyUserId;
     return this.wasteReactionService.react(wasteId, userId, reaction);
   }
 }
