@@ -41,7 +41,7 @@ async function runSeeder() {
       SchedulerSettings,
       SchedulerLock,
     ],
-    synchronize: true, // Create tables before seeding
+    synchronize: process.env.TYPEORM_SYNCHRONIZE === 'true', // Set TYPEORM_SYNCHRONIZE=true to create/alter tables when seeding
   });
 
   try {

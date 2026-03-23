@@ -1,3 +1,5 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge"
 import { HistoryItem } from "@/interfaces/HistoryItem";
 import { useEffect, useState } from "react";
@@ -7,7 +9,7 @@ export default function RecentWasteList() {
 
   const [activities, setActivities] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://igg.hooppul.codes/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
   useEffect(() => {
     const fetchRecentWaste = async () => {

@@ -1,40 +1,45 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
+const PUBLIC_PATHS = [
+  "/auth/login",
+  "/auth/register",
+  "/auth/forgot-password",
+  "/auth/reset-password",
+];
 
 export default function RouteGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    const publicPaths = ["/auth/login", "/auth/register", "/auth/forgot-password"];
-    
-    // Check if current path is a public path
-    const isPublicPath = publicPaths.some(p => pathname.startsWith(p));
-    
+    const isPublicPath = PUBLIC_PATHS.some(p => pathname.startsWith(p));
+
     if (!isPublicPath) {
-      const token = localStorage.getItem("token");
-      if (!token) {
+      // Allow through if there is a token in the URL — the page will store it before making API calls
+      const tokenFromUrl = searchParams.get("token");
+      const tokenFromStorage = localStorage.getItem("token");
+      if (!tokenFromUrl && !tokenFromStorage) {
         router.push("/auth/login");
-        return; // Don't set ready to avoid flash of content
+        return;
       }
     }
+
     const authCheckTimer = setTimeout(() => {
       setIsReady(true);
     }, 0);
 
     return () => clearTimeout(authCheckTimer);
-  }, [pathname, router]);
+  }, [pathname, router, searchParams]);
 
-  // Optionally hide content until auth check completes, but returning children directly is smoother
-  // Just returning children allows server-rendered HTML to be visible if desired,
-  // but we hide it for protected routes if not ready to prevent flashing unauthorized content.
   if (!isReady) {
-    const isPublicPath = ["/auth/login", "/auth/register", "/auth/forgot-password"].some(p => pathname.startsWith(p));
+    const isPublicPath = PUBLIC_PATHS.some(p => pathname.startsWith(p));
     if (!isPublicPath) {
-        return <div className="min-h-screen bg-green-50 flex items-center justify-center"></div>;
+      return <div className="min-h-screen bg-green-50 flex items-center justify-center"></div>;
     }
   }
 
