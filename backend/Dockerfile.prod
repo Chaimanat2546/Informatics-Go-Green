@@ -18,15 +18,15 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Prune dev dependencies
-RUN npm prune --production
-
 # Stage 2: Production
 FROM node:20-alpine AS production
 
 WORKDIR /app
 
-# Copy only necessary files from builder
+# Install netcat-openbsd for database connection check
+RUN apk add --no-cache netcat-openbsd
+
+# Copy built application and ALL dependencies
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
@@ -40,14 +40,36 @@ RUN mkdir -p /app/uploads/profiles /app/uploads/waste-materials && \
     adduser -S nestjs -u 1001 && \
     chown -R nestjs:nodejs /app
 
+# Create entrypoint script - wait for DB, run migrations, start app
+RUN printf '%s\n' \
+    '#!/bin/sh' \
+    'set -e' \
+    '' \
+    'echo "⏳ Waiting for PostgreSQL to be ready..."' \
+    'while ! nc -z "$DATABASE_HOST" 5432; do' \
+    '  sleep 1' \
+    'done' \
+    'echo "✅ PostgreSQL is ready!"' \
+    '' \
+    'echo "🔄 Running database migrations..."' \
+    'cd /app && npx typeorm migration:run -d dist/data-source.js 2>&1 || {' \
+    '  echo "⚠️ Migration failed or already applied, continuing..."' \
+    '}' \
+    '' \
+    'echo "🚀 Starting application..."' \
+    'exec "$@"' \
+    > /entrypoint.sh && chmod +x /entrypoint.sh
+
+# Switch to non-root user
 USER nestjs
 
 # Expose port
 EXPOSE 3001
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1
 
-# Start the application
+# Use entrypoint to run migrations before starting application
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["node", "dist/main.js"]
