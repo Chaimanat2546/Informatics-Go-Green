@@ -17,6 +17,7 @@ import { WasteCalculateLog } from '../waste/entities/waste-calculate-log.entity'
 import { WasteManagementMethod } from '../waste/entities/waste-management-method.entity';
 import { SchedulerSettings } from '../scheduler/entities/scheduler-settings.entity';
 import { SchedulerLock } from '../scheduler/entities/scheduler-lock.entity';
+import { WasteReaction } from '../waste/entities/waste-reaction.entity';
 
 async function runSeeder() {
   console.log('🔌 Connecting to database...');
@@ -40,6 +41,7 @@ async function runSeeder() {
       WasteManagementMethod,
       SchedulerSettings,
       SchedulerLock,
+      WasteReaction,
     ],
     synchronize: process.env.TYPEORM_SYNCHRONIZE === 'true', // Set TYPEORM_SYNCHRONIZE=true to create/alter tables when seeding
   });
