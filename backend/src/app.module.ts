@@ -32,7 +32,7 @@ import { SchedulerModule } from './scheduler/scheduler.module';
         database: configService.get('DATABASE_NAME', 'informatics_go_green'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
-        migrationsRun: false, // We run migrations manually via entrypoint
+        migrationsRun: true, // Auto-run migrations on app start
         // Disable synchronize in production to prevent unintended schema changes/data loss.
         // Enable explicitly via TYPEORM_SYNCHRONIZE=true in non-production environments.
         synchronize:
