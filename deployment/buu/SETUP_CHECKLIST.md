@@ -28,7 +28,6 @@ echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 cd /opt
 sudo git clone https://github.com/Chaimanat2546/Informatics-Go-Green.git
 cd Informatics-Go-Green
-sudo git checkout develop
 ```
 
 ---
