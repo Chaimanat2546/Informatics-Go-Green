@@ -378,7 +378,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       record_type: 'scan',
       waste_meterialid: Number(matPET.id),
       wastesid: Number(wasteBottle.id),
-      userid: savedUser.id as unknown as number,
+      userid: savedUser.id.toString(),
       calculation_status: 'completed',
       // Carbon = (amount * guide_weight * emissionFactor) + transport
       // 10 * 0.03 * 2.29 + 15.0 * 0.21 = 0.687 + 3.15 = 3.837
@@ -392,7 +392,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       record_type: 'scan',
       waste_meterialid: Number(matPaper.id),
       wastesid: Number(wasteBox.id),
-      userid: savedUser.id as unknown as number,
+      userid: savedUser.id.toString(),
       calculation_status: 'completed',
       // 5 * 0.15 * 1.17 + 15.0 * 0.21 = 0.8775 + 3.15 = 4.0275
       carbon_footprint: 5 * 0.15 * 1.17 + 15.0 * 0.21,
@@ -405,7 +405,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       record_type: 'scan',
       waste_meterialid: Number(matGlass.id),
       wastesid: Number(wasteGlass.id),
-      userid: savedUser.id as unknown as number,
+      userid: savedUser.id.toString(),
       calculation_status: 'completed',
       // 4 * 0.25 * 0.86 + 15.0 * 0.21 = 0.86 + 3.15 = 4.01
       carbon_footprint: 4 * 0.25 * 0.86 + 15.0 * 0.21,
@@ -419,7 +419,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       record_type: 'scan',
       waste_meterialid: Number(matGlass.id), // Primary material
       wastesid: Number(wasteJuiceBottle.id),
-      userid: savedAdmin.id as unknown as number,
+      userid: savedAdmin.id.toString(),
       calculation_status: 'pending', // Pending calculation (multiple materials)
       retry_count: 0,
     }),
@@ -430,7 +430,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       record_type: 'scan',
       waste_meterialid: Number(matFoam.id),
       wastesid: Number(wasteFoam.id),
-      userid: savedUser.id as unknown as number,
+      userid: savedUser.id.toString(),
       calculation_status: 'pending',
       retry_count: 0,
     }),
@@ -445,7 +445,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       record_type: 'manual',
       waste_meterialid: Number(matPET.id),
       wastesid: null, // Manual entry can have null waste reference
-      userid: savedUser.id as unknown as number,
+      userid: savedUser.id.toString(),
       calculation_status: 'completed',
       // Carbon = amount * emissionFactor + transport
       // 2.5 * 2.29 + 15.0 * 0.21 = 5.725 + 3.15 = 8.875
@@ -459,7 +459,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       record_type: 'manual',
       waste_meterialid: Number(matPaper.id),
       wastesid: null,
-      userid: savedUser.id as unknown as number,
+      userid: savedUser.id.toString(),
       calculation_status: 'completed',
       // 1.5 * 1.17 + 15.0 * 0.21 = 1.755 + 3.15 = 4.905
       carbon_footprint: 1.5 * 1.17 + 15.0 * 0.21,
@@ -472,7 +472,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       record_type: 'manual',
       waste_meterialid: Number(matAluminum.id),
       wastesid: Number(wasteCan.id), // Can optionally reference a waste
-      userid: savedAdmin.id as unknown as number,
+      userid: savedAdmin.id.toString(),
       calculation_status: 'completed',
       // 0.8 * 8.14 + 15.0 * 0.21 = 6.512 + 3.15 = 9.662
       carbon_footprint: 0.8 * 8.14 + 15.0 * 0.21,
@@ -485,7 +485,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       record_type: 'manual',
       waste_meterialid: Number(matFood.id),
       wastesid: null,
-      userid: savedAdmin.id as unknown as number,
+      userid: savedAdmin.id.toString(),
       calculation_status: 'completed',
       // 3.0 * 0.58 + 5.0 * 0.15 = 1.74 + 0.75 = 2.49 (composting transport)
       carbon_footprint: 3.0 * 0.58 + 5.0 * 0.15,
@@ -499,7 +499,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       record_type: 'manual',
       waste_meterialid: Number(matFoam.id), // Using foam as proxy for snack packaging
       wastesid: Number(wasteSnackBag.id),
-      userid: savedUser.id as unknown as number,
+      userid: savedUser.id.toString(),
       calculation_status: 'pending',
       retry_count: 0,
     }),
@@ -510,7 +510,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
       record_type: 'manual',
       waste_meterialid: Number(matPaper.id),
       wastesid: Number(wasteMilkBox.id),
-      userid: savedAdmin.id as unknown as number,
+      userid: savedAdmin.id.toString(),
       calculation_status: 'pending',
       retry_count: 0,
     }),

@@ -1,12 +1,46 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { ArrowLeft, ThumbsUp, ThumbsDown, CheckCircle2, Leaf, Loader2, AlertTriangle, Info, Share2 } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
 import { Card } from "@/components/ui/card";
-import MenuBar from "@/components/wasteTracking/MenuBar";
-import { useParams, useRouter } from "next/navigation";
-import { AlertTriangle, CheckCircle2, Leaf, Loader2, ThumbsDown, ThumbsUp } from "lucide-react";
-import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { WasteData } from "@/interfaces/Waste";
+import MenuBar from "@/components/wasteTracking/MenuBar";
+
+interface Categories {
+    id: number;
+    name: string;
+}
+
+interface WasteSorting {
+    id: number;
+    name: string;
+    description: string; 
+}
+
+interface MaterialGuide {
+    id: number;
+    guide_image: string;
+    recommendation: string;
+    waste_meterial_name: string; 
+}
+
+interface WasteData {
+    id: number;
+    barcode: number;
+    name: string;
+    description: string;
+    waste_image: string;
+    imageUrl?: string; // Legacy/Compatibility
+    amount: number;
+    create_at: string | Date; 
+    waste_categoriesid: Categories[]; 
+    user_id: string | number;
+    waste_sorting: WasteSorting[];
+    material_guides: MaterialGuide[];
+}
 
 interface ReactionState {
     likes: number;
@@ -16,19 +50,18 @@ interface ReactionState {
 
 export default function ViewWastePage() {
     const params = useParams();
-    const wasteId = Number(params.id);
+    const router = useRouter();
+    const wasteId = params.id;
     const [waste, setWaste] = useState<WasteData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
     const [reactionState, setReactionState] = useState<ReactionState>({ likes: 0, dislikes: 0, userReaction: null });
-    const [userId, setUserId] = useState<string | null>(null);
     const [showDislikeWarning, setShowDislikeWarning] = useState(false);
+    const [userId, setUserId] = useState<string | null>(null);
     const [reactionError, setReactionError] = useState<string | null>(null);
     const [submittingReaction, setSubmittingReaction] = useState(false);
-    const router = useRouter();
 
-    const DISLIKE_THRESHOLD =
-        Number(process.env.NEXT_PUBLIC_WASTE_DISLIKE_THRESHOLD) || 50;
+    const DISLIKE_THRESHOLD = Number(process.env.NEXT_PUBLIC_WASTE_DISLIKE_THRESHOLD) || 50;
 
     const submitReaction = async (type: 'like' | 'dislike') => {
         if (!userId || submittingReaction) return;
@@ -36,35 +69,37 @@ export default function ViewWastePage() {
         setReactionError(null);
         setSubmittingReaction(true);
         try {
+            const token = localStorage.getItem('token');
             const res = await fetch(`${API_URL}/waste/${wasteId}/reaction`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify({ userId, reaction: type }),
             });
+
             if (!res.ok) {
+                if (res.status === 401) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    router.push('/auth/login');
+                    return;
+                }
                 let message = `Failed to submit reaction (status ${res.status})`;
                 try {
-                    const errorBody = await res.json();
-                    if (errorBody && typeof errorBody.message === 'string') {
-                        message = errorBody.message;
-                    }
-                } catch {
-                    try {
-                        const text = await res.text();
-                        if (text) {
-                            message = text;
-                        }
-                    } catch {
-                        // ignore secondary parsing errors
-                    }
-                }
-                console.error(message);
+                    const errorData = await res.json();
+                    message = errorData.message || message;
+                } catch (e) {}
+                
                 setReactionError(message);
+                setSubmittingReaction(false);
                 return;
             }
+
             const data = await res.json();
             if (data.deleted) {
-                router.replace('/wasteTracking/home');
+                router.push('/wasteTracking/home');
                 return;
             }
             setReactionState(data);
@@ -77,22 +112,24 @@ export default function ViewWastePage() {
     };
 
     const handleReaction = (type: 'like' | 'dislike') => {
-        if (
-            type === 'dislike' &&
+        if (!userId) {
+            router.push('/auth/login');
+            return;
+        }
+
+        if (type === 'dislike' && 
             reactionState.userReaction !== 'dislike' &&
-            reactionState.dislikes + 1 >= DISLIKE_THRESHOLD
-        ) {
+            reactionState.dislikes + 1 >= DISLIKE_THRESHOLD) {
             setShowDislikeWarning(true);
             return;
         }
+
         submitReaction(type);
     };
 
     useEffect(() => {
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
-
         const storedUser = localStorage.getItem('user');
-        let uid: string | null = null;
+        let uid = null;
         if (storedUser) {
             try {
                 const parsed = JSON.parse(storedUser);
@@ -107,17 +144,31 @@ export default function ViewWastePage() {
                 setLoading(false);
                 return;
             }
+
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+            const token = localStorage.getItem('token');
+
             try {
                 const [wasteRes, reactionRes] = await Promise.all([
                     fetch(`${API_URL}/waste/item/${wasteId}`),
-                    fetch(`${API_URL}/waste/${wasteId}/reaction${uid ? `?userId=${uid}` : ''}`),
+                    fetch(`${API_URL}/waste/${wasteId}/reaction${uid ? `?userId=${uid}` : ''}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    }),
                 ]);
-                if (!wasteRes.ok) throw new Error("Not Found");
+
+                if (!wasteRes.ok) throw new Error(`Not Found: ${wasteRes.status}`);
                 const data: WasteData = await wasteRes.json();
                 setWaste(data);
+
                 if (reactionRes.ok) {
                     const rData = await reactionRes.json();
                     setReactionState(rData);
+                } else if (reactionRes.status === 401) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    setUserId(null);
                 }
             } catch (err) {
                 console.error(err);
@@ -140,10 +191,13 @@ export default function ViewWastePage() {
 
     if (error || !waste) {
         return (
-            <div className="flex flex-col h-screen items-center justify-center bg-gray-50 gap-4">
-                <p className="text-xl text-gray-700">ไม่พบข้อมูลขยะนี้</p>
-                <Button variant="outline" onClick={() => router.back()}>ย้อนกลับ</Button>
-                <div className="fixed bottom-0 w-full"><MenuBar activeTab="home" /></div>
+            <div className="flex flex-col h-screen items-center justify-center p-4 bg-gray-50">
+                <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" />
+                <h1 className="text-xl font-bold text-gray-800 mb-2">ไม่พบข้อมูลขยะ</h1>
+                <p className="text-gray-500 text-center mb-6">ข้อมูลขยะที่คุณต้องการอาจถูกลบหรือไม่มีอยู่ในระบบ</p>
+                <Button onClick={() => router.push("/wasteTracking/home")} className="bg-green-600 text-white rounded-full">
+                    กลับหน้าหลัก
+                </Button>
             </div>
         );
     }
@@ -221,8 +275,8 @@ export default function ViewWastePage() {
             )}
 
             <div className="mx-6 mt-4 mb-24">
-                <Card className="px-4 rounded-[24px] shadow-sm bg-white">
-                    <p className="text-center text-gray-500 text-sm">ข้อมูลนี้เป็นประโยชน์หรือไม่?</p>
+                <Card className="px-4 rounded-[24px] shadow-sm bg-white py-4">
+                    <p className="text-center text-gray-500 text-sm mb-3">ข้อมูลนี้เป็นประโยชน์หรือไม่?</p>
                     <div className="flex items-center justify-center gap-6 pb-2">
                         {(() => {
                             const liked = reactionState.userReaction === 'like';

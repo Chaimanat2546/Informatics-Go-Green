@@ -24,7 +24,7 @@ export class WasteReaction {
   @Column({ type: 'bigint' })
   wastesid: number;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'uuid' })
   userid: string;
 
   @Column({

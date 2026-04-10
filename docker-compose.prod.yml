@@ -69,6 +69,7 @@ services:
     restart: always
     environment:
       NODE_ENV: production
+      HOSTNAME: "0.0.0.0"
     ports:
       - "9060:3000"
     depends_on:
@@ -76,6 +77,17 @@ services:
     networks:
       - web
     # ไม่มี volume mount - ทุกอย่างอยู่ใน container
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: informatics-go-green-mailpit
+    restart: always
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    networks:
+      - internal
+      - web
 
 volumes:
   postgres_data_prod:

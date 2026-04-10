@@ -42,7 +42,7 @@ export class WasteSortingService {
     };
   }
 
-  async recordWasteWeight(materialId: number, weight: number, userId: number) {
+  async recordWasteWeight(materialId: number, weight: number, userId: string) {
     const material = await this.wasteMaterialRepo.findOne({
       where: { id: materialId },
       relations: ['wasteCategory'],
@@ -74,8 +74,8 @@ export class WasteSortingService {
             },
           ]
         : [],
-      weight: savedHistory.amount,
-      create_at: savedHistory.create_at,
+      weight: (savedHistory as any).amount,
+      create_at: (savedHistory as any).create_at,
     };
   }
 

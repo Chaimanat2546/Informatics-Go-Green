@@ -36,6 +36,9 @@ WORKDIR /app
 # Set environment
 ENV NODE_ENV=production
 
+# Install wget for health checks
+RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
+
 # Create non-root user for security
 RUN groupadd -g 1001 nodejs && \
     useradd -u 1001 -g nodejs -s /bin/sh nextjs

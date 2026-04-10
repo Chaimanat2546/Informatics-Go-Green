@@ -22,7 +22,7 @@ export class WasteSortingController {
   async createRecord(
     @Body('meterialId') materialId: number,
     @Body('weight') weight: number,
-    @Body('userId') userId: number,
+    @Body('userId') userId: string,
   ) {
     return await this.wasteService.recordWasteWeight(
       materialId,
