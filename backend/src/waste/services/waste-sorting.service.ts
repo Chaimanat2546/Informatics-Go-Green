@@ -74,8 +74,8 @@ export class WasteSortingService {
             },
           ]
         : [],
-      weight: (savedHistory as any).amount,
-      create_at: (savedHistory as any).create_at,
+      weight: savedHistory.amount,
+      create_at: savedHistory.create_at,
     };
   }
 

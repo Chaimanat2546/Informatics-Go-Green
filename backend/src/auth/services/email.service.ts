@@ -13,7 +13,15 @@ export class EmailService {
     const user = this.configService.get<string>('SMTP_USER');
     const pass = this.configService.get<string>('SMTP_PASS');
 
-    const config: any = {
+    const config: {
+      host: string;
+      port: number;
+      secure: boolean;
+      connectionTimeout: number;
+      tls: { rejectUnauthorized: boolean };
+      ignoreTLS?: boolean;
+      auth?: { user: string; pass: string };
+    } = {
       host,
       port,
       secure: port === 465,
@@ -32,7 +40,9 @@ export class EmailService {
       config.auth = { user, pass };
     }
 
-    this.transporter = nodemailer.createTransport(config);
+    this.transporter = nodemailer.createTransport(
+      config as nodemailer.TransportOptions,
+    );
   }
 
   async sendPasswordResetEmail(
@@ -46,7 +56,10 @@ export class EmailService {
     const resetUrl = `${frontendUrl}/auth/reset-password?token=${resetToken}`;
 
     const mailOptions = {
-      from: this.configService.get<string>('SMTP_USER', 'noreply@igg.hooppul.codes'),
+      from: this.configService.get<string>(
+        'SMTP_USER',
+        'noreply@igg.hooppul.codes',
+      ),
       to: email,
       subject: 'Password Reset Request - Informatics Go Green',
       html: `
@@ -66,7 +79,9 @@ export class EmailService {
       await this.transporter.sendMail(mailOptions);
       this.logger.log(`Email sent successfully to ${email}`);
     } catch (error) {
-      this.logger.error(`Failed to send email to ${email}: ${error.message}`);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to send email to ${email}: ${errorMessage}`);
       throw error;
     }
   }
