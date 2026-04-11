@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Cron, SchedulerRegistry } from '@nestjs/schedule';
+import { CronJob } from 'cron';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, EntityManager } from 'typeorm';
 import { WasteHistory } from '../../waste/entities/waste-history.entity';
@@ -16,12 +17,13 @@ export enum CalculationStatus {
 }
 
 const LOCK_NAME = 'carbon_footprint_calculation';
+const CRON_JOB_NAME = 'carbon_calculation_job';
 const BATCH_SIZE = 100;
 const MAX_RETRY_COUNT = 3;
 const LOCK_TIMEOUT_MINUTES = 30;
 
 @Injectable()
-export class CarbonFootprintSchedulerService {
+export class CarbonFootprintSchedulerService implements OnModuleInit {
   private readonly logger = new Logger(CarbonFootprintSchedulerService.name);
   private readonly instanceId: string;
 
@@ -32,14 +34,53 @@ export class CarbonFootprintSchedulerService {
     private readonly schedulerLockRepository: Repository<SchedulerLock>,
     private readonly schedulerSettingsService: SchedulerSettingsService,
     private readonly entityManager: EntityManager,
+    private readonly schedulerRegistry: SchedulerRegistry,
   ) {
     this.instanceId = `instance_${Date.now()}_${Math.random().toString(36).substring(7)}`;
   }
 
+  async onModuleInit() {
+    await this.updateCronSchedule();
+  }
+
   /**
-   * Main Cron Job - Runs daily at 02:00 AM
+   * Updates the cron job schedule from DB settings
    */
-  @Cron('0 2 * * *')
+  async updateCronSchedule() {
+    const cronExpression = await this.schedulerSettingsService.getCronExpression();
+    
+    // Check if job exists and stop/delete it
+    if (this.schedulerRegistry.doesExist('cron', CRON_JOB_NAME)) {
+      const existingJob = this.schedulerRegistry.getCronJob(CRON_JOB_NAME);
+      existingJob.stop();
+      this.schedulerRegistry.deleteCronJob(CRON_JOB_NAME);
+    }
+    
+    // Create new job
+    const job = new CronJob(
+      cronExpression,
+      async () => {
+        const isEnabled = await this.schedulerSettingsService.getSettingAsBoolean('auto_calculate_enabled', true);
+        if (!isEnabled) {
+          this.logger.log('Auto calculation is disabled. Skipping scheduled run.');
+          return;
+        }
+        await this.handleDailyCarbonFootprintCalculation();
+      },
+      null, // onComplete
+      false, // start
+      'Asia/Bangkok' // timeZone
+    );
+    
+    this.schedulerRegistry.addCronJob(CRON_JOB_NAME, job);
+    job.start();
+    
+    this.logger.log(`Cron job '${CRON_JOB_NAME}' scheduled with expression: ${cronExpression}`);
+  }
+
+  /**
+   * Main Calculation Handler
+   */
   async handleDailyCarbonFootprintCalculation(): Promise<void> {
     this.logger.log('Starting daily carbon footprint calculation...');
 
@@ -136,20 +177,21 @@ export class CarbonFootprintSchedulerService {
       take: BATCH_SIZE,
     });
 
-    // Filter out records that have exceeded retry limit
-    const recordsToProcess = pendingRecords.filter(
-      (record) =>
-        (record.calculation_status as CalculationStatus) ===
-          CalculationStatus.PENDING ||
-        ((record.calculation_status as CalculationStatus) ===
-          CalculationStatus.FAILED &&
-          (record.retry_count || 0) < MAX_RETRY_COUNT),
-    );
-
     let success = 0;
     let failed = 0;
 
-    for (const record of recordsToProcess) {
+    for (const record of pendingRecords) {
+      // Fix stuck records that exceeded retry limit
+      if (
+        record.calculation_status === CalculationStatus.FAILED &&
+        (record.retry_count || 0) >= MAX_RETRY_COUNT
+      ) {
+        record.calculation_status = CalculationStatus.ERROR;
+        this.logger.warn(`Record ${record.id} already exceeded max retry count. Marking as error.`);
+        await this.wasteHistoryRepository.save(record);
+        continue;
+      }
+
       // Mark as processing
       record.calculation_status = CalculationStatus.PROCESSING;
       record.last_calculation_attempt = new Date();
@@ -161,7 +203,7 @@ export class CarbonFootprintSchedulerService {
         // Update record with calculated value
         record.carbon_footprint = carbonFootprint;
         record.calculation_status = CalculationStatus.CALCULATED;
-        record.error_message = undefined as unknown as string;
+        record.error_message = null as unknown as string;
         await this.wasteHistoryRepository.save(record);
 
         success++;
@@ -193,7 +235,7 @@ export class CarbonFootprintSchedulerService {
     }
 
     return {
-      processed: recordsToProcess.length,
+      processed: pendingRecords.length,
       success,
       failed,
     };
@@ -347,7 +389,7 @@ export class CarbonFootprintSchedulerService {
       id: record.id,
       amount: record.amount || 0,
       materialName:
-        record.wasteMaterial?.name || record.waste?.name || 'Unknown',
+        record.wasteMaterial?.name || record.waste?.name || 'ไม่ระบุประเภท',
       status: record.calculation_status || 'pending',
       created_at: record.create_at?.toISOString() || '',
       retryCount: record.retry_count || 0,

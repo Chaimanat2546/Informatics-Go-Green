@@ -127,6 +127,11 @@ export class SchedulerController {
     @Body() body: { updates: Array<{ key: string; value: string }> },
   ) {
     await this.schedulerSettingsService.updateSettings(body.updates);
+    
+    // Check if cron_time was updated, then trigger schedule update
+    if (body.updates.some(u => u.key === 'cron_time')) {
+      await this.carbonFootprintSchedulerService.updateCronSchedule();
+    }
 
     const settings = await this.schedulerSettingsService.getAllSettings();
 

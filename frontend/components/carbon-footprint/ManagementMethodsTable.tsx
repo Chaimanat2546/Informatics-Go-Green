@@ -64,6 +64,8 @@ export function ManagementMethodsTable({
   itemsPerPage = 5,
 }: ManagementMethodsTableProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [methodToDelete, setMethodToDelete] = useState<ManagementMethod | null>(null);
   const [editingMethod, setEditingMethod] = useState<ManagementMethod | null>(
     null,
   );
@@ -116,12 +118,26 @@ export function ManagementMethodsTable({
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("คุณต้องการลบวิธีการจัดการขยะนี้ใช่หรือไม่?")) return;
-    const success = await onDeleteMethod(id);
+  const handleDelete = (method: ManagementMethod) => {
+    setMethodToDelete(method);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!methodToDelete) return;
+    
+    setSaving(true);
+    const success = await onDeleteMethod(methodToDelete.id);
+    setSaving(false);
+    
     // Adjust page if needed after deletion
     if (success && paginatedMethods.length === 1 && currentPage > 1) {
       setCurrentPage(currentPage - 1);
+    }
+    
+    if (success) {
+      setDeleteDialogOpen(false);
+      setMethodToDelete(null);
     }
   };
 
@@ -185,7 +201,7 @@ export function ManagementMethodsTable({
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleDelete(method.id)}
+                            onClick={() => handleDelete(method)}
                             className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
                           >
                             <Trash2 className="w-3 h-3" />
@@ -288,6 +304,31 @@ export function ManagementMethodsTable({
               className="bg-blue-600 hover:bg-blue-700"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "บันทึก"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>ยืนยันการลบข้อมูล</DialogTitle>
+            <DialogDescription>
+              คุณต้องการลบวิธีการจัดการขยะ "{methodToDelete?.name}" ใช่หรือไม่? การกระทำนี้ไม่สามารถเรียกคืนได้
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={saving}>
+              ยกเลิก
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={saving}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "ลบข้อมูล"}
             </Button>
           </DialogFooter>
         </DialogContent>

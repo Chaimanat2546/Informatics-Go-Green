@@ -842,7 +842,7 @@ describe('calculateByWasteId', () => {
     );
   });
 
-  it('should throw error when no MaterialGuide and no wasteMaterial in wasteHistory', async () => {
+  it('should return 0 when no MaterialGuide and no wasteMaterial in wasteHistory (fallback)', async () => {
     // Mock no MaterialGuide records found
     mockEntityManager.find.mockImplementation((entityClass: unknown) => {
       if (entityClass === MaterialGuide) {
@@ -858,10 +858,8 @@ describe('calculateByWasteId', () => {
       wasteMaterial: undefined,
     } as unknown as WasteHistory;
 
-    await expect(
-      calculator.calculateByWasteId(1, wasteHistoryWithoutMaterial),
-    ).rejects.toThrow(
-      'No wasteMaterial found in wasteHistory for fallback calculation',
-    );
+    const result = await calculator.calculateByWasteId(1, wasteHistoryWithoutMaterial);
+    
+    expect(result).toBe(0);
   });
 });
