@@ -53,7 +53,6 @@ export default function CarbonSummaryPage() {
 
     // Mock 
     const co2Saved = (weight * (materialData?.emission_factor || 1.01)).toFixed(2);
-    const points = weight * 100;
 
     const handleConfirmSave = async () => {
         const API_URL =

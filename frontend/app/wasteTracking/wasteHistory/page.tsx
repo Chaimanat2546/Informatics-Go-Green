@@ -123,7 +123,7 @@ export default function WasteHistoryPage() {
 
 
                                             <div className="flex flex-row gap-1   items-center text-lg text-green-600 font-bold">
-                                                {item.carbon_footprint ? (
+                                                {item.carbon_footprint !== null && item.carbon_footprint !== undefined ? (
                                                     <>
                                                         <p>+{item.carbon_footprint} kgCO2e</p>
                                                         <MoveUpRight size={16} strokeWidth={3} />
@@ -164,7 +164,7 @@ export default function WasteHistoryPage() {
                                             {item.waste_category}
                                         </span>
                                         <div className="flex flex-row gap-1 items-center text-lg text-green-600 font-bold">
-                                            {item.carbon_footprint ? (
+                                            {item.carbon_footprint !== null && item.carbon_footprint !== undefined ? (
                                                 <>
                                                     <p>+{item.carbon_footprint} kgCO2e</p>
                                                     <MoveUpRight size={16} strokeWidth={3} />

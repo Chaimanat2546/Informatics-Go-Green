@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import MenuBar from "@/components/wasteTracking/MenuBar";
-import { AlertCircle, CheckCircle2, Leaf, Loader2, Save } from "lucide-react";
+import { AlertCircle, Leaf, Loader2, Save } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";

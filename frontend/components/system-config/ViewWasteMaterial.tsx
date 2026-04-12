@@ -119,6 +119,9 @@ export default function ViewWasteMaterial({ materialId }: Props) {
         router.push("/auth/login");
       } else if (response.status === 403) {
         toast.error("คุณไม่มีสิทธิ์ลบข้อมูล");
+      } else if (response.status === 409) {
+        const errorData = await response.json();
+        toast.error(errorData.message || "ไม่สามารถลบได้เนื่องจากมีการใช้งานข้อมูลนี้อยู่");
       } else {
         toast.error("ไม่สามารถลบข้อมูลได้");
       }
@@ -180,7 +183,7 @@ export default function ViewWasteMaterial({ materialId }: Props) {
           <p className="text-slate-600">ข้อมูลค่าสัมประสิทธิ์การปล่อยมลพิษ</p>
         </div>
 
-        <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl shadow-slate-200/50 border border-white/60 overflow-hidden animate-scale">
+        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-white/60 overflow-hidden animate-scale">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 p-8">
             {/* Left Section - Image */}
             <div className="lg:col-span-2 space-y-4">

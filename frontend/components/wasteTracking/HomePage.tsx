@@ -1,19 +1,7 @@
 "use client";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
 import LatestWasteSorting from "./LatestWasteSorting";
 import MenuBar from "./MenuBar";
-import { History, LayoutGrid, Leaf, Recycle, ScanLine, Search } from "lucide-react";
-import {
-    InputGroup,
-    InputGroupAddon,
-    InputGroupInput,
-} from "@/components/ui/input-group"
+import { History, LayoutGrid, Leaf, Recycle, ScanLine } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 
@@ -39,7 +27,7 @@ export default function HomePage({ title }: props) {
     const searchParams = useSearchParams();
     const [user, setUser] = useState<User | null>(null);
     const [summary, setSummary] = useState<WasteSummary>({ totalWeight: 0, totalCarbon: 0 });
-    const [filterType, setFilterType] = useState<FilterType>('monthly');
+    const [filterType] = useState<FilterType>('monthly');
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
     useEffect(() => {
@@ -61,8 +49,8 @@ export default function HomePage({ title }: props) {
                     const data = await res.json();
                     setSummary(data);
                 }
-            } catch (error) {
-                console.error("Error fetching summary:", error);
+            } catch {
+                console.error("Error fetching summary");
             }
         };
 
@@ -86,8 +74,8 @@ export default function HomePage({ title }: props) {
                     setUser(null);
                     fetchWasteSummary(undefined, filterType);
                 }
-            } catch (error) {
-                console.error("Auth Error", error);
+            } catch {
+                console.error("Auth Error");
                 fetchWasteSummary(undefined, filterType);
             }
         };

@@ -1,0 +1,21 @@
+NODE_ENV=production
+
+# Database
+POSTGRES_USER=goapp
+POSTGRES_PASSWORD=YourSecurePassword123!
+POSTGRES_DB=informatics_go_green
+
+# Backend
+API_URL=https://if-go-green.informatics.buu.ac.th/api
+FRONTEND_URL=https://if-go-green.informatics.buu.ac.th
+JWT_SECRET=YourRandomSecretKeyAtLeast32CharactersLong
+JWT_EXPIRES_IN_SECONDS=604800
+
+# Frontend
+NEXT_PUBLIC_API_URL=https://if-go-green.informatics.buu.ac.th/api
+
+# SMTP (ถ้าใช้ Gmail)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@buu.ac.th
+SMTP_PASS=your-app-password

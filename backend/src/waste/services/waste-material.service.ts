@@ -2,11 +2,14 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { WasteMaterial } from '../entities/waste-material.entity';
 import { WasteCategory } from '../entities/waste-category.entity';
+import { WasteHistory } from '../entities/waste-history.entity';
+import { MaterialGuide } from '../entities/material-guide.entity';
 import {
   CreateWasteMaterialDto,
   UpdateWasteMaterialDto,
@@ -76,6 +79,16 @@ export class WasteMaterialService {
   async createWasteMaterial(
     createDto: CreateWasteMaterialDto,
   ): Promise<WasteMaterial> {
+    // Check for duplicate name
+    const existingMaterial = await this.wasteMaterialRepository.findOne({
+      where: { name: createDto.name },
+    });
+    if (existingMaterial) {
+      throw new ConflictException(
+        `วัสดุชื่อ "${createDto.name}" มีอยู่ในระบบแล้ว`,
+      );
+    }
+
     // Validate category exists
     const category = await this.wasteCategoryRepository.findOne({
       where: { id: createDto.wasteCategoryId },
@@ -99,6 +112,18 @@ export class WasteMaterialService {
     updateDto: UpdateWasteMaterialDto,
   ): Promise<WasteMaterial> {
     const material = await this.getWasteMaterialById(id);
+
+    // Check for duplicate name if name is being changed
+    if (updateDto.name && updateDto.name !== material.name) {
+      const existingMaterial = await this.wasteMaterialRepository.findOne({
+        where: { name: updateDto.name },
+      });
+      if (existingMaterial) {
+        throw new ConflictException(
+          `วัสดุชื่อ "${updateDto.name}" มีอยู่ในระบบแล้ว`,
+        );
+      }
+    }
 
     // Validate category if provided
     if (updateDto.wasteCategoryId) {
@@ -150,6 +175,28 @@ export class WasteMaterialService {
 
       if (!material) {
         throw new NotFoundException(`Waste material with ID ${id} not found`);
+      }
+
+      // Check if material is being used in WasteHistory
+      const historyCount = await queryRunner.manager.count(WasteHistory, {
+        where: { waste_meterialid: id },
+      });
+
+      if (historyCount > 0) {
+        throw new ConflictException(
+          `ไม่สามารถลบได้เนื่องจากมีการใช้งานในประวัติการแยกขยะ (${historyCount} รายการ)`,
+        );
+      }
+
+      // Check if material is being used in MaterialGuide
+      const guideCount = await queryRunner.manager.count(MaterialGuide, {
+        where: { waste_meterialid: id },
+      });
+
+      if (guideCount > 0) {
+        throw new ConflictException(
+          `ไม่สามารถลบได้เนื่องจากมีการใช้งานในคู่มือการแยกขยะ (${guideCount} รายการ)`,
+        );
       }
 
       const imageUrl: string | null | undefined = material.materialImage;

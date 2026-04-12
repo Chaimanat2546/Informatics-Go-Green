@@ -59,7 +59,7 @@ export class WasteHistoryService {
   private mapHistoryData(histories: WasteHistory[]) {
     return histories.map((history) => {
       const materialName =
-        history.wasteMaterial?.name || history.waste?.name || 'Unknown';
+        history.wasteMaterial?.name || history.waste?.name || 'ไม่ระบุประเภท';
       const categoryName =
         history.waste?.wasteCategory?.name ||
         history.wasteMaterial?.wasteCategory?.name ||
@@ -86,7 +86,7 @@ export class WasteHistoryService {
               console.warn(
                 `WasteHistory id=${history.id} has no associated user (userid=${history.userid}). Possible broken FK or cascade deletion.`,
               );
-              return 'Unknown';
+              return 'ผู้ใช้งานทั่วไป';
             })(),
         carbon_footprint: history.carbon_footprint,
         points: points,

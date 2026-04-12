@@ -192,7 +192,9 @@ export class SchedulerSettingsService implements OnModuleInit {
     const cronTime = await this.getSetting('cron_time');
     if (cronTime) {
       const [hour, minute] = cronTime.split(':').map(Number);
-      return `${minute || 0} ${hour || 2} * * *`;
+      const h = hour !== undefined && !isNaN(hour) ? hour : 2;
+      const m = minute !== undefined && !isNaN(minute) ? minute : 0;
+      return `${m} ${h} * * *`;
     }
     return '0 2 * * *'; // Default: 02:00
   }

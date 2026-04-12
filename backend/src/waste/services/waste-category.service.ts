@@ -47,4 +47,17 @@ export class WasteCategoryService {
     const category = this.wasteCategoryRepository.create(createDto);
     return await this.wasteCategoryRepository.save(category);
   }
+
+  async delete(id: number): Promise<void> {
+    const category = await this.findOne(id);
+
+    // ตรวจสอบว่ามีการใช้งานใน WasteMaterial หรือไม่
+    if (category.materials && category.materials.length > 0) {
+      throw new ConflictException(
+        `ไม่สามารถลบหมวดหมู่ได้ เนื่องจากมีการใช้งานอยู่ใน ${category.materials.length} วัสดุ`,
+      );
+    }
+
+    await this.wasteCategoryRepository.remove(category);
+  }
 }

@@ -33,6 +33,9 @@ interface RequestWithUser extends Request {
   user: User;
 }
 
+import { OAuthExceptionFilter } from './filters/oauth-exception.filter';
+import { UseFilters } from '@nestjs/common';
+
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -71,6 +74,7 @@ export class AuthController {
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
+  @UseFilters(OAuthExceptionFilter)
   googleAuthCallback(@Req() req: RequestWithUser, @Res() res: Response) {
     const token = this.authService.generateJwtToken(req.user);
     const frontendUrl = this.configService.get<string>(

@@ -15,8 +15,8 @@ async function bootstrap() {
   });
 
   // Increase body size limit for file uploads
-  app.useBodyParser('json', { limit: '10mb' });
-  app.useBodyParser('urlencoded', { limit: '10mb', extended: true });
+  app.useBodyParser('json', { limit: '50mb' });
+  app.useBodyParser('urlencoded', { limit: '50mb', extended: true });
 
   // Enable CORS
   app.enableCors({

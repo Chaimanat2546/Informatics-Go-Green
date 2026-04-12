@@ -71,9 +71,16 @@ export class UploadService {
     file: Express.Multer.File,
   ): Promise<{ url: string; filename: string }> {
     // Validate file type
-    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+    const allowedMimeTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/jpg',
+      'image/webp',
+    ];
     if (!allowedMimeTypes.includes(file.mimetype)) {
-      throw new BadRequestException('Only JPEG, PNG, and WEBP files are allowed');
+      throw new BadRequestException(
+        'Only JPEG, PNG, and WEBP files are allowed',
+      );
     }
 
     // Validate file size (5MB)
