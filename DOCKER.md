@@ -150,6 +150,7 @@ docker-compose up --build -d
 | Problem | Cause | Solution |
 |---------|-------|----------|
 | **bcrypt Error** | `bcrypt` compiled on Windows ไม่ทำงานบน Linux Container | ใช้ `bcryptjs` แทน (แก้ไขแล้ว) หรือ rebuild: `docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d backend` |
+| **413 Payload Too Large** | ขนาดไฟล์รูปภาพที่อัปโหลดใหญ่เกินขีดจำกัด | เพิ่ม `client_max_body_size 50M;` ใน Nginx และตั้งค่า `fileSize` ใน `FilesInterceptor` (Backend) |
 | **Dependency Conflict** | npm ci failed เนื่องจาก version conflict | ใช้ `npm install --legacy-peer-deps` (ตั้งค่าใน Dockerfile.dev แล้ว) |
 | **Hot Reload ไม่ทำงาน** | Volume mounting มีปัญหาบน Windows | ลอง restart Docker Desktop หรือใช้ `--watch` flag |
 | **Database Connection Refused** | PostgreSQL ยังไม่พร้อม | รอสักครู่หรือ `docker compose -f docker-compose.yml -f docker-compose.dev.yml restart backend` |
