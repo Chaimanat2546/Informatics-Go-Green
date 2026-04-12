@@ -192,7 +192,7 @@ export default function WasteHistoryPage() {
                                         <div className="flex flex-row items-baseline gap-2">
                                             <p className="text-md text-gray-800">ปริมาณ</p>
                                             <p className="text-md font-bold text-gray-900">
-                                                {item.amount} กก. / ชิ้น
+                                                { Number(item.amount).toFixed(2) } กก. / ชิ้น
                                             </p>
                                         </div>
                                         <button

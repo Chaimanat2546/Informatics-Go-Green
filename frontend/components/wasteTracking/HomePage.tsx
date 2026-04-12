@@ -98,9 +98,9 @@ export default function HomePage({ title }: props) {
                     
                 </header>
                 <div className="px-6 -mt-20 relative z-10">
-                    <div className="bg-white rounded-3xl p-6 shadow-lg flex flex-col gap-4">
+                    <div className="bg-white rounded-3xl px-4 py-6 shadow-lg flex flex-col gap-4">
                         <div className="flex  justify-between items-center">
-                            <div className="flex items-center gap-2 text-black font-semibold text-lg leading-5">
+                            <div className="flex items-center gap-2 text-black font-semibold text-xl leading-6">
                                 <LayoutGrid size={24} className="text-gray-700" />
                                 <span>สรุปการคัดแยกขยะ</span>
                             </div>
@@ -121,21 +121,21 @@ export default function HomePage({ title }: props) {
                         </div>
 
                         <div className="flex items-center pt-0">
-                            <div className="flex-1">
+                            <div className="flex-1 -mr-6">
                                 <p className="text-gray-800 text-sm mb-1">น้ำหนักรวม</p>
                                 <div className="flex items-baseline gap-1">
-                                    <span className="text-[#5EA500] text-4xl font-bold">
+                                    <span className="text-[#5EA500] text-3xl font-bold">
                                         
                                         {summary.totalWeight}
                                     </span>
                                     <span className="text-[#5EA500] text-lg font-medium">กก.</span>
                                 </div>
                             </div>
-                            <div className="w-px h-12 bg-gray-200 mx-4"></div>
-                            <div className="flex-1 pl-2">
+                            <div className="w-px h-12 bg-gray-200 mx-2"></div>
+                            <div className="flex-1 pl-1">
                                 <p className="text-gray-800 text-sm mb-1">Carbon Footprint</p>
                                 <div className="flex items-baseline gap-1">
-                                    <span className="text-[#5EA500] text-4xl font-bold">
+                                    <span className="text-[#5EA500] text-3xl font-bold">
                                         {summary.totalCarbon}
                                     </span>
                                     <span className="text-[#5EA500] text-lg font-medium">kgCO2e</span>

@@ -19,16 +19,16 @@ interface WastePieChartProps {
     data: ApiDataItem[];
 }
 
-const getCategoryColor = (categoryName: string): string => {
-    const name = categoryName.toLowerCase();
-    if (name.includes('พลาสติก')) return '#4ADE80'; 
-    if (name.includes('กระดาษ')) return '#FDE047';  
-    if (name.includes('แก้ว')) return '#93C5FD';   
-    if (name.includes('เหล็ก')) return '#EF4444';  
-    if (name.includes('โลหะ') || name.includes('อลูมิเนียม')) return '#CBD5E1'; 
-    if (name.includes('อินทรีย์') || name.includes('อาหาร')) return '#A3E635'; 
-    if (name.includes('อันตราย')) return '#F87171'; 
-    return '#D8B4FE'; 
+const getMainCategory = (materialName: string): string => {
+    const name = materialName.toLowerCase();
+    if (name.includes('พลาสติก')) return 'พลาสติก'; 
+    if (name.includes('กระดาษ')) return 'กระดาษ';  
+    if (name.includes('แก้ว')) return 'แก้ว';   
+    if (name.includes('เหล็ก')) return 'เหล็ก';  
+    if (name.includes('โลหะ') || name.includes('อลูมิเนียม')) return 'โลหะ/อลูมิเนียม'; 
+    if (name.includes('อินทรีย์') || name.includes('อาหาร')) return 'ขยะอินทรีย์'; 
+    if (name.includes('อันตราย')) return 'ขยะอันตราย'; 
+    return 'อื่นๆ'; 
 };
 
 interface ActiveShapeProps extends PieSectorDataItem {
@@ -92,7 +92,7 @@ export default function WastePieChart({ data = [] }: WastePieChartProps) {
         return data.map((item) => ({
             name: item.categoryName,
             value: Number(item.totalWeight), 
-            color: getCategoryColor(item.categoryName),
+            color: getMainCategory(item.categoryName),
         })).filter(item => item.value > 0); 
     }, [data]);
 

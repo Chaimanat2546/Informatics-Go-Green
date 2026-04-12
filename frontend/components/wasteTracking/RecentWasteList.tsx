@@ -76,7 +76,7 @@ export default function RecentWasteList() {
                   {item.waste_category}
                 </Badge>
                 <span className="text-md font-semibold text-gray-900">
-                  {item.amount} กิโลกรัม
+                 { Number(item.amount).toFixed(2) } กิโลกรัม
                 </span>
               </div>
             </div>
