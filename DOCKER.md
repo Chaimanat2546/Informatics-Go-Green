@@ -47,13 +47,13 @@
 
 ```bash
 # Start ครั้งแรก หรือหลังแก้ไข package.json
-docker-compose -f docker-compose.dev.yml up --build -d
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
 
 # Start ปกติ
-docker-compose -f docker-compose.dev.yml up -d
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
 # Start พร้อม Hot Reload Watch Mode (แนะนำ)
-docker-compose -f docker-compose.dev.yml up --build --watch
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build --watch
 ```
 
 ### Hot Reload Configuration
@@ -75,7 +75,7 @@ docker-compose -f docker-compose.dev.yml up --build --watch
 
 ```bash
 # Build และ Start Production
-docker-compose -f docker-compose.prod.yml up --build -d
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
 
 # หรือใช้ docker-compose.yml (default)
 docker-compose up --build -d
@@ -89,34 +89,34 @@ docker-compose up --build -d
 
 | Command | Description |
 |---------|-------------|
-| `docker-compose -f docker-compose.dev.yml up -d` | Start containers (background) |
-| `docker-compose -f docker-compose.dev.yml up --build -d` | Rebuild และ start |
-| `docker-compose -f docker-compose.dev.yml down` | Stop และลบ containers |
-| `docker-compose -f docker-compose.dev.yml restart` | Restart ทุก containers |
-| `docker-compose -f docker-compose.dev.yml restart backend` | Restart เฉพาะ backend |
+| `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d` | Start containers (background) |
+| `docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d` | Rebuild และ start |
+| `docker compose -f docker-compose.yml -f docker-compose.dev.yml down` | Stop และลบ containers |
+| `docker compose -f docker-compose.yml -f docker-compose.dev.yml restart` | Restart ทุก containers |
+| `docker compose -f docker-compose.yml -f docker-compose.dev.yml restart backend` | Restart เฉพาะ backend |
 
 ### Logs & Debugging
 
 | Command | Description |
 |---------|-------------|
-| `docker-compose -f docker-compose.dev.yml logs -f` | ดู logs ทั้งหมด (real-time) |
-| `docker-compose -f docker-compose.dev.yml logs -f backend` | ดู logs เฉพาะ backend |
-| `docker-compose -f docker-compose.dev.yml logs -f frontend` | ดู logs เฉพาะ frontend |
-| `docker-compose -f docker-compose.dev.yml ps` | แสดง status ของ containers |
+| `docker compose -f docker-compose.yml -f docker-compose.dev.yml logs -f` | ดู logs ทั้งหมด (real-time) |
+| `docker compose -f docker-compose.yml -f docker-compose.dev.yml logs -f backend` | ดู logs เฉพาะ backend |
+| `docker compose -f docker-compose.yml -f docker-compose.dev.yml logs -f frontend` | ดู logs เฉพาะ frontend |
+| `docker compose -f docker-compose.yml -f docker-compose.dev.yml ps` | แสดง status ของ containers |
 
 ### Database Operations
 
 | Command | Description |
 |---------|-------------|
-| `docker-compose -f docker-compose.dev.yml exec postgres psql -U postgres -d informatics_go_green` | เข้า PostgreSQL CLI |
-| `docker-compose -f docker-compose.dev.yml exec postgres pg_dump -U postgres informatics_go_green > backup.sql` | Backup database |
+| `docker compose -f docker-compose.yml -f docker-compose.dev.yml exec postgres psql -U postgres -d informatics_go_green` | เข้า PostgreSQL CLI |
+| `docker compose -f docker-compose.yml -f docker-compose.dev.yml exec postgres pg_dump -U postgres informatics_go_green > backup.sql` | Backup database |
 
 ### Container Access
 
 | Command | Description |
 |---------|-------------|
-| `docker-compose -f docker-compose.dev.yml exec backend sh` | เข้า shell ใน backend |
-| `docker-compose -f docker-compose.dev.yml exec frontend sh` | เข้า shell ใน frontend |
+| `docker compose -f docker-compose.yml -f docker-compose.dev.yml exec backend sh` | เข้า shell ใน backend |
+| `docker compose -f docker-compose.yml -f docker-compose.dev.yml exec frontend sh` | เข้า shell ใน frontend |
 
 ---
 
@@ -149,23 +149,23 @@ docker-compose up --build -d
 
 | Problem | Cause | Solution |
 |---------|-------|----------|
-| **bcrypt Error** | `bcrypt` compiled on Windows ไม่ทำงานบน Linux Container | ใช้ `bcryptjs` แทน (แก้ไขแล้ว) หรือ rebuild: `docker-compose -f docker-compose.dev.yml up --build -d backend` |
+| **bcrypt Error** | `bcrypt` compiled on Windows ไม่ทำงานบน Linux Container | ใช้ `bcryptjs` แทน (แก้ไขแล้ว) หรือ rebuild: `docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d backend` |
 | **Dependency Conflict** | npm ci failed เนื่องจาก version conflict | ใช้ `npm install --legacy-peer-deps` (ตั้งค่าใน Dockerfile.dev แล้ว) |
 | **Hot Reload ไม่ทำงาน** | Volume mounting มีปัญหาบน Windows | ลอง restart Docker Desktop หรือใช้ `--watch` flag |
-| **Database Connection Refused** | PostgreSQL ยังไม่พร้อม | รอสักครู่หรือ `docker-compose -f docker-compose.dev.yml restart backend` |
+| **Database Connection Refused** | PostgreSQL ยังไม่พร้อม | รอสักครู่หรือ `docker compose -f docker-compose.yml -f docker-compose.dev.yml restart backend` |
 | **Port Already in Use** | Port 3000/3001/5432 ถูกใช้งานอยู่ | หยุด process ที่ใช้ port นั้น หรือเปลี่ยน port ใน docker-compose |
 
 ### Reset Everything
 
 ```bash
 # Stop ทั้งหมด
-docker-compose -f docker-compose.dev.yml down
+docker compose -f docker-compose.yml -f docker-compose.dev.yml down
 
 # ลบ volumes (ระวัง: ลบข้อมูล database ด้วย!)
-docker-compose -f docker-compose.dev.yml down -v
+docker compose -f docker-compose.yml -f docker-compose.dev.yml down -v
 
 # Rebuild จาก scratch
-docker-compose -f docker-compose.dev.yml up --build -d
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
 ```
 
 ---
