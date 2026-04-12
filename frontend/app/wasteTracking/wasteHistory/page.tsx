@@ -27,14 +27,17 @@ export default function WasteHistoryPage() {
         });
     };
 
-    const getCategoryStyle = (category: string) => {
-        const cat = category.toLowerCase();
-        if (cat.includes('พลาสติก') || cat.includes('plastic')) return "bg-yellow-100 text-yellow-700";
-        if (cat.includes('แก้ว') || cat.includes('glass')) return "bg-blue-100 text-blue-700";
-        if (cat.includes('กระดาษ') || cat.includes('paper')) return "bg-gray-100 text-gray-700";
-        if (cat.includes('โลหะ') || cat.includes('metal')) return "bg-red-100 text-red-700";
-        return "bg-green-100 text-green-700";
-    };
+    const getCategoryColor = (categoryName: string): string => {
+    const name = categoryName.toLowerCase();
+    if (name.includes('พลาสติก')) return '#4ADE80'; 
+    if (name.includes('กระดาษ')) return '#FDE047';  
+    if (name.includes('แก้ว')) return '#93C5FD';   
+    if (name.includes('เหล็ก')) return '#EF4444';  
+    if (name.includes('โลหะ') || name.includes('อลูมิเนียม')) return '#CBD5E1'; 
+    if (name.includes('อินทรีย์') || name.includes('อาหาร')) return '#A3E635'; 
+    if (name.includes('อันตราย')) return '#F87171'; 
+    return '#D8B4FE'; 
+};
 
     // Points are now calculated by the backend
 
@@ -143,7 +146,7 @@ export default function WasteHistoryPage() {
 
                                         <div className="-mt-3">
                                             <p className="text-xl font-bold flex items-center justify-between text-slate-700">{item.meterial_name}
-                                                <span className={`${getCategoryStyle(item.waste_category)} text-sm font-bold px-3 ml-1 py-1 rounded-full`}>
+                                                <span className={`${getCategoryColor(item.waste_category)} text-sm font-bold px-3 ml-1 py-1 rounded-full`}>
                                                     {item.waste_category}
                                                 </span></p>
                                             <div className="flex items-center gap-2 mt-1">
@@ -160,7 +163,7 @@ export default function WasteHistoryPage() {
                             return (
                                 <Card key={item.id} className="p-4 w-full relative flex flex-col gap-3 border-none shadow-md ring-1 ring-gray-100">
                                     <div className="flex flex-row justify-between w-full items-start">
-                                        <span className={`${getCategoryStyle(item.waste_category)} text-sm font-bold px-3 py-1 rounded-full`}>
+                                        <span className={`${getCategoryColor(item.waste_category)} text-sm font-bold px-3 py-1 rounded-full`}>
                                             {item.waste_category}
                                         </span>
                                         <div className="flex flex-row gap-1 items-center text-lg text-green-600 font-bold">
