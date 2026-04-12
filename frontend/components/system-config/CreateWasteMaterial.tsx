@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Image from "next/image";
-import { Search, Plus, Trash2, ChevronDown, Check, X, Loader2, AlertCircle } from "lucide-react";
+import { Search, Plus, Trash2, ChevronDown, Check, X, Loader2 } from "lucide-react";
 
 interface Category {
   id: number;
@@ -232,7 +232,7 @@ export default function CreateWasteMaterial() {
         const errorData = await response.json();
         toast.error(errorData.message || "ไม่สามารถเพิ่มหมวดหมู่ได้");
       }
-    } catch (error) {
+    } catch {
       toast.error("เกิดข้อผิดพลาด");
     }
   };

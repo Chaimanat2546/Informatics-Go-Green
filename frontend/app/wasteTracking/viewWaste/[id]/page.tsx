@@ -2,9 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, ThumbsUp, ThumbsDown, CheckCircle2, Leaf, Loader2, AlertTriangle, Info, Share2 } from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
+import { ThumbsUp, ThumbsDown, CheckCircle2, Leaf, Loader2, AlertTriangle } from 'lucide-react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import MenuBar from "@/components/wasteTracking/MenuBar";
@@ -58,7 +56,6 @@ export default function ViewWastePage() {
     const [reactionState, setReactionState] = useState<ReactionState>({ likes: 0, dislikes: 0, userReaction: null });
     const [showDislikeWarning, setShowDislikeWarning] = useState(false);
     const [userId, setUserId] = useState<string | null>(null);
-    const [reactionError, setReactionError] = useState<string | null>(null);
     const [submittingReaction, setSubmittingReaction] = useState(false);
 
     const DISLIKE_THRESHOLD = Number(process.env.NEXT_PUBLIC_WASTE_DISLIKE_THRESHOLD) || 50;
@@ -66,7 +63,6 @@ export default function ViewWastePage() {
     const submitReaction = async (type: 'like' | 'dislike') => {
         if (!userId || submittingReaction) return;
         const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
-        setReactionError(null);
         setSubmittingReaction(true);
         try {
             const token = localStorage.getItem('token');
@@ -86,13 +82,6 @@ export default function ViewWastePage() {
                     router.push('/auth/login');
                     return;
                 }
-                let message = `Failed to submit reaction (status ${res.status})`;
-                try {
-                    const errorData = await res.json();
-                    message = errorData.message || message;
-                } catch (e) {}
-                
-                setReactionError(message);
                 setSubmittingReaction(false);
                 return;
             }
@@ -103,9 +92,8 @@ export default function ViewWastePage() {
                 return;
             }
             setReactionState(data);
-        } catch (err) {
-            console.error(err);
-            setReactionError('ไม่สามารถบันทึก reaction ได้ กรุณาลองใหม่อีกครั้ง');
+        } catch {
+            // Error logged elsewhere or not needed
         } finally {
             setSubmittingReaction(false);
         }
@@ -135,7 +123,9 @@ export default function ViewWastePage() {
                 const parsed = JSON.parse(storedUser);
                 uid = parsed.id;
                 setUserId(uid);
-            } catch (e) { console.error(e); }
+            } catch {
+                uid = null;
+            }
         }
 
         const fetchData = async () => {
@@ -170,8 +160,7 @@ export default function ViewWastePage() {
                     localStorage.removeItem('user');
                     setUserId(null);
                 }
-            } catch (err) {
-                console.error(err);
+            } catch {
                 setError(true);
             } finally {
                 setLoading(false);

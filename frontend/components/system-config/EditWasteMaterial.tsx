@@ -87,10 +87,10 @@ export default function EditWasteMaterial({ materialId }: Props) {
           toast.error("ไม่พบข้อมูล");
           router.push("/systemConfig/emission-factor");
         }
-      } catch (error) {
-        console.error("Error loading data:", error);
+      } catch {
         toast.error("ไม่สามารถโหลดข้อมูลได้");
-      } finally {
+      }
+ finally {
         setIsLoading(false);
       }
     };
@@ -195,9 +195,10 @@ export default function EditWasteMaterial({ materialId }: Props) {
         const errorData = await response.json();
         toast.error(errorData.message || "เกิดข้อผิดพลาดในการบันทึก");
       }
-    } catch (error) {
+    } catch {
       toast.error("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
-    } finally {
+    }
+ finally {
       setIsSubmitting(false);
     }
   };
@@ -229,7 +230,7 @@ export default function EditWasteMaterial({ materialId }: Props) {
         const errorData = await response.json();
         toast.error(errorData.message || "ไม่สามารถเพิ่มหมวดหมู่ได้");
       }
-    } catch (error) {
+    } catch {
       toast.error("เกิดข้อผิดพลาด");
     }
   };

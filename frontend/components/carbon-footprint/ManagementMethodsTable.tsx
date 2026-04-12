@@ -315,7 +315,7 @@ export function ManagementMethodsTable({
           <DialogHeader>
             <DialogTitle>ยืนยันการลบข้อมูล</DialogTitle>
             <DialogDescription>
-              คุณต้องการลบวิธีการจัดการขยะ "{methodToDelete?.name}" ใช่หรือไม่? การกระทำนี้ไม่สามารถเรียกคืนได้
+              คุณต้องการลบวิธีการจัดการขยะ &quot;{methodToDelete?.name}&quot; ใช่หรือไม่? การกระทำนี้ไม่สามารถเรียกคืนได้
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
