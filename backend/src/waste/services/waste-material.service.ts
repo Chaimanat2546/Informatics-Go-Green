@@ -79,6 +79,14 @@ export class WasteMaterialService {
   async createWasteMaterial(
     createDto: CreateWasteMaterialDto,
   ): Promise<WasteMaterial> {
+    // Check for duplicate name
+    const existingMaterial = await this.wasteMaterialRepository.findOne({
+      where: { name: createDto.name },
+    });
+    if (existingMaterial) {
+      throw new ConflictException(`วัสดุชื่อ "${createDto.name}" มีอยู่ในระบบแล้ว`);
+    }
+
     // Validate category exists
     const category = await this.wasteCategoryRepository.findOne({
       where: { id: createDto.wasteCategoryId },
@@ -102,6 +110,16 @@ export class WasteMaterialService {
     updateDto: UpdateWasteMaterialDto,
   ): Promise<WasteMaterial> {
     const material = await this.getWasteMaterialById(id);
+
+    // Check for duplicate name if name is being changed
+    if (updateDto.name && updateDto.name !== material.name) {
+      const existingMaterial = await this.wasteMaterialRepository.findOne({
+        where: { name: updateDto.name },
+      });
+      if (existingMaterial) {
+        throw new ConflictException(`วัสดุชื่อ "${updateDto.name}" มีอยู่ในระบบแล้ว`);
+      }
+    }
 
     // Validate category if provided
     if (updateDto.wasteCategoryId) {

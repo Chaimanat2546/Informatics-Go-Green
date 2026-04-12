@@ -379,7 +379,7 @@ export default function AddWastePage() {
                                 id="wasteCategory"
                                 value={wasteCategoryId}
                                 onChange={(e) => setWasteCategoryId(Number(e.target.value))}
-                                className="w-full h-12 px-3 rounded-lg border border-gray-200 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
+                                className="w-full h-12 px-3 rounded-lg border border-gray-200 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all cursor-pointer overflow-y-auto"
                             >
                                 <option value={0}>-- เลือกหมวดหมู่ --</option>
                                 {categories.map((cat) => (
@@ -495,7 +495,7 @@ export default function AddWastePage() {
                                     <select
                                         value={guide.waste_meterialid}
                                         onChange={(e) => updateMaterialGuide(index, 'waste_meterialid', Number(e.target.value))}
-                                        className="w-full h-11 px-3 rounded-lg border border-gray-200 bg-white text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
+                                        className="w-full h-11 px-3 rounded-lg border border-gray-200 bg-white text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition-all overflow-y-auto"
                                     >
                                         <option value={0}>-- เลือกประเภทวัสดุ --</option>
                                         {materials
