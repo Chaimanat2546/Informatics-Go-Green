@@ -42,6 +42,9 @@ export class WasteManageController {
   @UseInterceptors(
     FilesInterceptor('files', 20, {
       storage: memoryStorage(),
+      limits: {
+        fileSize: 50 * 1024 * 1024, // 50MB
+      },
       fileFilter: (req, file, callback) => {
         if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
           callback(null, true);

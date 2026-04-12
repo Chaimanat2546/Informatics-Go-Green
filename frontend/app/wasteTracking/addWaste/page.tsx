@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -16,6 +16,8 @@ import {
     Loader2,
     ImagePlus,
     CheckCircle2,
+    AlertCircle,
+    Search,
 } from 'lucide-react';
 
 interface CategoryOption {
@@ -26,6 +28,7 @@ interface CategoryOption {
 interface MaterialOption {
     id: number;
     name: string;
+    wasteCategoryId: number | null;
 }
 
 interface MaterialGuideInput {
@@ -51,6 +54,11 @@ export default function AddWastePage() {
     const [wasteImageFile, setWasteImageFile] = useState<File | null>(null);
     const [wasteImagePreview, setWasteImagePreview] = useState('');
 
+    // Barcode validation state
+    const [isCheckingBarcode, setIsCheckingBarcode] = useState(false);
+    const [barcodeError, setBarcodeError] = useState<string | null>(null);
+    const [existingWasteId, setExistingWasteId] = useState<number | null>(null);
+
     // Step 2: Material guides
     const [materialGuides, setMaterialGuides] = useState<MaterialGuideInput[]>([
         { waste_meterialid: 0, recommendation: '', weight: '', guideImageFile: null, guideImagePreview: '' },
@@ -71,23 +79,27 @@ export default function AddWastePage() {
             try {
                 const [catRes, matRes] = await Promise.all([
                     fetch(`${API_URL}/waste/categories`),
-                    fetch(`${API_URL}/waste/waste-materials`),
+                    fetch(`${API_URL}/waste/waste-materials?limit=100`),
                 ]);
+                
                 if (catRes.ok) {
                     const catData = await catRes.json();
-                    setCategories(catData.data || catData || []);
+                    // API returns { data: [...] }
+                    setCategories(catData.data || []);
                 } else {
-                    toast.error('โหลดหมวดหมู่ไม่สำเร็จ', { description: `เซิร์ฟเวอร์ตอบกลับสถานะ ${catRes.status}` });
+                    toast.error('โหลดหมวดหมู่ไม่สำเร็จ');
                 }
+                
                 if (matRes.ok) {
                     const matData = await matRes.json();
-                    setMaterials(matData.data || matData || []);
+                    // API returns { data: [...] }
+                    setMaterials(matData.data || []);
                 } else {
-                    toast.error('โหลดประเภทวัสดุไม่สำเร็จ', { description: `เซิร์ฟเวอร์ตอบกลับสถานะ ${matRes.status}` });
+                    toast.error('โหลดประเภทวัสดุไม่สำเร็จ');
                 }
             } catch (e) {
                 console.error('Error fetching dropdown data:', e);
-                toast.error('ไม่สามารถโหลดข้อมูลได้', { description: 'กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตและลองใหม่' });
+                toast.error('ไม่สามารถโหลดข้อมูลได้', { description: 'กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต' });
             } finally {
                 setLoading(false);
             }
@@ -95,10 +107,49 @@ export default function AddWastePage() {
         fetchData();
     }, [API_URL]);
 
+    // Barcode duplicate check
+    const checkBarcode = useCallback(async (code: string) => {
+        if (!code || code.trim() === '') {
+            setBarcodeError(null);
+            setExistingWasteId(null);
+            return;
+        }
+
+        setIsCheckingBarcode(true);
+        setBarcodeError(null);
+        setExistingWasteId(null);
+
+        try {
+            const res = await fetch(`${API_URL}/waste/scan/${code}`);
+            if (res.ok) {
+                const data = await res.json();
+                setBarcodeError(`บาร์โค้ดนี้มีอยู่ในระบบแล้ว: ${data.name}`);
+                setExistingWasteId(data.id);
+            }
+        } catch (e) {
+            // If 404, it's good (barcode doesn't exist yet)
+            console.log('Barcode not found (this is good for adding new):', e);
+        } finally {
+            setIsCheckingBarcode(false);
+        }
+    }, [API_URL]);
+
+    // Debounce barcode check
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (barcode) checkBarcode(barcode);
+        }, 800);
+        return () => clearTimeout(timer);
+    }, [barcode, checkBarcode]);
+
     // Image handlers
     const handleWasteImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            if (file.size > 10 * 1024 * 1024) {
+                toast.error('ไฟล์มีขนาดใหญ่เกินไป', { description: 'ขนาดรูปภาพต้องไม่เกิน 10MB' });
+                return;
+            }
             setWasteImageFile(file);
             setWasteImagePreview(URL.createObjectURL(file));
         }
@@ -107,6 +158,10 @@ export default function AddWastePage() {
     const handleGuideImageChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            if (file.size > 10 * 1024 * 1024) {
+                toast.error('ไฟล์มีขนาดใหญ่เกินไป', { description: 'ขนาดรูปภาพต้องไม่เกิน 10MB' });
+                return;
+            }
             const updated = [...materialGuides];
             updated[index].guideImageFile = file;
             updated[index].guideImagePreview = URL.createObjectURL(file);
@@ -139,7 +194,7 @@ export default function AddWastePage() {
 
     // Validation
     const isStep1Valid = () => {
-        return name.trim() !== '' && wasteCategoryId > 0;
+        return name.trim() !== '' && wasteCategoryId > 0 && !barcodeError;
     };
 
     const isStep2Valid = () => {
@@ -155,10 +210,15 @@ export default function AddWastePage() {
             return;
         }
 
+        if (barcodeError) {
+            toast.error('บาร์โค้ดนี้มีอยู่ในระบบแล้ว ไม่สามารถเพิ่มซ้ำได้');
+            return;
+        }
+
         setSubmitting(true);
         try {
             // Get user id from localStorage
-            let userId: number | undefined;
+            let userId: string | undefined;
             const storedUser = localStorage.getItem('user');
             if (storedUser) {
                 try {
@@ -178,20 +238,29 @@ export default function AddWastePage() {
                 materialGuides: materialGuides.map((g) => ({
                     waste_meterialid: g.waste_meterialid,
                     recommendation: g.recommendation,
-                    weight: g.weight !== '' && g.weight != null ? parseFloat(String(g.weight)) : undefined,
+                    weight: g.weight !== '' && g.weight != null ? parseFloat(String(g.weight)) : 0,
                 })),
             };
             formData.append('data', JSON.stringify(jsonPayload));
 
-            // Append files: first = waste_image, then guide images in order
+            // Append files and calculate total size
+            let totalSize = 0;
             if (wasteImageFile) {
                 formData.append('files', wasteImageFile);
+                totalSize += wasteImageFile.size;
             }
+
             materialGuides.forEach((g) => {
                 if (g.guideImageFile) {
                     formData.append('files', g.guideImageFile);
+                    totalSize += g.guideImageFile.size;
                 }
             });
+
+            // Check if total size exceeds 45MB (to be safe under 50MB limit)
+            if (totalSize > 45 * 1024 * 1024) {
+                throw new Error('ขนาดไฟล์รวมใหญ่เกินไป (สูงสุด 45MB) กรุณาลดขนาดรูปภาพหรือลดจำนวนรูปภาพลง');
+            }
 
             const res = await fetch(`${API_URL}/waste/with-guides`, {
                 method: 'POST',
@@ -199,6 +268,9 @@ export default function AddWastePage() {
             });
 
             if (!res.ok) {
+                if (res.status === 413) {
+                    throw new Error('ขนาดไฟล์ใหญ่เกินขีดจำกัดของเซิร์ฟเวอร์ (413 Request Entity Too Large)');
+                }
                 const errorData = await res.json().catch(() => ({}));
                 let errMsg = 'เกิดข้อผิดพลาดในการบันทึก';
                 if (errorData && typeof errorData === 'object') {
@@ -207,8 +279,6 @@ export default function AddWastePage() {
                         errMsg = rawMsg;
                     } else if (Array.isArray(rawMsg)) {
                         errMsg = rawMsg.join(', ');
-                    } else if (rawMsg) {
-                        errMsg = JSON.stringify(rawMsg);
                     }
                 }
                 throw new Error(errMsg);
@@ -232,7 +302,7 @@ export default function AddWastePage() {
 
     if (loading) {
         return (
-            <div className="flex flex-col h-screen items-center justify-center bg-gray-50">
+            <div className="flex flex-col h-screen items-center justify-center bg-gray-50 font-sans">
                 <Loader2 className="h-10 w-10 animate-spin text-green-600 mb-4" />
                 <p className="text-gray-500">กำลังโหลดข้อมูล...</p>
             </div>
@@ -240,7 +310,7 @@ export default function AddWastePage() {
     }
 
     return (
-        <div className="flex flex-col min-h-screen bg-gray-50">
+        <div className="flex flex-col min-h-screen bg-gray-50 font-sans">
             {/* Header */}
             <div className="bg-gradient-to-r from-green-600 to-green-700 px-4 pt-8 pb-12 relative">
                 <button
@@ -298,7 +368,7 @@ export default function AddWastePage() {
                                 placeholder="เช่น ขวดน้ำชาเขียว 500ml"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                className="h-12"
+                                className="h-12 border-gray-200 focus:ring-green-500 focus:border-green-500"
                             />
                         </div>
 
@@ -309,7 +379,7 @@ export default function AddWastePage() {
                                 id="wasteCategory"
                                 value={wasteCategoryId}
                                 onChange={(e) => setWasteCategoryId(Number(e.target.value))}
-                                className="w-full h-12 px-3 rounded-lg border border-gray-200 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                className="w-full h-12 px-3 rounded-lg border border-gray-200 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
                             >
                                 <option value={0}>-- เลือกหมวดหมู่ --</option>
                                 {categories.map((cat) => (
@@ -321,25 +391,55 @@ export default function AddWastePage() {
                         {/* Barcode */}
                         <div className="mb-4">
                             <Label htmlFor="wasteBarcode" className="text-sm font-medium text-gray-700 mb-1 block">บาร์โค้ด (ถ้ามี)</Label>
-                            <Input
-                                id="wasteBarcode"
-                                placeholder="เช่น 8851234567890"
-                                value={barcode}
-                                onChange={(e) => setBarcode(e.target.value)}
-                                className="h-12"
-                                type="number"
-                            />
+                            <div className="relative">
+                                <Input
+                                    id="wasteBarcode"
+                                    placeholder="เช่น 8851234567890"
+                                    value={barcode}
+                                    onChange={(e) => setBarcode(e.target.value)}
+                                    className={`h-12 border-gray-200 focus:ring-green-500 focus:border-green-500 ${barcodeError ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                                    type="text"
+                                />
+                                {isCheckingBarcode && (
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                        <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                                    </div>
+                                )}
+                            </div>
+                            
+                            {barcodeError && (
+                                <div className="mt-2 p-3 bg-red-50 border border-red-100 rounded-xl flex flex-col gap-2">
+                                    <div className="flex items-start gap-2 text-red-600 text-xs">
+                                        <AlertCircle size={14} className="mt-0.5 shrink-0" />
+                                        <span>{barcodeError}</span>
+                                    </div>
+                                    {existingWasteId && (
+                                        <Button 
+                                            size="sm" 
+                                            variant="outline" 
+                                            className="w-full h-8 text-xs border-red-200 text-red-600 hover:bg-red-100"
+                                            onClick={() => router.push(`/wasteTracking/viewWaste/${existingWasteId}`)}
+                                        >
+                                            <Search size={12} className="mr-1" /> ดูข้อมูลขยะที่มีอยู่
+                                        </Button>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         <Button
                             onClick={() => {
                                 if (!isStep1Valid()) {
-                                    toast.error('กรุณากรอกชื่อขยะและเลือกหมวดหมู่');
+                                    if (barcodeError) {
+                                        toast.error('บาร์โค้ดนี้มีอยู่ในระบบแล้ว');
+                                    } else {
+                                        toast.error('กรุณากรอกชื่อขยะและเลือกหมวดหมู่');
+                                    }
                                     return;
                                 }
                                 setCurrentStep(2);
                             }}
-                            className="w-full h-12 bg-[#5EA500] hover:bg-green-700 text-white font-semibold text-base mt-2"
+                            className="w-full h-12 bg-[#5EA500] hover:bg-green-700 text-white font-semibold text-base mt-2 shadow-md active:scale-[0.98] transition-all"
                         >
                             ถัดไป →
                         </Button>
@@ -357,7 +457,7 @@ export default function AddWastePage() {
                         </Card>
 
                         {materialGuides.map((guide, index) => (
-                            <Card key={index} className="p-4 rounded-2xl shadow-sm border border-green-100 bg-white relative">
+                            <Card key={index} className="p-4 rounded-2xl shadow-sm border border-green-100 bg-white relative animate-in fade-in slide-in-from-bottom-2 duration-300">
                                 <div className="flex items-center justify-between mb-3">
                                     <span className="bg-green-100 text-green-700 text-sm font-bold px-3 py-1 rounded-full">
                                         ชิ้นส่วนที่ {index + 1}
@@ -365,7 +465,7 @@ export default function AddWastePage() {
                                     {materialGuides.length > 1 && (
                                         <button
                                             onClick={() => removeMaterialGuide(index)}
-                                            className="text-red-400 hover:text-red-600 p-1"
+                                            className="text-red-400 hover:text-red-600 p-1 transition-colors"
                                         >
                                             <Trash2 size={18} />
                                         </button>
@@ -375,7 +475,7 @@ export default function AddWastePage() {
                                 {/* Guide image */}
                                 <div className="mb-3">
                                     <Label className="text-sm font-medium text-gray-700 mb-1 block">รูปชิ้นส่วน</Label>
-                                    <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-green-400 transition-colors overflow-hidden">
+                                    <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-green-400 hover:bg-green-50/30 transition-colors overflow-hidden">
                                         {guide.guideImagePreview ? (
                                             // eslint-disable-next-line @next/next/no-img-element
                                             <img src={guide.guideImagePreview} alt="Guide" className="w-full h-full object-contain" />
@@ -395,12 +495,25 @@ export default function AddWastePage() {
                                     <select
                                         value={guide.waste_meterialid}
                                         onChange={(e) => updateMaterialGuide(index, 'waste_meterialid', Number(e.target.value))}
-                                        className="w-full h-11 px-3 rounded-lg border border-gray-200 bg-white text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                                        className="w-full h-11 px-3 rounded-lg border border-gray-200 bg-white text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
                                     >
                                         <option value={0}>-- เลือกประเภทวัสดุ --</option>
-                                        {materials.map((mat) => (
-                                            <option key={mat.id} value={mat.id}>{mat.name}</option>
-                                        ))}
+                                        {materials
+                                            .filter(mat => !wasteCategoryId || mat.wasteCategoryId === wasteCategoryId)
+                                            .map((mat) => (
+                                                <option key={mat.id} value={mat.id}>{mat.name}</option>
+                                            ))}
+                                        {wasteCategoryId && materials.some(mat => mat.wasteCategoryId === wasteCategoryId) && (
+                                            <option disabled>──────────</option>
+                                        )}
+                                        {wasteCategoryId && (
+                                            <option disabled>วัสดุอื่นๆ (ไม่ตรงตามหมวดหมู่ที่เลือก):</option>
+                                        )}
+                                        {materials
+                                            .filter(mat => wasteCategoryId && mat.wasteCategoryId !== wasteCategoryId)
+                                            .map((mat) => (
+                                                <option key={mat.id} value={mat.id}>{mat.name}</option>
+                                            ))}
                                     </select>
                                 </div>
 
@@ -411,7 +524,7 @@ export default function AddWastePage() {
                                         placeholder="เช่น เทน้ำออกให้หมด ลอกฉลาก และบีบขวดให้แบน"
                                         value={guide.recommendation}
                                         onChange={(e) => updateMaterialGuide(index, 'recommendation', e.target.value)}
-                                        className="min-h-[80px] text-sm"
+                                        className="min-h-[80px] text-sm border-gray-200 focus:ring-green-500 focus:border-green-500"
                                     />
                                 </div>
 
@@ -424,7 +537,7 @@ export default function AddWastePage() {
                                         placeholder="เช่น 0.02"
                                         value={guide.weight}
                                         onChange={(e) => updateMaterialGuide(index, 'weight', e.target.value)}
-                                        className="h-11"
+                                        className="h-11 border-gray-200 focus:ring-green-500 focus:border-green-500"
                                     />
                                 </div>
                             </Card>
@@ -433,7 +546,7 @@ export default function AddWastePage() {
                         {/* Add more button */}
                         <button
                             onClick={addMaterialGuide}
-                            className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-green-300 rounded-2xl text-green-600 font-semibold hover:bg-green-50 transition-colors"
+                            className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-green-300 rounded-2xl text-green-600 font-semibold hover:bg-green-50 hover:border-green-400 transition-all active:scale-[0.99]"
                         >
                             <Plus size={20} />
                             เพิ่มส่วนประกอบ
@@ -444,14 +557,14 @@ export default function AddWastePage() {
                             <Button
                                 variant="outline"
                                 onClick={() => setCurrentStep(1)}
-                                className="flex-1 h-12 text-base border-gray-300"
+                                className="flex-1 h-12 text-base border-gray-300 hover:bg-gray-100 transition-colors"
                             >
                                 ← ย้อนกลับ
                             </Button>
                             <Button
                                 onClick={handleSubmit}
                                 disabled={submitting}
-                                className="flex-1 h-12 bg-[#5EA500] hover:bg-green-700 text-white text-base font-semibold"
+                                className="flex-1 h-12 bg-[#5EA500] hover:bg-green-700 text-white text-base font-semibold shadow-md active:scale-[0.98] transition-all"
                             >
                                 {submitting ? (
                                     <Loader2 className="animate-spin" size={20} />

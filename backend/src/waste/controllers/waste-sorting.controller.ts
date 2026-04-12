@@ -34,10 +34,16 @@ export class WasteSortingController {
   @Get('waste-materials')
   async getMaterials(
     @Query('page') page: number = 1,
+    @Query('limit') limit: number = 6,
     @Query('category_name') categoryName?: string,
     @Query('material_name') materialName?: string,
   ) {
-    return this.wasteService.findMeterialsAll(page, categoryName, materialName);
+    return this.wasteService.findMeterialsAll(
+      Number(page),
+      Number(limit),
+      categoryName,
+      materialName,
+    );
   }
 
   @Get('categories')

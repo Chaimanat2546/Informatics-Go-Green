@@ -2,11 +2,14 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { WasteMaterial } from '../entities/waste-material.entity';
 import { WasteCategory } from '../entities/waste-category.entity';
+import { WasteHistory } from '../entities/waste-history.entity';
+import { MaterialGuide } from '../entities/material-guide.entity';
 import {
   CreateWasteMaterialDto,
   UpdateWasteMaterialDto,
@@ -152,6 +155,28 @@ export class WasteMaterialService {
         throw new NotFoundException(`Waste material with ID ${id} not found`);
       }
 
+      // Check if material is being used in WasteHistory
+      const historyCount = await queryRunner.manager.count(WasteHistory, {
+        where: { waste_meterialid: id },
+      });
+
+      if (historyCount > 0) {
+        throw new ConflictException(
+          `ไม่สามารถลบได้เนื่องจากมีการใช้งานในประวัติการแยกขยะ (${historyCount} รายการ)`,
+        );
+      }
+
+      // Check if material is being used in MaterialGuide
+      const guideCount = await queryRunner.manager.count(MaterialGuide, {
+        where: { waste_meterialid: id },
+      });
+
+      if (guideCount > 0) {
+        throw new ConflictException(
+          `ไม่สามารถลบได้เนื่องจากมีการใช้งานในคู่มือการแยกขยะ (${guideCount} รายการ)`,
+        );
+      }
+
       const imageUrl: string | null | undefined = material.materialImage;
 
       // Delete from DB first (transaction)
@@ -180,3 +205,4 @@ export class WasteMaterialService {
     }
   }
 }
+
