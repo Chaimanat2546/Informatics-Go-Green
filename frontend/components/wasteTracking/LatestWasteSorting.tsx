@@ -30,14 +30,17 @@ export default function LatestWasteSorting() {
     
     const LIMIT = 4; 
 
-    const getCategoryBadge = (category: string) => {
-        const cat = category.toLowerCase();
-        if (cat.includes('พลาสติก') || cat.includes('plastic')) return "bg-yellow-100 text-yellow-700";
-        if (cat.includes('แก้ว') || cat.includes('glass')) return "bg-blue-100 text-blue-700";
-        if (cat.includes('กระดาษ') || cat.includes('paper')) return "bg-amber-100 text-amber-700";
-        if (cat.includes('โลหะ') || cat.includes('metal')) return "bg-red-100 text-red-700";
-        return "bg-green-100 text-green-700";
-    };
+    const getCategoryColor = (categoryName: string): string => {
+    const name = categoryName.toLowerCase();
+    if (name.includes('พลาสติก')) return '#4ADE80'; 
+    if (name.includes('กระดาษ')) return '#FDE047';  
+    if (name.includes('แก้ว')) return '#93C5FD';   
+    if (name.includes('เหล็ก')) return '#EF4444';  
+    if (name.includes('โลหะ') || name.includes('อลูมิเนียม')) return '#CBD5E1'; 
+    if (name.includes('อินทรีย์') || name.includes('อาหาร')) return '#A3E635'; 
+    if (name.includes('อันตราย')) return '#F87171'; 
+    return '#D8B4FE'; 
+};
 
     const fetchItems = useCallback(async (pageNum: number, search: string = "") => {
         const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
@@ -164,7 +167,7 @@ export default function LatestWasteSorting() {
                                 <p className="text-gray-900 text-sm font-bold line-clamp-2 leading-5">
                                     {item.name}
                                 </p>
-                                <span className={`${getCategoryBadge(item.category_name)} text-xs font-bold px-2 py-0.5 rounded-full w-fit`}>
+                                <span className={`${getCategoryColor(item.category_name)} text-xs font-bold px-2 py-0.5 rounded-full w-fit`}>
                                     {item.category_name}
                                 </span>
                             </div>

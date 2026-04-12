@@ -139,17 +139,17 @@ export default function WasteMaterialTable() {
   // Auto-search logic (Debounce)
   useEffect(() => {
     if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
+      clearTimeout(searchTimeoutRef.current);
     }
-    
+
     // Skip initial load fetch if searchTerm is empty (handled by the main effect)
     // But we need to handle searchTerm changes
     searchTimeoutRef.current = setTimeout(() => {
-        // Only trigger if searchTerm changed and is not handled by direct submit
+      // Only trigger if searchTerm changed and is not handled by direct submit
     }, 500);
 
     return () => {
-        if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     };
   }, [searchTerm]);
 
@@ -226,6 +226,22 @@ export default function WasteMaterialTable() {
     }
   };
 
+  const getCategoryColorClasses = (categoryName: string): string => {
+    if (!categoryName) return 'bg-purple-50 text-purple-700';
+
+    const name = categoryName.toLowerCase();
+
+    if (name.includes('พลาสติก')) return 'bg-green-50 text-green-700';
+    if (name.includes('กระดาษ')) return 'bg-yellow-50 text-yellow-700';
+    if (name.includes('แก้ว')) return 'bg-blue-50 text-blue-700';
+    if (name.includes('เหล็ก')) return 'bg-red-50 text-red-700';
+    if (name.includes('โลหะ') || name.includes('อลูมิเนียม')) return 'bg-slate-50 text-slate-700';
+    if (name.includes('อินทรีย์') || name.includes('อาหาร')) return 'bg-lime-50 text-lime-700';
+    if (name.includes('อันตราย')) return 'bg-rose-50 text-rose-700';
+
+    return 'bg-purple-50 text-purple-700';
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4 mt-6 font-sans">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
@@ -239,7 +255,7 @@ export default function WasteMaterialTable() {
         <div className="flex gap-2">
           <Button
             onClick={handleAddNew}
-            className="bg-[#72B01D] hover:bg-[#5f9318] text-white rounded-xl px-6 py-6 flex gap-2 shadow-lg shadow-emerald-100 transition-all active:scale-95"
+            className="bg-[#72B01D] hover:bg-[#5f9318] text-white rounded-xl px-6 py-6 flex gap-2 shadow-lg transition-all active:scale-95"
           >
             <Plus className="w-5 h-5" /> เพิ่มค่าสัมประสิทธิ์
           </Button>
@@ -250,177 +266,178 @@ export default function WasteMaterialTable() {
       {/* Search Bar */}
       <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-6">
         <form onSubmit={handleSearch} className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <Input
-                type="text"
-                placeholder="ค้นหาชื่อ หมวดหมู่ หรือหน่วย..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 h-11 bg-slate-50 border-none rounded-xl focus-visible:ring-emerald-500"
-            />
-            {searchTerm && (
-                <button 
-                    type="button" 
-                    onClick={() => {setSearchTerm(""); setPage(1);}}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                >
-                    ✕
-                </button>
-            )}
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Input
+            type="text"
+            placeholder="ค้นหาชื่อ หมวดหมู่ หรือหน่วย..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 h-11 bg-slate-50 border-none rounded-xl focus-visible:ring-emerald-500"
+          />
+          {searchTerm && (
+            <button
+              type="button"
+              onClick={() => { setSearchTerm(""); setPage(1); }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            >
+              ✕
+            </button>
+          )}
         </form>
       </div>
 
       {/* Error State */}
       {error && !loading && (
         <div className="bg-red-50 border border-red-100 rounded-2xl p-12 text-center mb-6">
-            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h3 className="text-lg font-bold text-slate-800 mb-2">พบข้อผิดพลาด</h3>
-            <p className="text-slate-600 mb-6">{error}</p>
-            <Button 
-                onClick={() => fetchWasteMaterials()}
-                variant="outline"
-                className="border-red-200 text-red-600 hover:bg-red-50 rounded-xl"
-            >
-                <RefreshCw className="w-4 h-4 mr-2" /> ลองใหม่อีกครั้ง
-            </Button>
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-bold text-slate-800 mb-2">พบข้อผิดพลาด</h3>
+          <p className="text-slate-600 mb-6">{error}</p>
+          <Button
+            onClick={() => fetchWasteMaterials()}
+            variant="outline"
+            className="border-red-200 text-red-600 hover:bg-red-50 rounded-xl"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" /> ลองใหม่อีกครั้ง
+          </Button>
         </div>
       )}
 
       {/* Table Section */}
       {!error && (
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-            <div className="overflow-x-auto">
-                <Table>
-                <TableHeader>
-                    <TableRow className="bg-slate-50/50 border-b border-slate-100">
-                    <TableHead className="font-bold text-slate-700 h-14">ชื่อวัสดุ</TableHead>
-                    <TableHead className="font-bold text-slate-700 h-14">หมวดหมู่</TableHead>
-                    <TableHead className="font-bold text-slate-700 h-14">ค่าสัมประสิทธิ์ (Emission Factor)</TableHead>
-                    <TableHead className="w-16 h-14"></TableHead>
-                    </TableRow>
-                </TableHeader>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-slate-50/50 border-b border-slate-100">
+                  <TableHead className="font-bold text-slate-700 h-14">ชื่อวัสดุ</TableHead>
+                  <TableHead className="font-bold text-slate-700 h-14">หมวดหมู่</TableHead>
+                  <TableHead className="font-bold text-slate-700 h-14">ค่าสัมประสิทธิ์ (Emission Factor)</TableHead>
+                  <TableHead className="w-16 h-14"></TableHead>
+                </TableRow>
+              </TableHeader>
 
-                <TableBody>
-                    {loading ? (
-                    [...Array(5)].map((_, i) => (
-                        <TableRow key={i} className="animate-pulse">
-                            <TableCell><div className="h-5 bg-slate-100 rounded w-3/4"></div></TableCell>
-                            <TableCell><div className="h-5 bg-slate-100 rounded w-1/2"></div></TableCell>
-                            <TableCell><div className="h-5 bg-slate-100 rounded w-2/3"></div></TableCell>
-                            <TableCell><div className="h-8 bg-slate-100 rounded-full w-8"></div></TableCell>
-                        </TableRow>
-                    ))
-                    ) : wasteMaterials.length === 0 ? (
-                    <TableRow>
-                        <TableCell colSpan={4} className="text-center py-20 text-slate-400">
-                            <Search className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                            <p className="text-lg font-medium">ไม่พบข้อมูลค่าสัมประสิทธิ์</p>
-                            <p className="text-sm">ลองเปลี่ยนคำค้นหาหรือเพิ่มข้อมูลใหม่</p>
-                        </TableCell>
+              <TableBody>
+                {loading ? (
+                  [...Array(5)].map((_, i) => (
+                    <TableRow key={i} className="animate-pulse">
+                      <TableCell><div className="h-5 bg-slate-100 rounded w-3/4"></div></TableCell>
+                      <TableCell><div className="h-5 bg-slate-100 rounded w-1/2"></div></TableCell>
+                      <TableCell><div className="h-5 bg-slate-100 rounded w-2/3"></div></TableCell>
+                      <TableCell><div className="h-8 bg-slate-100 rounded-full w-8"></div></TableCell>
                     </TableRow>
-                    ) : (
-                    wasteMaterials.map((wasteMaterial) => (
-                        <TableRow key={wasteMaterial.id} className="hover:bg-slate-50/50 transition-colors border-b border-slate-50 last:border-0">
-                        <TableCell className="font-medium text-slate-700 py-4">
-                            {wasteMaterial.name}
-                        </TableCell>
-                        <TableCell>
-                            <span className="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold">
-                                {wasteMaterial.wasteCategory.name}
-                            </span>
-                        </TableCell>
-                        <TableCell className="text-slate-600 font-mono">
-                            <span className="font-bold text-slate-800">{wasteMaterial.emissionFactor?.toFixed(4)}</span>
-                            <span className="ml-2 text-slate-400 text-xs">{wasteMaterial.unit}</span>
-                        </TableCell>
+                  ))
+                ) : wasteMaterials.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-20 text-slate-400">
+                      <Search className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                      <p className="text-lg font-medium">ไม่พบข้อมูลค่าสัมประสิทธิ์</p>
+                      <p className="text-sm">ลองเปลี่ยนคำค้นหาหรือเพิ่มข้อมูลใหม่</p>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  wasteMaterials.map((wasteMaterial) => (
+                    <TableRow key={wasteMaterial.id} className="hover:bg-slate-50/50 transition-colors border-b border-slate-50 last:border-0">
+                      <TableCell className="font-medium text-slate-700 py-4">
+                        {wasteMaterial.name}
+                      </TableCell>
+                      <TableCell>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-bold ${getCategoryColorClasses(wasteMaterial.wasteCategory.name)}`}
+                        >
+                          {wasteMaterial.wasteCategory.name}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-slate-600 font-mono">
+                        <span className="font-bold text-slate-800">{wasteMaterial.emissionFactor?.toFixed(4)}</span>
+                        <span className="ml-2 text-slate-400 text-xs">{wasteMaterial.unit}</span>
+                      </TableCell>
 
-                        <TableCell>
-                            <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-9 w-9 p-0 hover:bg-slate-100 rounded-full"
-                                >
-                                <MoreHorizontal className="h-5 w-5 text-slate-400" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="rounded-xl border-slate-100 shadow-xl">
-                                <DropdownMenuItem
-                                onClick={() => handleViewProfile(wasteMaterial.id)}
-                                className="text-slate-700 cursor-pointer py-2.5 px-4 focus:bg-emerald-50 focus:text-emerald-700"
-                                >
-                                ดูข้อมูลรายละเอียด
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                onClick={() => handleEdit(wasteMaterial.id)}
-                                className="text-slate-700 cursor-pointer py-2.5 px-4 focus:bg-emerald-50 focus:text-emerald-700"
-                                >
-                                แก้ไขข้อมูล
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                onClick={() => openDeleteModal(wasteMaterial.id, wasteMaterial.name)}
-                                className="text-red-500 cursor-pointer py-2.5 px-4 focus:bg-red-50 focus:text-red-600 font-medium"
-                                >
-                                ลบข้อมูล
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                            </DropdownMenu>
-                        </TableCell>
-                        </TableRow>
-                    ))
-                    )}
-                </TableBody>
-                </Table>
-            </div>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-9 w-9 p-0 hover:bg-slate-100 rounded-full"
+                            >
+                              <MoreHorizontal className="h-5 w-5 text-slate-400" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="rounded-xl border-slate-100 shadow-xl">
+                            <DropdownMenuItem
+                              onClick={() => handleViewProfile(wasteMaterial.id)}
+                              className="text-slate-700 cursor-pointer py-2.5 px-4 focus:bg-emerald-50 focus:text-emerald-700"
+                            >
+                              ดูข้อมูลรายละเอียด
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleEdit(wasteMaterial.id)}
+                              className="text-slate-700 cursor-pointer py-2.5 px-4 focus:bg-emerald-50 focus:text-emerald-700"
+                            >
+                              แก้ไขข้อมูล
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => openDeleteModal(wasteMaterial.id, wasteMaterial.name)}
+                              className="text-red-500 cursor-pointer py-2.5 px-4 focus:bg-red-50 focus:text-red-600 font-medium"
+                            >
+                              ลบข้อมูล
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       )}
 
       {/* Pagination */}
       {!error && total > 0 && (
         <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4">
-            <p className="text-sm text-slate-500 bg-slate-100 px-4 py-2 rounded-full font-medium">
+          <p className="text-sm text-slate-500 bg-slate-100 px-4 py-2 rounded-full font-medium">
             แสดง {((page - 1) * limit) + 1} ถึง {Math.min(page * limit, total)} จากทั้งหมด {total} รายการ
-            </p>
-            <div className="flex items-center gap-2">
+          </p>
+          <div className="flex items-center gap-2">
             <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page <= 1 || loading}
-                className="rounded-xl border-slate-200 hover:bg-slate-50 h-10 px-4"
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1 || loading}
+              className="rounded-xl border-slate-200 hover:bg-slate-50 h-10 px-4"
             >
-                <ChevronLeft className="w-4 h-4 mr-1" /> ก่อนหน้า
+              <ChevronLeft className="w-4 h-4 mr-1" /> ก่อนหน้า
             </Button>
             <div className="flex items-center gap-1">
-                {[...Array(Math.min(5, totalPages))].map((_, i) => {
-                    const pageNum = i + 1;
-                    // Simple logic for showing pages around current
-                    return (
-                        <button
-                            key={pageNum}
-                            onClick={() => setPage(pageNum)}
-                            className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${
-                                page === pageNum 
-                                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-100' 
-                                : 'text-slate-400 hover:bg-slate-100'
-                            }`}
-                        >
-                            {pageNum}
-                        </button>
-                    )
-                })}
+              {[...Array(Math.min(5, totalPages))].map((_, i) => {
+                const pageNum = i + 1;
+                // Simple logic for showing pages around current
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setPage(pageNum)}
+                    className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${page === pageNum
+                      ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-100'
+                      : 'text-slate-400 hover:bg-slate-100'
+                      }`}
+                  >
+                    {pageNum}
+                  </button>
+                )
+              })}
             </div>
             <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page >= totalPages || loading}
-                className="rounded-xl border-slate-200 hover:bg-slate-50 h-10 px-4"
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages || loading}
+              className="rounded-xl border-slate-200 hover:bg-slate-50 h-10 px-4"
             >
-                ถัดไป <ChevronRight className="w-4 h-4 ml-1" />
+              ถัดไป <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
-            </div>
+          </div>
         </div>
       )}
 
@@ -435,7 +452,7 @@ export default function WasteMaterialTable() {
               ยืนยันการลบข้อมูล
             </h3>
             <p className="text-slate-500 mb-8 text-base">
-              คุณต้องการลบ <span className="font-bold text-slate-700">&quot;{deletingItem?.name}&quot;</span> ใช่หรือไม่?<br/>
+              คุณต้องการลบ <span className="font-bold text-slate-700">&quot;{deletingItem?.name}&quot;</span> ใช่หรือไม่?<br />
               การดำเนินการนี้ไม่สามารถย้อนกลับได้
             </p>
 
