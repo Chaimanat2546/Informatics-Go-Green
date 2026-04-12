@@ -74,10 +74,10 @@ cd Informatics-Go-Green
 cp .env.example .env
 
 # 3. Start development containers
-docker-compose -f docker-compose.dev.yml up --build -d
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
 
 # 4. (Optional) Start with Hot Reload Watch Mode
-docker-compose -f docker-compose.dev.yml up --build --watch
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build --watch
 ```
 
 ### Option 2: Local Development (ไม่ใช้ Docker)
@@ -90,7 +90,7 @@ cp .env.example .env
 
 # 2. Start PostgreSQL (ต้องมี PostgreSQL ติดตั้งอยู่)
 # หรือใช้ Docker สำหรับ Database เท่านั้น:
-docker-compose -f docker-compose.dev.yml up -d postgres
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d postgres
 
 # 3. Install & Run Backend
 cd backend

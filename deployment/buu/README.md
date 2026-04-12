@@ -77,7 +77,7 @@ sudo systemctl reload nginx
 cd /opt/Informatics-Go-Green
 
 # Build และรัน
-sudo docker compose -f docker-compose.prod.yml up --build -d
+sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
 
 # รอให้พร้อม (ประมาณ 30-60 วินาที)
 sleep 30
@@ -141,7 +141,7 @@ VALUES (
 5. ใส่ในไฟล์ `.env`
 6. Restart backend:
 ```bash
-sudo docker compose -f /opt/Informatics-Go-Green/docker-compose.prod.yml restart backend
+sudo docker compose -f /opt/Informatics-Go-Green/docker-compose.yml -f /opt/Informatics-Go-Green/docker-compose.prod.yml restart backend
 ```
 
 ---
@@ -202,14 +202,14 @@ sudo docker logs -f informatics-go-green-frontend-prod
 sudo docker logs -f informatics-go-green-db-prod
 
 # Restart services
-sudo docker compose -f docker-compose.prod.yml restart
+sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml restart
 
 # Restart เฉพาะ backend
-sudo docker compose -f docker-compose.prod.yml restart backend
+sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml restart backend
 
 # Rebuild frontend (ถ้าแก้โค้ด)
-sudo docker compose -f docker-compose.prod.yml build --no-cache frontend
-sudo docker compose -f docker-compose.prod.yml up -d frontend
+sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml build --no-cache frontend
+sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d frontend
 
 # ดู status
 sudo docker ps -a
@@ -218,10 +218,10 @@ sudo docker ps -a
 sudo docker exec informatics-go-green-db-prod pg_dump -U goapp informatics_go_green > backup-$(date +%Y%m%d).sql
 
 # Stop all
-sudo docker compose -f docker-compose.prod.yml down
+sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml down
 
 # Start all
-sudo docker compose -f docker-compose.prod.yml up -d
+sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
 
 ---
@@ -248,7 +248,7 @@ sudo docker ps -a
 sudo docker logs informatics-go-green-frontend-prod
 
 # Restart
-sudo docker compose -f docker-compose.prod.yml restart frontend
+sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml restart frontend
 ```
 
 ### 2. API ไม่ตอบสนอง
@@ -272,7 +272,7 @@ curl -I https://if-go-green.informatics.buu.ac.th/uploads/test.jpg
 cat /opt/Informatics-Go-Green/.env | grep GOOGLE
 
 # Restart backend
-sudo docker compose -f docker-compose.prod.yml restart backend
+sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml restart backend
 ```
 
 ### 5. Memory ไม่พอตอน build

@@ -79,14 +79,14 @@ backend/
 
 ```bash
 # จาก root directory ของโปรเจค
-docker-compose -f docker-compose.dev.yml up --build -d backend
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d backend
 ```
 
 ### Local Development
 
 ```bash
 # ต้องมี PostgreSQL running (หรือใช้ Docker สำหรับ DB)
-docker-compose -f docker-compose.dev.yml up -d postgres
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d postgres
 
 # Install dependencies
 npm install --legacy-peer-deps

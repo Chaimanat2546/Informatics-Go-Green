@@ -24,7 +24,7 @@
 - [ ] Clone repository และ setup environment
 - [ ] อ่าน README.md และ DOCKER.md
 - [ ] ติดตั้ง Docker Desktop
-- [ ] รัน `docker-compose -f docker-compose.dev.yml up --build -d`
+- [ ] รัน `docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d`
 - [ ] ทดสอบเข้า http://localhost:3000 และ http://localhost:3001/api
 - [ ] ติดตั้ง VS Code Extensions (ESLint, Prettier, Docker)
 - [ ] ทำความเข้าใจ folder structure
@@ -132,7 +132,7 @@ git pull origin develop
 git checkout -b feature/your-feature-name
 
 # 3. Start development environment
-docker-compose -f docker-compose.dev.yml up --build --watch
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build --watch
 ```
 
 ### 2. Adding Dependencies
@@ -141,7 +141,7 @@ docker-compose -f docker-compose.dev.yml up --build --watch
 |--------|---------|
 | **Frontend** | `cd frontend && npm install <package>` |
 | **Backend** | `cd backend && npm install <package>` |
-| **Rebuild Container** | `docker-compose -f docker-compose.dev.yml up --build -d <service>` |
+| **Rebuild Container** | `docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d <service>` |
 
 > **Note**: หลังเพิ่ม dependency ต้อง rebuild container ด้วย `--build`
 

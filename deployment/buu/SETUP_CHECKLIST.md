@@ -109,7 +109,7 @@ cd /opt/Informatics-Go-Green
 sudo chmod +x deploy.sh backup.sh
 
 # 4.2 Build และรัน containers
-sudo docker compose -f docker-compose.prod.yml up --build -d
+sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
 
 # 4.3 รอให้พร้อม (ประมาณ 30-60 วินาที)
 sleep 30
@@ -196,7 +196,7 @@ VALUES (
 4. นำ Client ID และ Secret ใส่ในไฟล์ `.env`
 5. Restart backend:
 ```bash
-sudo docker compose -f /opt/Informatics-Go-Green/docker-compose.prod.yml restart backend
+sudo docker compose -f /opt/Informatics-Go-Green/docker-compose.yml -f /opt/Informatics-Go-Green/docker-compose.prod.yml restart backend
 ```
 
 ---
@@ -265,14 +265,14 @@ sudo docker logs -f informatics-go-green-db-prod
 curl http://localhost:9061/api/health
 
 # Restart all
-sudo docker compose -f docker-compose.prod.yml restart
+sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml restart
 
 # Restart เฉพาะ backend
-sudo docker compose -f docker-compose.prod.yml restart backend
+sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml restart backend
 
 # Rebuild frontend (ถ้าแก้โค้ด)
-sudo docker compose -f docker-compose.prod.yml build --no-cache frontend
-sudo docker compose -f docker-compose.prod.yml up -d frontend
+sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml build --no-cache frontend
+sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d frontend
 
 # Deploy อัปเดตใหม่
 sudo ./deploy.sh
@@ -284,10 +284,10 @@ sudo ./deploy.sh --backup
 sudo ./backup.sh
 
 # Stop all
-sudo docker compose -f docker-compose.prod.yml down
+sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml down
 
 # Start all
-sudo docker compose -f docker-compose.prod.yml up -d
+sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
 
 ---
