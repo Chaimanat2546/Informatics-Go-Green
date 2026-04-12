@@ -858,8 +858,11 @@ describe('calculateByWasteId', () => {
       wasteMaterial: undefined,
     } as unknown as WasteHistory;
 
-    const result = await calculator.calculateByWasteId(1, wasteHistoryWithoutMaterial);
-    
+    const result = await calculator.calculateByWasteId(
+      1,
+      wasteHistoryWithoutMaterial,
+    );
+
     expect(result).toBe(0);
   });
 });

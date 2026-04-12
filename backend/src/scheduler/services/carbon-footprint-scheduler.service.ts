@@ -1,5 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { Cron, SchedulerRegistry } from '@nestjs/schedule';
+import { SchedulerRegistry } from '@nestjs/schedule';
 import { CronJob } from 'cron';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, EntityManager } from 'typeorm';
@@ -47,35 +47,44 @@ export class CarbonFootprintSchedulerService implements OnModuleInit {
    * Updates the cron job schedule from DB settings
    */
   async updateCronSchedule() {
-    const cronExpression = await this.schedulerSettingsService.getCronExpression();
-    
+    const cronExpression =
+      await this.schedulerSettingsService.getCronExpression();
+
     // Check if job exists and stop/delete it
     if (this.schedulerRegistry.doesExist('cron', CRON_JOB_NAME)) {
       const existingJob = this.schedulerRegistry.getCronJob(CRON_JOB_NAME);
-      existingJob.stop();
+      void existingJob.stop();
       this.schedulerRegistry.deleteCronJob(CRON_JOB_NAME);
     }
-    
+
     // Create new job
     const job = new CronJob(
       cronExpression,
       async () => {
-        const isEnabled = await this.schedulerSettingsService.getSettingAsBoolean('auto_calculate_enabled', true);
+        const isEnabled =
+          await this.schedulerSettingsService.getSettingAsBoolean(
+            'auto_calculate_enabled',
+            true,
+          );
         if (!isEnabled) {
-          this.logger.log('Auto calculation is disabled. Skipping scheduled run.');
+          this.logger.log(
+            'Auto calculation is disabled. Skipping scheduled run.',
+          );
           return;
         }
         await this.handleDailyCarbonFootprintCalculation();
       },
       null, // onComplete
       false, // start
-      'Asia/Bangkok' // timeZone
+      'Asia/Bangkok', // timeZone
     );
-    
+
     this.schedulerRegistry.addCronJob(CRON_JOB_NAME, job);
-    job.start();
-    
-    this.logger.log(`Cron job '${CRON_JOB_NAME}' scheduled with expression: ${cronExpression}`);
+    void job.start();
+
+    this.logger.log(
+      `Cron job '${CRON_JOB_NAME}' scheduled with expression: ${cronExpression}`,
+    );
   }
 
   /**
@@ -183,11 +192,13 @@ export class CarbonFootprintSchedulerService implements OnModuleInit {
     for (const record of pendingRecords) {
       // Fix stuck records that exceeded retry limit
       if (
-        record.calculation_status === CalculationStatus.FAILED &&
+        (record.calculation_status as unknown) === CalculationStatus.FAILED &&
         (record.retry_count || 0) >= MAX_RETRY_COUNT
       ) {
         record.calculation_status = CalculationStatus.ERROR;
-        this.logger.warn(`Record ${record.id} already exceeded max retry count. Marking as error.`);
+        this.logger.warn(
+          `Record ${record.id} already exceeded max retry count. Marking as error.`,
+        );
         await this.wasteHistoryRepository.save(record);
         continue;
       }

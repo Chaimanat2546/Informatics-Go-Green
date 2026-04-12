@@ -119,7 +119,9 @@ export class WasteSortingService {
       id: Number(item.id),
       name: item.name,
       meterial_image: item.materialImage || '',
-      wasteCategoryId: item.wasteCategoryId ? Number(item.wasteCategoryId) : null,
+      wasteCategoryId: item.wasteCategoryId
+        ? Number(item.wasteCategoryId)
+        : null,
       waste_categoriesid: item.wasteCategory
         ? {
             id: item.wasteCategory.id,

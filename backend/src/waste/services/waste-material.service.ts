@@ -84,7 +84,9 @@ export class WasteMaterialService {
       where: { name: createDto.name },
     });
     if (existingMaterial) {
-      throw new ConflictException(`วัสดุชื่อ "${createDto.name}" มีอยู่ในระบบแล้ว`);
+      throw new ConflictException(
+        `วัสดุชื่อ "${createDto.name}" มีอยู่ในระบบแล้ว`,
+      );
     }
 
     // Validate category exists
@@ -117,7 +119,9 @@ export class WasteMaterialService {
         where: { name: updateDto.name },
       });
       if (existingMaterial) {
-        throw new ConflictException(`วัสดุชื่อ "${updateDto.name}" มีอยู่ในระบบแล้ว`);
+        throw new ConflictException(
+          `วัสดุชื่อ "${updateDto.name}" มีอยู่ในระบบแล้ว`,
+        );
       }
     }
 
@@ -223,4 +227,3 @@ export class WasteMaterialService {
     }
   }
 }
-
