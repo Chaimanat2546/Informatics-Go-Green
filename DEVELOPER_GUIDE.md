@@ -170,18 +170,17 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build --watc
 | Rule | Description |
 |------|-------------|
 | **Use DTOs** | สร้าง DTO สำหรับทุก API ที่รับข้อมูล พร้อม `class-validator` |
+| **Lint Check** | รัน `npm run lint` ก่อน Commit เสมอ (ห้ามมี unused imports/vars) |
+| **Async/Await** | ใช้ `async/await` แทน Promise chains และต้องมี `void` หากไม่ต้องการ await |
 | **No Hardcode** | ใช้ `ConfigService` ดึงค่าจาก `.env` เสมอ |
-| **Async/Await** | ใช้ `async/await` แทน Promise chains |
-| **Error Handling** | ใช้ NestJS Exception Filters |
-| **Logging** | ใช้ NestJS Logger สำหรับ log |
 
 ### Frontend Best Practices
 
 | Rule | Description |
 |------|-------------|
 | **Server Components** | ใช้เป็น default, เติม `'use client'` เฉพาะเมื่อจำเป็น |
+| **JSX Entities** | หลีกเลี่ยงเครื่องหมาย " หรือ ' ตรงๆ ใน JSX ให้ใช้ `&quot;` หรือ `&apos;` แทน |
 | **Type Safety** | ใช้ TypeScript interfaces สำหรับ props และ API responses |
-| **Styling** | ใช้ CSS Modules หรือ Tailwind utility classes |
 | **API Calls** | Centralize API calls ในโฟลเดอร์ `lib/` หรือ `services/` |
 
 ---

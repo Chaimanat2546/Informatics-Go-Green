@@ -26,9 +26,10 @@
 | Feature | Description |
 |---------|-------------|
 | 🔐 Authentication | รองรับ Local Login, Google OAuth, Password Reset |
-| 👤 User Management | ระบบจัดการผู้ใช้งานแบบครบวงจร |
-| 🐳 Docker Ready | พร้อม Deploy ทั้ง Development และ Production |
-| ⚡ Hot Reload | รองรับ Live reload ระหว่าง Development |
+| 👤 User Management | ระบบจัดการผู้ใช้งานและสิทธิ์การใช้งาน (RBAC) |
+| ♻️ Waste Tracking | ระบบสแกนบาร์โค้ด, คัดแยกวัสดุ และคำแนะนำการจัดการขยะ |
+| 🌳 Carbon Footprint | คำนวณการลดก๊าซเรือนกระจกรายวัสดุ พร้อมแดชบอร์ดสรุปผล |
+| 🐳 Docker Ready | โครงสร้าง Overlay Architecture แยกสภาพแวดล้อมชัดเจน |
 
 ---
 
