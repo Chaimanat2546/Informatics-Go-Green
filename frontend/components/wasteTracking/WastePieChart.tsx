@@ -19,16 +19,16 @@ interface WastePieChartProps {
     data: ApiDataItem[];
 }
 
-const getMainCategory = (materialName: string): string => {
-    const name = materialName.toLowerCase();
-    if (name.includes('พลาสติก')) return 'พลาสติก'; 
-    if (name.includes('กระดาษ')) return 'กระดาษ';  
-    if (name.includes('แก้ว')) return 'แก้ว';   
-    if (name.includes('เหล็ก')) return 'เหล็ก';  
-    if (name.includes('โลหะ') || name.includes('อลูมิเนียม')) return 'โลหะ/อลูมิเนียม'; 
-    if (name.includes('อินทรีย์') || name.includes('อาหาร')) return 'ขยะอินทรีย์'; 
-    if (name.includes('อันตราย')) return 'ขยะอันตราย'; 
-    return 'อื่นๆ'; 
+const getCategoryColor = (categoryName: string): string => {
+    const name = categoryName.toLowerCase();
+    if (name.includes('พลาสติก')) return '#4ADE80'; 
+    if (name.includes('กระดาษ')) return '#FDE047';  
+    if (name.includes('แก้ว')) return '#93C5FD';   
+    if (name.includes('เหล็ก')) return '#EF4444';  
+    if (name.includes('โลหะ') || name.includes('อลูมิเนียม')) return '#CBD5E1'; 
+    if (name.includes('อินทรีย์') || name.includes('อาหาร')) return '#A3E635'; 
+    if (name.includes('อันตราย')) return '#F87171'; 
+    return '#D8B4FE'; 
 };
 
 interface ActiveShapeProps extends PieSectorDataItem {
@@ -92,7 +92,7 @@ export default function WastePieChart({ data = [] }: WastePieChartProps) {
         return data.map((item) => ({
             name: item.categoryName,
             value: Number(item.totalWeight), 
-            color: getMainCategory(item.categoryName),
+            color: getCategoryColor(item.categoryName),
         })).filter(item => item.value > 0); 
     }, [data]);
 
@@ -134,7 +134,7 @@ export default function WastePieChart({ data = [] }: WastePieChartProps) {
             <div className="h-64 relative w-full">
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
                     <span className="text-4xl font-bold text-black">
-                        {totalWeight.toLocaleString(undefined, { maximumFractionDigits: 1 })}
+                        {totalWeight.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                     </span>
                     <span className="text-sm text-gray-500 font-medium">กิโลกรัม</span>
                 </div>
