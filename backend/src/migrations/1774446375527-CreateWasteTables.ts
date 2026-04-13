@@ -2,10 +2,36 @@ import {
   MigrationInterface,
   QueryRunner,
   Table,
-  TableForeignKey,
 } from 'typeorm';
 
 export class CreateWasteTables1774446375527 implements MigrationInterface {
+  /**
+   * Helper: add a foreign key only when it does not already exist.
+   */
+  private async addForeignKeyIfNotExists(
+    queryRunner: QueryRunner,
+    tableName: string,
+    constraintName: string,
+    columnName: string,
+    referencedTable: string,
+    referencedColumn: string,
+    onDelete: string = 'SET NULL',
+  ): Promise<void> {
+    await queryRunner.query(`
+      DO $$ BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_constraint WHERE conname = '${constraintName}'
+        ) THEN
+          ALTER TABLE "${tableName}"
+            ADD CONSTRAINT "${constraintName}"
+            FOREIGN KEY ("${columnName}")
+            REFERENCES "${referencedTable}"("${referencedColumn}")
+            ON DELETE ${onDelete};
+        END IF;
+      END $$;
+    `);
+  }
+
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Create enum type for waste reactions
     await queryRunner.query(`
@@ -77,14 +103,13 @@ export class CreateWasteTables1774446375527 implements MigrationInterface {
       true,
     );
 
-    await queryRunner.createForeignKey(
+    await this.addForeignKeyIfNotExists(
+      queryRunner,
       'waste_meterial',
-      new TableForeignKey({
-        columnNames: ['waste_categoriesid'],
-        referencedTableName: 'waste_categories',
-        referencedColumnNames: ['id'],
-        onDelete: 'SET NULL',
-      }),
+      'FK_waste_meterial_waste_categories',
+      'waste_categoriesid',
+      'waste_categories',
+      'id',
     );
 
     // ============================================================
@@ -125,14 +150,13 @@ export class CreateWasteTables1774446375527 implements MigrationInterface {
       true,
     );
 
-    await queryRunner.createForeignKey(
+    await this.addForeignKeyIfNotExists(
+      queryRunner,
       'wastes',
-      new TableForeignKey({
-        columnNames: ['waste_categoriesid'],
-        referencedTableName: 'waste_categories',
-        referencedColumnNames: ['id'],
-        onDelete: 'SET NULL',
-      }),
+      'FK_wastes_waste_categories',
+      'waste_categoriesid',
+      'waste_categories',
+      'id',
     );
 
     // ============================================================
@@ -222,24 +246,22 @@ export class CreateWasteTables1774446375527 implements MigrationInterface {
       true,
     );
 
-    await queryRunner.createForeignKey(
+    await this.addForeignKeyIfNotExists(
+      queryRunner,
       'waste_history',
-      new TableForeignKey({
-        columnNames: ['wastesid'],
-        referencedTableName: 'wastes',
-        referencedColumnNames: ['id'],
-        onDelete: 'SET NULL',
-      }),
+      'FK_waste_history_wastes',
+      'wastesid',
+      'wastes',
+      'id',
     );
 
-    await queryRunner.createForeignKey(
+    await this.addForeignKeyIfNotExists(
+      queryRunner,
       'waste_history',
-      new TableForeignKey({
-        columnNames: ['waste_meterialid'],
-        referencedTableName: 'waste_meterial',
-        referencedColumnNames: ['id'],
-        onDelete: 'SET NULL',
-      }),
+      'FK_waste_history_waste_meterial',
+      'waste_meterialid',
+      'waste_meterial',
+      'id',
     );
 
     // ============================================================
@@ -271,14 +293,13 @@ export class CreateWasteTables1774446375527 implements MigrationInterface {
       true,
     );
 
-    await queryRunner.createForeignKey(
+    await this.addForeignKeyIfNotExists(
+      queryRunner,
       'waste_sorting',
-      new TableForeignKey({
-        columnNames: ['wastesid'],
-        referencedTableName: 'wastes',
-        referencedColumnNames: ['id'],
-        onDelete: 'SET NULL',
-      }),
+      'FK_waste_sorting_wastes',
+      'wastesid',
+      'wastes',
+      'id',
     );
 
     // ============================================================
@@ -321,24 +342,22 @@ export class CreateWasteTables1774446375527 implements MigrationInterface {
       true,
     );
 
-    await queryRunner.createForeignKey(
+    await this.addForeignKeyIfNotExists(
+      queryRunner,
       'material_guides',
-      new TableForeignKey({
-        columnNames: ['waste_meterialid'],
-        referencedTableName: 'waste_meterial',
-        referencedColumnNames: ['id'],
-        onDelete: 'SET NULL',
-      }),
+      'FK_material_guides_waste_meterial',
+      'waste_meterialid',
+      'waste_meterial',
+      'id',
     );
 
-    await queryRunner.createForeignKey(
+    await this.addForeignKeyIfNotExists(
+      queryRunner,
       'material_guides',
-      new TableForeignKey({
-        columnNames: ['wastesid'],
-        referencedTableName: 'wastes',
-        referencedColumnNames: ['id'],
-        onDelete: 'SET NULL',
-      }),
+      'FK_material_guides_wastes',
+      'wastesid',
+      'wastes',
+      'id',
     );
 
     // ============================================================
@@ -391,24 +410,22 @@ export class CreateWasteTables1774446375527 implements MigrationInterface {
       true,
     );
 
-    await queryRunner.createForeignKey(
+    await this.addForeignKeyIfNotExists(
+      queryRunner,
       'waste_calculate_logs',
-      new TableForeignKey({
-        columnNames: ['waste_historyid'],
-        referencedTableName: 'waste_history',
-        referencedColumnNames: ['id'],
-        onDelete: 'SET NULL',
-      }),
+      'FK_waste_calculate_logs_waste_history',
+      'waste_historyid',
+      'waste_history',
+      'id',
     );
 
-    await queryRunner.createForeignKey(
+    await this.addForeignKeyIfNotExists(
+      queryRunner,
       'waste_calculate_logs',
-      new TableForeignKey({
-        columnNames: ['waste_management_methodid'],
-        referencedTableName: 'waste_management_methods',
-        referencedColumnNames: ['id'],
-        onDelete: 'SET NULL',
-      }),
+      'FK_waste_calculate_logs_waste_management',
+      'waste_management_methodid',
+      'waste_management_methods',
+      'id',
     );
 
     // ============================================================
@@ -444,14 +461,14 @@ export class CreateWasteTables1774446375527 implements MigrationInterface {
       true,
     );
 
-    await queryRunner.createForeignKey(
+    await this.addForeignKeyIfNotExists(
+      queryRunner,
       'waste_reactions',
-      new TableForeignKey({
-        columnNames: ['wastesid'],
-        referencedTableName: 'wastes',
-        referencedColumnNames: ['id'],
-        onDelete: 'CASCADE',
-      }),
+      'FK_waste_reactions_wastes',
+      'wastesid',
+      'wastes',
+      'id',
+      'CASCADE',
     );
 
     // ============================================================
