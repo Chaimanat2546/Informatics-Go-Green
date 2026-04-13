@@ -19,7 +19,7 @@ export const AppDataSource = new DataSource({
     CreateSchedulerSettings1710000000000,
     CreateWasteTables1774446375527,
   ],
-  migrationsRun: false,
+  migrationsRun: true,
   synchronize: false,
   logging: process.env.NODE_ENV !== 'production',
 });
