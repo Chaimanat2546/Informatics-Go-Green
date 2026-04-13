@@ -281,7 +281,7 @@ export default function CreateWasteMaterial() {
           <h1 className="text-4xl font-bold text-slate-800 mb-2">เพิ่มค่าสัมประสิทธิ์</h1>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-white/60 overflow-hidden animate-scale">
+        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-white/60  animate-scale">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 p-8">
             {/* Left Section - File Upload */}
             <div className="lg:col-span-2 space-y-4">

@@ -297,7 +297,7 @@ export default function EditWasteMaterial({ materialId }: Props) {
           <p className="text-slate-500">แก้ไขรายละเอียดค่าสัมประสิทธิ์การปล่อยมลพิษ</p>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-white/60 overflow-hidden animate-scale">
+        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-white/60 animate-scale">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 p-8">
             <div className="lg:col-span-2 space-y-4">
               <h3 className="text-lg font-semibold text-slate-700 mb-4">รูปภาพ</h3>
