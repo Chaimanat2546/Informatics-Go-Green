@@ -243,7 +243,7 @@ export default function WasteMaterialTable() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 mt-6 font-sans">
+    <div className="max-w-6xl mx-auto px-6 mt-6 font-sans">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
           <h1 className="text-3xl md:text-4xl font-bold text-slate-800 flex items-center gap-3">
