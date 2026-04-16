@@ -31,16 +31,21 @@ export default function LatestWasteSorting() {
     const LIMIT = 4; 
 
     const getCategoryColor = (categoryName: string): string => {
+    if (!categoryName) return 'bg-purple-50 text-purple-700';
+
     const name = categoryName.toLowerCase();
-    if (name.includes('พลาสติก')) return '#4ADE80'; 
-    if (name.includes('กระดาษ')) return '#FDE047';  
-    if (name.includes('แก้ว')) return '#93C5FD';   
-    if (name.includes('เหล็ก')) return '#EF4444';  
-    if (name.includes('โลหะ') || name.includes('อลูมิเนียม')) return '#CBD5E1'; 
-    if (name.includes('อินทรีย์') || name.includes('อาหาร')) return '#A3E635'; 
-    if (name.includes('อันตราย')) return '#F87171'; 
-    return '#D8B4FE'; 
-};
+
+    if (name.includes('พลาสติก')) return 'bg-green-50 text-green-700';
+    if (name.includes('กระดาษ')) return 'bg-yellow-50 text-yellow-700';
+    if (name.includes('แก้ว')) return 'bg-blue-50 text-blue-700';
+    if (name.includes('เหล็ก')) return 'bg-red-50 text-red-700';
+    if (name.includes('โลหะ') || name.includes('อลูมิเนียม')) return 'bg-slate-50 text-slate-700';
+    if (name.includes('อินทรีย์') || name.includes('อาหาร')) return 'bg-lime-50 text-lime-700';
+    if (name.includes('อันตราย')) return 'bg-rose-50 text-rose-700';
+
+    return 'bg-purple-50 text-purple-700';
+  };
+
 
     const fetchItems = useCallback(async (pageNum: number, search: string = "") => {
         const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
@@ -167,7 +172,7 @@ export default function LatestWasteSorting() {
                                 <p className="text-gray-900 text-sm font-bold line-clamp-2 leading-5">
                                     {item.name}
                                 </p>
-                                <span className={`${getCategoryColor(item.category_name)} text-xs font-bold px-2 py-0.5 rounded-full w-fit`}>
+                                <span className={`${getCategoryColor(item.category_name)}  text-xs font-bold px-2 py-0.5 rounded-full w-fit`}>
                                     {item.category_name}
                                 </span>
                             </div>
