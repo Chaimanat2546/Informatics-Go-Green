@@ -28,16 +28,21 @@ export default function WasteHistoryPage() {
     };
 
     const getCategoryColor = (categoryName: string): string => {
-    const name = categoryName.toLowerCase();
-    if (name.includes('พลาสติก')) return '#4ADE80'; 
-    if (name.includes('กระดาษ')) return '#FDE047';  
-    if (name.includes('แก้ว')) return '#93C5FD';   
-    if (name.includes('เหล็ก')) return '#EF4444';  
-    if (name.includes('โลหะ') || name.includes('อลูมิเนียม')) return '#CBD5E1'; 
-    if (name.includes('อินทรีย์') || name.includes('อาหาร')) return '#A3E635'; 
-    if (name.includes('อันตราย')) return '#F87171'; 
-    return '#D8B4FE'; 
-};
+        if (!categoryName) return 'bg-purple-50 text-purple-700';
+
+        const name = categoryName.toLowerCase();
+
+        if (name.includes('พลาสติก')) return 'bg-green-50 text-green-700';
+        if (name.includes('กระดาษ')) return 'bg-yellow-50 text-yellow-700';
+        if (name.includes('แก้ว')) return 'bg-blue-50 text-blue-700';
+        if (name.includes('เหล็ก')) return 'bg-red-50 text-red-700';
+        if (name.includes('โลหะ') || name.includes('อลูมิเนียม')) return 'bg-slate-50 text-slate-700';
+        if (name.includes('อินทรีย์') || name.includes('อาหาร')) return 'bg-lime-50 text-lime-700';
+        if (name.includes('อันตราย')) return 'bg-rose-50 text-rose-700';
+
+        return 'bg-purple-50 text-purple-700';
+    };
+
 
     // Points are now calculated by the backend
 
@@ -195,7 +200,7 @@ export default function WasteHistoryPage() {
                                         <div className="flex flex-row items-baseline gap-2">
                                             <p className="text-md text-gray-800">ปริมาณ</p>
                                             <p className="text-md font-bold text-gray-900">
-                                                { Number(item.amount).toFixed(2) } กก. / ชิ้น
+                                                {Number(item.amount).toFixed(2)} กก. / ชิ้น
                                             </p>
                                         </div>
                                         <button
