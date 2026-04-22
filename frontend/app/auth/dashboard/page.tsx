@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CardContentLarge } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Settings, Trash2, UserCog } from "lucide-react";
+import { Settings, Trash2, UserCog, Leaf } from "lucide-react";
 import MenuBar from "@/components/wasteTracking/MenuBar";
 import UserProfile from "@/components/auth/UserProfile";
 import ChangePasswordModal from "@/components/auth/ChangePasswordModal";
@@ -252,8 +252,19 @@ function DashboardContent() {
   }
 
   return (
-    <div>
-      <div>
+    <main className="min-h-screen bg-[#EAF6F1] overflow-y-auto overflow-x-hidden font-sans">
+      <header className="bg-green-600 px-6 pt-10 pb-24 rounded-b-[50px] relative z-0">
+        <div className="flex justify-between items-center">
+          <div className=" leading-9 font text-3xl font-semibold text-white">
+            {user ? `สวัสดี ${user.firstName}` : "โปรไฟล์"}
+          </div>
+          <div className="bg-white h-12.5 w-12.5 rounded-2xl flex justify-center items-center">
+            <Leaf className="text-green-700" size={40} strokeWidth={4} />
+          </div>
+        </div>
+      </header>
+
+      <div className="px-6 -mt-16 relative z-10 pb-24">
         {message && (
           <div
             className={`p-3 rounded mb-4 text-center ${isError ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}`}
@@ -261,7 +272,7 @@ function DashboardContent() {
             {message}
           </div>
         )}
-        <CardContentLarge className="min-h-100">
+        <CardContentLarge className="min-h-100 mb-6">
           {user && <UserProfile user={user} onLogout={handleLogout} />}
         </CardContentLarge>
         {user && (
