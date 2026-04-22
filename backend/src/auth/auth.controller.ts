@@ -79,11 +79,18 @@ export class AuthController {
     const token = this.authService.generateJwtToken(req.user);
     const frontendUrl = this.configService.get<string>(
       'FRONTEND_URL',
-      'http://localhost:3001',
+      'http://localhost:3000',
+    );
+    const basePath = this.configService.get<string>(
+      'NEXT_PUBLIC_BASE_PATH',
+      '',
     );
 
+    // Build redirect URL, ensuring no double slashes and handling subpath correctly
+    const redirectUrl = `${frontendUrl}${basePath}/auth/dashboard?token=${token}`;
+
     // Redirect to frontend with token
-    res.redirect(`${frontendUrl}/auth/dashboard?token=${token}`);
+    res.redirect(redirectUrl);
   }
 
   @Get('me')
