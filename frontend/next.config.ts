@@ -5,7 +5,6 @@ const nextConfig: NextConfig = {
   output: "standalone",
   // Support subpath deployment (e.g., /if-go-green)
   basePath: process.env.NEXT_PUBLIC_BASE_PATH || "",
-  assetPrefix: process.env.NEXT_PUBLIC_BASE_PATH || "",
   trailingSlash: false,
   images: {
     // Disable optimization for environments without image optimizer
