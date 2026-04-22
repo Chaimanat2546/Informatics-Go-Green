@@ -1,0 +1,80 @@
+# Docker Compose for PREPRO (Subpath Deployment)
+# Uses docker-compose.yml as base
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prepro.yml up --build -d
+#
+# Nginx config (managed by prepro server):
+#   location /if-go-green/ {
+#       proxy_pass http://if-go-green-web1/if-go-green;
+#       ...
+#   }
+#   location /if-go-green-api/api {
+#       proxy_pass http://if-go-green-api1;
+#       ...
+#   }
+
+services:
+  postgres:
+    container_name: if-go-green-db-prepro
+    restart: always
+    volumes:
+      - postgres_data_prepro:/var/lib/postgresql/data
+    networks:
+      - internal
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    container_name: if-go-green-api1
+    restart: always
+    environment:
+      NODE_ENV: production
+      API_PREFIX: ${API_PREFIX}
+      API_URL: ${API_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
+    ports:
+      - "9061:3001"
+    volumes:
+      - uploads_data:/app/uploads
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/if-go-green-api/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - internal
+      - web
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_BASE_PATH: ${NEXT_PUBLIC_BASE_PATH}
+    container_name: if-go-green-web1
+    restart: always
+    environment:
+      NODE_ENV: production
+      HOSTNAME: "0.0.0.0"
+    ports:
+      - "9060:3000"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/if-go-green/"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - web
+
+volumes:
+  postgres_data_prepro:
+  uploads_data:
+
+networks:
+  internal:
+    driver: bridge
+  web:
+    driver: bridge
