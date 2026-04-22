@@ -32,6 +32,7 @@ services:
       API_PREFIX: ${API_PREFIX}
       API_URL: ${API_URL}
       FRONTEND_URL: ${FRONTEND_URL}
+      NEXT_PUBLIC_BASE_PATH: ${NEXT_PUBLIC_BASE_PATH}
     ports:
       - "9061:3001"
     volumes:
