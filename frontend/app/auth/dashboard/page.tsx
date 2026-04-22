@@ -133,7 +133,7 @@ function DashboardContent() {
         errorMessage={deleteError}
       />
       <MenuBar activeTab="profile" />
-    </div>
+    </main>
   );
 }
 
