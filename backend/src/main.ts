@@ -9,9 +9,11 @@ import * as path from 'path';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
+  const apiPrefix = process.env.API_PREFIX || 'api';
+
   // Serve static files from uploads directory
   app.useStaticAssets(path.join(process.cwd(), 'uploads'), {
-    prefix: '/uploads',
+    prefix: `/${apiPrefix}/uploads`,
   });
 
   // Increase body size limit for file uploads
@@ -36,7 +38,7 @@ async function bootstrap() {
   );
 
   // Global API prefix
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix(apiPrefix);
 
   // Global exception filter for consistent error responses
   const httpAdapterHost = app.get(HttpAdapterHost);
