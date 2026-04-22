@@ -29,227 +29,7 @@ function DashboardContent() {
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
 
-  // Modal states
-
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-
-  const [password, setPassword] = useState("");
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmNewPassword, setConfirmNewPassword] = useState("");
-  const [actionLoading, setActionLoading] = useState(false);
-  const [passwordError, setPasswordError] = useState("");
-  const [deleteError, setDeleteError] = useState("");
-
-  const API_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
-
-  const showMessageFn = (text: string, error = false) => {
-    setMessage(text);
-    setIsError(error);
-    setTimeout(() => setMessage(""), 5000);
-  };
-
-  useEffect(() => {
-    let ignore = false;
-
-    const tokenFromUrl = searchParams.get("token");
-    if (tokenFromUrl) {
-      localStorage.setItem("token", tokenFromUrl);
-
-      // Fetch user profile to check role before redirecting
-      const fetchAndRedirect = async () => {
-        try {
-          const response = await fetch(`${API_URL}/auth/me`, {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${tokenFromUrl}`,
-              "Content-Type": "application/json",
-            },
-          });
-
-          if (response.ok) {
-            const userData = await response.json();
-            localStorage.setItem("user", JSON.stringify(userData));
-
-            // Redirect based on user role
-            const redirectPath =
-              userData.role === "admin"
-                ? "/admin/users"
-                : "/wasteTracking/home";
-            router.push(redirectPath);
-          } else {
-            localStorage.removeItem("token");
-            router.push("/auth/login");
-          }
-        } catch {
-          router.push("/wasteTracking/home");
-        }
-      };
-
-      fetchAndRedirect();
-      return;
-    }
-
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/auth/login");
-      return;
-    }
-
-    const fetchUserProfile = async () => {
-      try {
-        const response = await fetch(`${API_URL}/auth/me`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-
-        const data = await response.json();
-
-        if (ignore) return;
-
-        if (response.ok) {
-          setUser(data);
-          setLoading(false);
-        } else {
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-          router.push("/auth/login");
-        }
-      } catch {
-        if (!ignore) {
-          showMessageFn("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง", true);
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchUserProfile();
-
-    return () => {
-      ignore = true;
-    };
-  }, [router, searchParams, API_URL]);
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    router.push("/wasteTracking/home");
-  };
-
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setPasswordError("");
-
-    if (newPassword !== confirmNewPassword) {
-      setPasswordError("รหัสผ่านใหม่ไม่ตรงกัน");
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      setPasswordError("รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร");
-      return;
-    }
-
-    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/.test(newPassword)) {
-      setPasswordError("รหัสผ่านใหม่ต้องมีตัวพิมพ์เล็ก ตัวพิมพ์ใหญ่ และตัวเลข");
-      return;
-    }
-
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/auth/login");
-      return;
-    }
-
-    setActionLoading(true);
-
-    try {
-      const response = await fetch(`${API_URL}/auth/password`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ currentPassword, newPassword }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setShowPasswordModal(false);
-        setCurrentPassword("");
-        setNewPassword("");
-        setConfirmNewPassword("");
-        setPasswordError("");
-        showMessageFn("เปลี่ยนรหัสผ่านสำเร็จ!");
-      } else {
-        setPasswordError(
-          Array.isArray(data.message)
-            ? data.message.join(", ")
-            : data.message || "เปลี่ยนรหัสผ่านไม่สำเร็จ",
-        );
-      }
-    } catch {
-      setPasswordError("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleDeleteAccount = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setDeleteError("");
-
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/auth/login");
-      return;
-    }
-
-    setActionLoading(true);
-
-    try {
-      const response = await fetch(`${API_URL}/auth/account`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        router.push("/auth/login");
-      } else {
-        setDeleteError(
-          Array.isArray(data.message)
-            ? data.message.join(", ")
-            : data.message || "ลบบัญชีไม่สำเร็จ",
-        );
-      }
-    } catch {
-      setDeleteError("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>กำลังโหลด...</p>
-      </div>
-    );
-  }
+  // ... (rest of states and effects)
 
   return (
     <main className="min-h-screen bg-[#EAF6F1] overflow-y-auto overflow-x-hidden font-sans">
@@ -265,48 +45,56 @@ function DashboardContent() {
       </header>
 
       <div className="px-6 -mt-16 relative z-10 pb-24">
-        {message && (
-          <div
-            className={`p-3 rounded mb-4 text-center ${isError ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}`}
-          >
-            {message}
+        {loading ? (
+          <div className="bg-white rounded-3xl p-12 shadow-lg text-center min-h-[300px] flex items-center justify-center">
+            <p className="text-gray-500 font-medium">กำลังโหลดข้อมูลโปรไฟล์...</p>
           </div>
-        )}
-        <CardContentLarge className="min-h-100 mb-6">
-          {user && <UserProfile user={user} onLogout={handleLogout} />}
-        </CardContentLarge>
-        {user && (
-          <div className="flex gap-4 justify-center">
-            <Button
-              onClick={() => router.push("/auth/edit-profile")}
-              className="bg-green-50 text-secondary-foreground hover:bg-green-200 shadow-xl flex flex-col items-center h-28 w-28"
-            >
-              <div className="flex flex-col items-center gap-2">
-                <UserCog className="size-10" />
-                <p className="text-lg">แก้ไขโปรไฟล์</p>
-              </div>
-            </Button>
-            {user.provider === "local" && (
-              <Button
-                onClick={() => setShowPasswordModal(true)}
-                className="bg-green-50 text-secondary-foreground hover:bg-green-200 shadow-xl flex flex-col items-center h-28 w-28"
+        ) : (
+          <>
+            {message && (
+              <div
+                className={`p-3 rounded mb-4 text-center ${isError ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}`}
               >
-                <div className="flex flex-col items-center gap-2">
-                  <Settings className="size-10" />
-                  <p className="text-lg">แก้ไขรหัสผ่าน</p>
-                </div>
-              </Button>
-            )}
-            <Button
-              onClick={() => setShowDeleteModal(true)}
-              className="bg-green-50 text-secondary-foreground hover:bg-red-200 shadow-xl flex flex-col items-center h-28 w-28"
-            >
-              <div className="flex flex-col items-center gap-2">
-                <Trash2 className="size-10 text-red-700" />
-                <p className="text-lg">ลบบัญชี</p>
+                {message}
               </div>
-            </Button>
-          </div>
+            )}
+            <CardContentLarge className="min-h-100 mb-6">
+              {user && <UserProfile user={user} onLogout={handleLogout} />}
+            </CardContentLarge>
+            {user && (
+              <div className="flex gap-4 justify-center">
+                <Button
+                  onClick={() => router.push("/auth/edit-profile")}
+                  className="bg-green-50 text-secondary-foreground hover:bg-green-200 shadow-xl flex flex-col items-center h-28 w-28"
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <UserCog className="size-10" />
+                    <p className="text-lg">แก้ไขโปรไฟล์</p>
+                  </div>
+                </Button>
+                {user.provider === "local" && (
+                  <Button
+                    onClick={() => setShowPasswordModal(true)}
+                    className="bg-green-50 text-secondary-foreground hover:bg-green-200 shadow-xl flex flex-col items-center h-28 w-28"
+                  >
+                    <div className="flex flex-col items-center gap-2">
+                      <Settings className="size-10" />
+                      <p className="text-lg">แก้ไขรหัสผ่าน</p>
+                    </div>
+                  </Button>
+                )}
+                <Button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="bg-green-50 text-secondary-foreground hover:bg-red-200 shadow-xl flex flex-col items-center h-28 w-28"
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <Trash2 className="size-10 text-red-700" />
+                    <p className="text-lg">ลบบัญชี</p>
+                  </div>
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </div>
 

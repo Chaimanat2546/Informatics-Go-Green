@@ -73,8 +73,8 @@ export default function GlobalHeader() {
     pathname === "/auth/login" ||
     pathname === "/wasteTracking/home" ||
     pathname === "/wasteTracking/wasteScaner" ||
-    pathname === "/wasteTracking/wasteStats"
-
+    pathname === "/wasteTracking/wasteStats" ||
+    normalizedPathname === "/auth/dashboard"
   )
     return null;
 
