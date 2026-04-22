@@ -37,7 +37,12 @@ export default function GlobalHeader() {
   const router = useRouter();
   const pathname = usePathname();
 
-  let currentPage = pageConfig[pathname];
+  // Normalize pathname: remove trailing slash if exists (except for root)
+  const normalizedPathname = pathname !== "/" && pathname.endsWith("/") 
+    ? pathname.slice(0, -1) 
+    : pathname;
+
+  let currentPage = pageConfig[normalizedPathname] || pageConfig[pathname];
 
   if (!currentPage) {
     if (pathname.startsWith("/wasteTracking/wasteHistory/")) {
