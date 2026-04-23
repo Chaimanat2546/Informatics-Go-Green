@@ -1,5 +1,7 @@
 # Deployment Pre-production
-
+```*****
+ใช้ branch deploy/prepro ในการ deploy
+*****```
 ## 1. ตั้งค่า .env
 สร้างไฟล์ `.env` และใส่ค่าดังนี้:
 
