@@ -261,7 +261,7 @@ export default function CreateWasteMaterial() {
         const errorData = await response.json();
         toast.error(errorData.message || "ไม่สามารถลบหมวดหมู่ได้");
       }
-    } catch (error) {
+    } catch {
       toast.error("เกิดข้อผิดพลาด");
     } finally {
       setIsDeletingCategory(null);

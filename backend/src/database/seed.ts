@@ -1,18 +1,7 @@
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 
-// Import all entities
 import { User } from '../users/user.entity';
-import { WasteCategory } from '../waste/entities/waste-category.entity';
-import { WasteMaterial } from '../waste/entities/waste-material.entity';
-import { Waste } from '../waste/entities/waste.entity';
-import { WasteHistory } from '../waste/entities/waste-history.entity';
-import { WasteSorting } from '../waste/entities/waste-sorting.entity';
-import { MaterialGuide } from '../waste/entities/material-guide.entity';
-import { WasteCalculateLog } from '../waste/entities/waste-calculate-log.entity';
-import { WasteManagementMethod } from '../waste/entities/waste-management-method.entity';
-import { SchedulerSettings } from '../scheduler/entities/scheduler-settings.entity';
-import { SchedulerLock } from '../scheduler/entities/scheduler-lock.entity';
 
 export async function seedDatabase(dataSource: DataSource): Promise<void> {
   console.log('🌱 Starting database seeding...\n');
@@ -66,7 +55,7 @@ export async function seedDatabase(dataSource: DataSource): Promise<void> {
   });
 
   const savedAdmin = await userRepo.save(adminUser);
-  const savedUser = await userRepo.save(normalUser);
+  await userRepo.save(normalUser);
   console.log(`  ✅ Created ${2} users (admin: ${savedAdmin.email})\n`);
 
   // ============================================================

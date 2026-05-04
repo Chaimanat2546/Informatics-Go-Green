@@ -150,7 +150,7 @@ export default function EditWasteMaterial({ materialId }: Props) {
         return data.url;
       }
       return null;
-    } catch (error) {
+    } catch {
       return null;
     }
   };
@@ -259,7 +259,7 @@ export default function EditWasteMaterial({ materialId }: Props) {
         const errorData = await response.json();
         toast.error(errorData.message || "ไม่สามารถลบหมวดหมู่ได้");
       }
-    } catch (error) {
+    } catch {
       toast.error("เกิดข้อผิดพลาด");
     } finally {
       setIsDeletingCategory(null);
