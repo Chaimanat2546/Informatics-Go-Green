@@ -32,8 +32,8 @@ export class WasteHistory {
   @Column({ type: 'bigint', nullable: true })
   wastesid: number | null;
 
-  @Column({ type: 'bigint', nullable: true })
-  userid: number;
+  @Column({ type: 'uuid', nullable: true })
+  userid: string;
 
   // Carbon Footprint Calculation Fields
   @Column({

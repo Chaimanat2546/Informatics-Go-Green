@@ -32,6 +32,34 @@ export default function AuthRegisterForm({
   };
 
   const validateForm = (): boolean => {
+    // Check for empty fields
+    if (!formData.firstName.trim()) {
+      showMessage("กรุณากรอกชื่อ", true);
+      return false;
+    }
+    if (!formData.lastName.trim()) {
+      showMessage("กรุณากรอกนามสกุล", true);
+      return false;
+    }
+    if (!formData.email.trim()) {
+      showMessage("กรุณากรอกอีเมล", true);
+      return false;
+    }
+    if (!formData.password) {
+      showMessage("กรุณากรอกรหัสผ่าน", true);
+      return false;
+    }
+
+    // Check for spaces in names
+    if (/\s/.test(formData.firstName.trim())) {
+      showMessage("ชื่อต้องไม่มีช่องว่าง", true);
+      return false;
+    }
+    if (/\s/.test(formData.lastName.trim())) {
+      showMessage("นามสกุลต้องไม่มีช่องว่าง", true);
+      return false;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       showMessage("รหัสผ่านไม่ตรงกัน", true);
       return false;

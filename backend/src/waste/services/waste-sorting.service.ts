@@ -42,7 +42,7 @@ export class WasteSortingService {
     };
   }
 
-  async recordWasteWeight(materialId: number, weight: number, userId: number) {
+  async recordWasteWeight(materialId: number, weight: number, userId: string) {
     const material = await this.wasteMaterialRepo.findOne({
       where: { id: materialId },
       relations: ['wasteCategory'],
@@ -93,10 +93,10 @@ export class WasteSortingService {
 
   async findMeterialsAll(
     page: number = 1,
+    limit: number = 6,
     categoryName?: string,
     materialName?: string,
   ) {
-    const limit = 6;
     const skip = (page - 1) * limit;
     const whereCondition: FindOptionsWhere<WasteMaterial> = {};
 
@@ -119,6 +119,9 @@ export class WasteSortingService {
       id: Number(item.id),
       name: item.name,
       meterial_image: item.materialImage || '',
+      wasteCategoryId: item.wasteCategoryId
+        ? Number(item.wasteCategoryId)
+        : null,
       waste_categoriesid: item.wasteCategory
         ? {
             id: item.wasteCategory.id,

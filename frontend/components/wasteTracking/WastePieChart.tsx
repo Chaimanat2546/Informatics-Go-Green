@@ -134,7 +134,7 @@ export default function WastePieChart({ data = [] }: WastePieChartProps) {
             <div className="h-64 relative w-full">
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
                     <span className="text-4xl font-bold text-black">
-                        {totalWeight.toLocaleString(undefined, { maximumFractionDigits: 1 })}
+                        {totalWeight.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                     </span>
                     <span className="text-sm text-gray-500 font-medium">กิโลกรัม</span>
                 </div>

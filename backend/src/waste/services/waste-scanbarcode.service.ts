@@ -41,6 +41,8 @@ export class WasteScannerService {
       id: waste.id,
       barcode: waste.barcode,
       name: waste.name,
+      description: waste.description,
+      imageUrl: waste.waste_image,
       waste_image: waste.waste_image,
       amount: 1,
       create_at: waste.create_at,
@@ -53,6 +55,12 @@ export class WasteScannerService {
             },
           ]
         : [],
+      wasteCategory: waste.wasteCategory
+        ? {
+            id: waste.wasteCategory.id,
+            name: waste.wasteCategory.name,
+          }
+        : null,
 
       user_id: waste.userid,
 
@@ -63,12 +71,25 @@ export class WasteScannerService {
           description: sorting.description,
         })) || [],
 
+      materialGuides:
+        waste.materialGuides?.map((guide) => ({
+          id: guide.id,
+          guide_image: guide.guide_image,
+          recommendation: guide.recommendation,
+          wasteMaterial: guide.wasteMaterial
+            ? {
+                id: guide.wasteMaterial.id,
+                name: guide.wasteMaterial.name,
+              }
+            : null,
+          waste_meterial_name: guide.wasteMaterial?.name || 'ไม่ระบุวัสดุ',
+        })) || [],
       material_guides:
         waste.materialGuides?.map((guide) => ({
           id: guide.id,
           guide_image: guide.guide_image,
           recommendation: guide.recommendation,
-          waste_meterial_name: guide.wasteMaterial.name,
+          waste_meterial_name: guide.wasteMaterial?.name || 'ไม่ระบุวัสดุ',
         })) || [],
     };
   }
@@ -142,18 +163,39 @@ export class WasteScannerService {
       id: waste.id,
       barcode: waste.barcode,
       name: waste.name,
+      description: waste.description,
+      imageUrl: waste.waste_image,
       waste_image: waste.waste_image,
       amount: 1,
       create_at: waste.create_at,
       waste_categoriesid: waste.wasteCategory
         ? [{ id: waste.wasteCategory.id, name: waste.wasteCategory.name }]
         : [],
+      wasteCategory: waste.wasteCategory
+        ? {
+            id: waste.wasteCategory.id,
+            name: waste.wasteCategory.name,
+          }
+        : null,
       user_id: waste.userid,
       waste_sorting:
         waste.wasteSortings?.map((sorting) => ({
           id: sorting.id,
           name: sorting.name,
           description: sorting.description,
+        })) || [],
+      materialGuides:
+        waste.materialGuides?.map((guide) => ({
+          id: guide.id,
+          guide_image: guide.guide_image,
+          recommendation: guide.recommendation,
+          wasteMaterial: guide.wasteMaterial
+            ? {
+                id: guide.wasteMaterial.id,
+                name: guide.wasteMaterial.name,
+              }
+            : null,
+          waste_meterial_name: guide.wasteMaterial?.name || 'ไม่ระบุวัสดุ',
         })) || [],
       material_guides:
         waste.materialGuides?.map((guide) => ({

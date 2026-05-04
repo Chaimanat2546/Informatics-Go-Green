@@ -26,7 +26,6 @@ interface AuthenticatedRequest extends Request {
 export class WasteReactionController {
   constructor(private readonly wasteReactionService: WasteReactionService) {}
 
-  @UseGuards(JwtAuthGuard)
   @Get(':id/reaction')
   async getReactions(
     @Param('id', ParseIntPipe) wasteId: number,
@@ -34,6 +33,7 @@ export class WasteReactionController {
     @Query('userId') queryUserId?: string,
   ) {
     // Use userId from JWT token if available, otherwise from query
+    // This allows the system to show if the CURRENT user has reacted, even if optional
     const userId = req.user?.id || queryUserId;
     return this.wasteReactionService.getReactions(wasteId, userId);
   }

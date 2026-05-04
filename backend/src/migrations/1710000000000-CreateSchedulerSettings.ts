@@ -11,8 +11,16 @@ export class CreateSchedulerSettings1710000000000 implements MigrationInterface 
           { name: 'label', type: 'varchar', length: '255', isNullable: true },
           { name: 'description', type: 'text', isNullable: true },
           { name: 'type', type: 'varchar', length: '50', default: "'string'" },
-          { name: 'created_at', type: 'timestamp', default: 'CURRENT_TIMESTAMP' },
-          { name: 'updated_at', type: 'timestamp', default: 'CURRENT_TIMESTAMP' },
+          {
+            name: 'created_at',
+            type: 'timestamp',
+            default: 'CURRENT_TIMESTAMP',
+          },
+          {
+            name: 'updated_at',
+            type: 'timestamp',
+            default: 'CURRENT_TIMESTAMP',
+          },
         ],
       }),
       true,

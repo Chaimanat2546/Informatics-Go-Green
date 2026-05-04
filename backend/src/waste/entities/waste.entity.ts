@@ -25,6 +25,9 @@ export class Waste {
   @Column({ type: 'varchar', length: 255, nullable: true })
   waste_image: string;
 
+  @Column({ type: 'text', nullable: true })
+  description: string;
+
   @Column({ type: 'bigint', nullable: true })
   barcode: number;
 
@@ -34,8 +37,8 @@ export class Waste {
   @Column({ type: 'bigint', nullable: true, name: 'waste_categoriesid' })
   wasteCategoryId: number;
 
-  @Column({ type: 'bigint', nullable: true })
-  userid: number;
+  @Column({ type: 'uuid', nullable: true })
+  userid: string;
 
   // Relations
   @ManyToOne(() => WasteCategory, (category) => category.wastes)

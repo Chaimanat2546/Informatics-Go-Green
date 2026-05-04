@@ -1,197 +1,82 @@
 # 🌿 Informatics Go Green
 
-ระบบ Web Application สำหรับโครงการ Informatics Go Green พัฒนาด้วยสถาปัตยกรรม Full-Stack Modern บน Docker Container
+**Informatics Go Green** เป็นระบบ Web Application แบบ Full-stack Modern ที่พัฒนาขึ้นเพื่อสนับสนุนการจัดการสิ่งแวดล้อมภายในคณะเทคโนโลยีสารสนเทศ มหาวิทยาลัยบูรพา โดยเน้นการติดตามการคัดแยกขยะและการคำนวณ Carbon Footprint
 
 ---
 
-## 📋 Table of Contents
+## 🚀 ทางลัดสำหรับการใช้งาน (Quick Start)
 
-- [Overview](#-overview)
-- [Tech Stack](#-tech-stack)
-- [Prerequisites](#-prerequisites)
-- [Quick Start](#-quick-start)
-- [Project Structure](#-project-structure)
-- [Authentication](#-authentication)
-- [Documentation](#-documentation)
-- [Contributing](#-contributing)
-
----
-
-## 🎯 Overview
-
-**Informatics Go Green** เป็นโปรเจคเว็บแอปพลิเคชันที่พัฒนาขึ้นเพื่อสนับสนุนการดำเนินงานด้านสิ่งแวดล้อม โดยใช้เทคโนโลยีสมัยใหม่และมีโครงสร้างที่พร้อมขยายเป็น Microservices
-
-### Key Features
-
-| Feature | Description |
-|---------|-------------|
-| 🔐 Authentication | รองรับ Local Login, Google OAuth, Password Reset |
-| 👤 User Management | ระบบจัดการผู้ใช้งานแบบครบวงจร |
-| 🐳 Docker Ready | พร้อม Deploy ทั้ง Development และ Production |
-| ⚡ Hot Reload | รองรับ Live reload ระหว่าง Development |
-
----
-
-## 🛠 Tech Stack
-
-| Layer | Technology | Version |
-|-------|------------|---------|
-| **Frontend** | Next.js (App Router) | 14+ |
-| **Backend** | NestJS | 10+ |
-| **Database** | PostgreSQL | 16 |
-| **ORM** | TypeORM | 0.3+ |
-| **Language** | TypeScript | 5+ |
-| **Container** | Docker & Docker Compose | Latest |
-| **Auth** | JWT, Passport.js, OAuth 2.0 | - |
-
----
-
-## 📦 Prerequisites
-
-ก่อนเริ่มต้นพัฒนา ตรวจสอบว่าเครื่องมีโปรแกรมต่อไปนี้:
-
-| Software | Version | Download |
-|----------|---------|----------|
-| **Docker Desktop** | Latest | [docker.com](https://www.docker.com/products/docker-desktop/) |
-| **Git** | 2.40+ | [git-scm.com](https://git-scm.com/) |
-| **Node.js** (optional) | 20+ | [nodejs.org](https://nodejs.org/) |
-| **VS Code** (recommended) | Latest | [code.visualstudio.com](https://code.visualstudio.com/) |
-
-> **Note**: Node.js จำเป็นเฉพาะกรณีที่ต้อง run บน Local โดยไม่ใช้ Docker
-
----
-
-## 🚀 Quick Start
-
-### Option 1: Docker (แนะนำ)
-
+### การพัฒนาบนเครื่อง Local (Docker)
 ```bash
-# 1. Clone repository
-git clone https://github.com/Chaimanat2546/Informatics-Go-Green.git
-cd Informatics-Go-Green
-
-# 2. Setup environment
 cp .env.example .env
-
-# 3. Start development containers
-docker-compose -f docker-compose.dev.yml up --build -d
-
-# 4. (Optional) Start with Hot Reload Watch Mode
-docker-compose -f docker-compose.dev.yml up --build --watch
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 ```
 
-### Option 2: Local Development (ไม่ใช้ Docker)
-
+### การ Deploy บนเครื่องมหาวิทยาลัย (PREPRO)
 ```bash
-# 1. Clone & Setup
-git clone https://github.com/Chaimanat2546/Informatics-Go-Green.git
-cd Informatics-Go-Green
-cp .env.example .env
-
-# 2. Start PostgreSQL (ต้องมี PostgreSQL ติดตั้งอยู่)
-# หรือใช้ Docker สำหรับ Database เท่านั้น:
-docker-compose -f docker-compose.dev.yml up -d postgres
-
-# 3. Install & Run Backend
-cd backend
-npm install --legacy-peer-deps
-npm run start:dev
-
-# 4. Install & Run Frontend (new terminal)
-cd frontend
-npm install
-npm run dev
+git checkout deploy/prepro
+git pull origin deploy/prepro
+cp .env.prepro .env
+docker compose -f docker-compose.yml -f docker-compose.prepro.yml up --build -d
 ```
-
-### Access Application
-
-| Service | URL | Description |
-|---------|-----|-------------|
-| 🏠 Frontend | http://localhost:3000 | Next.js Application |
-| 🔌 Backend API | http://localhost:3001/api | NestJS REST API |
-| 🗄️ Database | localhost:5432 | PostgreSQL |
 
 ---
 
-## 📁 Project Structure
+## 🛠 เทคโนโลยีที่ใช้ (Tech Stack)
 
-```
+### **Frontend**
+- **Framework:** [Next.js 15 (App Router)](https://nextjs.org/)
+- **Styling:** Tailwind CSS & shadcn/ui
+- **Icons:** Lucide React & Tabler Icons
+- **State Management:** React Hooks & LocalStorage
+
+### **Backend**
+- **Framework:** [NestJS 11](https://nestjs.com/)
+- **Language:** TypeScript
+- **Database:** PostgreSQL 16
+- **ORM:** TypeORM
+- **Authentication:** Passport.js (JWT & Google OAuth 2.0)
+
+### **Infrastructure**
+- **Containerization:** Docker & Docker Compose
+- **Deployment:** Nginx Proxy (Subpath Deployment)
+
+---
+
+## 📂 โครงสร้างโปรเจกต์ (Project Structure)
+
+```text
 Informatics-Go-Green/
-├── 📂 backend/                  # NestJS Backend
-│   ├── src/
-│   │   ├── auth/               # Authentication Module
-│   │   ├── users/              # User Management Module
-│   │   ├── app.module.ts       # Root Module
-│   │   └── main.ts             # Entry Point
-│   ├── Dockerfile.dev          # Dev Dockerfile
-│   └── Dockerfile.prod         # Production Dockerfile
-│
-├── 📂 frontend/                 # Next.js Frontend
-│   ├── app/
-│   │   ├── auth/               # Auth Pages
-│   │   ├── layout.tsx          # Root Layout
-│   │   └── page.tsx            # Home Page
-│   ├── Dockerfile.dev          # Dev Dockerfile
-│   └── Dockerfile.prod         # Production Dockerfile
-│
-├── 📄 docker-compose.dev.yml   # Development Compose
-├── 📄 docker-compose.prod.yml  # Production Compose
-├── 📄 .env.example             # Environment Template
-├── 📄 DOCKER.md                # Docker Guide
-└── 📄 DEVELOPER_GUIDE.md       # Developer Guide
+├── 📂 backend/           # ระบบ API (NestJS)
+├── 📂 frontend/          # ระบบ UI (Next.js)
+├── 📂 deployment/        # ไฟล์คอนฟิกสำหรับการ Deploy (Nginx)
+├── 📄 docker-compose.yml  # คอนฟิกหลักของ Docker
+├── 📄 .env.prepro        # ค่าตัวแปรสภาพแวดล้อมสำหรับเซิร์ฟเวอร์มหาวิทยาลัย
+└── 📄 DEPLOY_PREPRO.md   # คู่มือการ Deploy บนระบบมหาวิทยาลัยอย่างละเอียด
 ```
 
 ---
 
-## 🔑 Authentication
+## ✨ ฟีเจอร์หลัก (Key Features)
 
-ระบบรองรับการ Authentication หลายรูปแบบ:
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| **Local Register** | `/auth/register` | สมัครสมาชิกด้วย Email/Password |
-| **Local Login** | `/auth/login` | เข้าสู่ระบบด้วย Email/Password |
-| **Google OAuth** | `/auth/google` | เข้าสู่ระบบผ่าน Google Account |
-| **Password Reset** | `/auth/forgot-password` | ขอ Reset Password ผ่าน Email |
-
-> **Setup OAuth**: แก้ไข `GOOGLE_CLIENT_ID` และ `GOOGLE_CLIENT_SECRET` ในไฟล์ `.env`
+- 🔐 **ระบบสมาชิก:** สมัครสมาชิก, เข้าสู่ระบบปกติ และ Google Login
+- 👤 **โปรไฟล์ผู้ใช้:** จัดการข้อมูลส่วนตัวและรูปถ่าย (Base64 Optimized)
+- ♻️ **ระบบจัดการขยะ:** สแกนบาร์โค้ดขยะ, บันทึกการคัดแยกวัสดุ
+- 🌳 **Carbon Footprint:** คำนวณการลดก๊าซเรือนกระจกและแสดงสถิติแบบ Real-time
+- 🛡️ **ระบบ Admin:** จัดการผู้ใช้งาน, จัดการข้อมูลวัสดุขยะ และค่า Emission Factors
 
 ---
 
-## 📚 Documentation
+## 📖 เอกสารเพิ่มเติม (Documentation)
 
-| Document | Description |
-|----------|-------------|
-| [📖 DOCKER.md](DOCKER.md) | คู่มือการใช้งาน Docker, Commands, Troubleshooting |
-| [💻 DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) | คู่มือการพัฒนา, Git Workflow, Coding Standards |
-| [🔧 backend/README.md](backend/README.md) | เอกสาร Backend API |
-| [🎨 frontend/README.md](frontend/README.md) | เอกสาร Frontend Application |
-
----
-
-## 🤝 Contributing
-
-### Git Branch Convention
-
-| Type | Format | Example |
-|------|--------|---------|
-| Feature | `feature/<name>` | `feature/user-profile` |
-| Bugfix | `fix/<name>` | `fix/login-error` |
-| Hotfix | `hotfix/<name>` | `hotfix/security-patch` |
-
-### Commit Message Format
-
-```
-type(scope): subject
-
-# Examples:
-feat(auth): add Google OAuth login
-fix(user): resolve password reset issue
-docs: update README with Docker guide
-```
+- [💻 คู่มือการพัฒนา (DEVELOPER_GUIDE.md)](DEVELOPER_GUIDE.md)
+- [🐳 คู่มือ Docker (DOCKER.md)](DOCKER.md)
+- [🚀 คู่มือการ Deploy บน PREPRO (DEPLOY_PREPRO.md)](DEPLOY_PREPRO.md)
+- [🔧 Backend API Docs (backend/README.md)](backend/README.md)
+- [🎨 Frontend Docs (frontend/README.md)](frontend/README.md)
 
 ---
 
 <p align="center">
-  <strong>Informatics Go Green</strong> — Built with ❤️ by the Team
+  พัฒนาโดยทีม <strong>Informatics Go Green</strong> มหาวิทยาลัยบูรพา
 </p>

@@ -30,14 +30,22 @@ export default function LatestWasteSorting() {
     
     const LIMIT = 4; 
 
-    const getCategoryBadge = (category: string) => {
-        const cat = category.toLowerCase();
-        if (cat.includes('พลาสติก') || cat.includes('plastic')) return "bg-yellow-100 text-yellow-700";
-        if (cat.includes('แก้ว') || cat.includes('glass')) return "bg-blue-100 text-blue-700";
-        if (cat.includes('กระดาษ') || cat.includes('paper')) return "bg-amber-100 text-amber-700";
-        if (cat.includes('โลหะ') || cat.includes('metal')) return "bg-red-100 text-red-700";
-        return "bg-green-100 text-green-700";
-    };
+    const getCategoryColor = (categoryName: string): string => {
+    if (!categoryName) return 'bg-purple-50 text-purple-700';
+
+    const name = categoryName.toLowerCase();
+
+    if (name.includes('พลาสติก')) return 'bg-green-50 text-green-700';
+    if (name.includes('กระดาษ')) return 'bg-yellow-50 text-yellow-700';
+    if (name.includes('แก้ว')) return 'bg-blue-50 text-blue-700';
+    if (name.includes('เหล็ก')) return 'bg-red-50 text-red-700';
+    if (name.includes('โลหะ') || name.includes('อลูมิเนียม')) return 'bg-slate-50 text-slate-700';
+    if (name.includes('อินทรีย์') || name.includes('อาหาร')) return 'bg-lime-50 text-lime-700';
+    if (name.includes('อันตราย')) return 'bg-rose-50 text-rose-700';
+
+    return 'bg-purple-50 text-purple-700';
+  };
+
 
     const fetchItems = useCallback(async (pageNum: number, search: string = "") => {
         const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
@@ -164,7 +172,7 @@ export default function LatestWasteSorting() {
                                 <p className="text-gray-900 text-sm font-bold line-clamp-2 leading-5">
                                     {item.name}
                                 </p>
-                                <span className={`${getCategoryBadge(item.category_name)} text-xs font-bold px-2 py-0.5 rounded-full w-fit`}>
+                                <span className={`${getCategoryColor(item.category_name)}  text-xs font-bold px-2 py-0.5 rounded-full w-fit`}>
                                     {item.category_name}
                                 </span>
                             </div>

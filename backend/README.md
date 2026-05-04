@@ -1,312 +1,77 @@
-# 🔧 Backend API
+# 🔧 Backend API (NestJS)
 
-NestJS Backend API สำหรับโปรเจค Informatics Go Green
-
----
-
-## 📋 Table of Contents
-
-- [Tech Stack](#-tech-stack)
-- [Folder Structure](#-folder-structure)
-- [Getting Started](#-getting-started)
-- [Available Scripts](#-available-scripts)
-- [API Endpoints](#-api-endpoints)
-- [Database Schema](#-database-schema)
-- [Authentication Flow](#-authentication-flow)
+ระบบให้บริการข้อมูล (API) สำหรับโปรเจกต์ **Informatics Go Green** พัฒนาด้วย NestJS พร้อมสถาปัตยกรรมที่รองรับการปรับขยายและมีความปลอดภัยสูง
 
 ---
 
-## 🛠 Tech Stack
+## 🛠 Tech Stack & Tools
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| NestJS | 10+ | Node.js Framework |
-| TypeScript | 5+ | Type Safety |
-| TypeORM | 0.3+ | ORM for PostgreSQL |
-| PostgreSQL | 16 | Database |
-| Passport | 0.7+ | Authentication |
-| JWT | - | Token Authentication |
-| bcryptjs | - | Password Hashing |
-| class-validator | - | DTO Validation |
+- **Framework:** NestJS 11
+- **Database:** PostgreSQL 16
+- **ORM:** TypeORM
+- **Auth:** JWT (Passport.js) & Google OAuth 2.0
+- **Validation:** Class-validator & Class-transformer
+- **Email:** Nodemailer (SMTP)
+- **File Upload:** Multer (Optimized for Base64 storage)
 
 ---
 
-## 📁 Folder Structure
+## 🚀 คำสั่งที่ใช้บ่อย (Available Scripts)
 
-```
-backend/
-├── src/
-│   ├── auth/                   # Authentication Module
-│   │   ├── dto/               # Request/Response DTOs
-│   │   │   ├── login.dto.ts
-│   │   │   ├── register.dto.ts
-│   │   │   └── reset-password.dto.ts
-│   │   ├── guards/            # Route Guards
-│   │   │   └── jwt-auth.guard.ts
-│   │   ├── strategies/        # Passport Strategies
-│   │   │   ├── jwt.strategy.ts
-│   │   │   └── google.strategy.ts
-│   │   ├── auth.controller.ts # Route Handlers
-│   │   ├── auth.service.ts    # Business Logic
-│   │   └── auth.module.ts     # Module Definition
-│   │
-│   ├── users/                  # User Module
-│   │   ├── entities/          # TypeORM Entities
-│   │   │   └── user.entity.ts
-│   │   ├── users.service.ts   # User CRUD Operations
-│   │   └── users.module.ts    # Module Definition
-│   │
-│   ├── app.module.ts          # Root Module
-│   ├── app.controller.ts      # Health Check Endpoint
-│   ├── app.service.ts         # App Service
-│   └── main.ts                # Application Bootstrap
-│
-├── test/                       # E2E Tests
-│   └── app.e2e-spec.ts
-│
-├── Dockerfile.dev             # Development Image
-├── Dockerfile.prod            # Production Image
-├── nest-cli.json              # NestJS CLI Config
-├── tsconfig.json              # TypeScript Config
-└── package.json               # Dependencies
-```
-
----
-
-## 🚀 Getting Started
-
-### With Docker (แนะนำ)
-
-```bash
-# จาก root directory ของโปรเจค
-docker-compose -f docker-compose.dev.yml up --build -d backend
-```
-
-### Local Development
-
-```bash
-# ต้องมี PostgreSQL running (หรือใช้ Docker สำหรับ DB)
-docker-compose -f docker-compose.dev.yml up -d postgres
-
-# Install dependencies
-npm install --legacy-peer-deps
-
-# Start development server (watch mode)
-npm run start:dev
-
-# API available at http://localhost:3001
-```
-
----
-
-## 📝 Available Scripts
-
-| Script | Description |
+| คำสั่ง | รายละเอียด |
 |--------|-------------|
-| `npm run start` | Start in production mode |
-| `npm run start:dev` | Start in watch mode (development) |
-| `npm run start:prod` | Start compiled production build |
-| `npm run build` | Compile TypeScript to JavaScript |
-| `npm run test` | Run unit tests |
-| `npm run test:e2e` | Run end-to-end tests |
-| `npm run test:cov` | Generate test coverage |
-| `npm run lint` | Run ESLint |
+| `npm run start:dev` | เริ่มระบบพัฒนา (Watch Mode) |
+| `npm run build` | คอมไพล์โค้ดเป็น JavaScript |
+| `npm run start:prod` | เริ่มระบบ Production (หลัง Build) |
+| `npm run lint` | ตรวจสอบคุณภาพโค้ด (Linting) |
+| `npm run db:seed` | นำเข้าข้อมูลเริ่มต้น (Seeding) |
+| `npm run migration:run` | รัน Migration เพื่ออัปเดตตารางฐานข้อมูล |
 
 ---
 
-## 🔌 API Endpoints
+## 🔌 API Endpoints (ย่อ)
 
-### Base URL
+### **Authentication**
+- `POST /auth/login` - เข้าสู่ระบบ
+- `POST /auth/register` - สมัครสมาชิก
+- `GET /auth/me` - ดึงข้อมูลโปรไฟล์ผู้ใช้ปัจจุบัน
+- `PATCH /auth/profile` - อัปเดตข้อมูลโปรไฟล์
 
-```
-Development: http://localhost:3001/api
-Production:  https://your-domain.com/api
-```
+### **Waste Management**
+- `GET /waste` - ดึงรายการขยะทั้งหมด
+- `GET /waste/barcode/:code` - ค้นหาขยะด้วยบาร์โค้ด
+- `POST /waste-history` - บันทึกประวัติการคัดแยกขยะ
 
-### Authentication
-
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| `POST` | `/auth/register` | Register new user | ❌ |
-| `POST` | `/auth/login` | Login with credentials | ❌ |
-| `GET` | `/auth/google` | Google OAuth login | ❌ |
-| `GET` | `/auth/google/callback` | Google OAuth callback | ❌ |
-| `POST` | `/auth/forgot-password` | Request password reset | ❌ |
-| `POST` | `/auth/reset-password` | Reset password | ❌ |
-| `GET` | `/auth/profile` | Get user profile | ✅ JWT |
-| `POST` | `/auth/logout` | Logout user | ✅ JWT |
-
-### Health Check
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/` | API health check |
+### **Admin Services**
+- `GET /admin/users` - รายชื่อสมาชิกทั้งหมด (Admin Only)
+- `POST /waste-material` - เพิ่มประเภทวัสดุขยะ
 
 ---
 
-## 🗄 Database Schema
+## 🐳 Docker Deployment
 
-### User Entity
+แอปพลิเคชันนี้รองรับการรันผ่าน Docker ในสองรูปแบบ:
 
-```typescript
-@Entity('users')
-export class User {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
-  @Column({ unique: true })
-  email: string;
-
-  @Column({ nullable: true })
-  password: string;
-
-  @Column()
-  name: string;
-
-  @Column({ default: 'local' })
-  provider: string;  // 'local' | 'google'
-
-  @Column({ nullable: true })
-  providerId: string;
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
-
-  @DeleteDateColumn()
-  deletedAt: Date;  // Soft delete
-}
-```
-
-### Entity Relationships (Future)
-
-```
-┌─────────────┐
-│    User     │
-└──────┬──────┘
-       │ 1:N
-       ▼
-┌─────────────┐
-│   (Future)  │
-│   Entities  │
-└─────────────┘
-```
+1. **Development:** ใช้ `Dockerfile.dev` (Hot Reload)
+2. **Production:** ใช้ `Dockerfile.prod` (Multi-stage Build & Non-root security)
 
 ---
 
-## 🔐 Authentication Flow
+## 🗄️ โครงสร้างโฟลเดอร์
 
-### Local Login Flow
-
+```text
+src/
+├── 📂 admin/       # โมดูลจัดการหลังบ้าน
+├── 📂 auth/        # ระบบยืนยันตัวตนและความปลอดภัย
+├── 📂 common/      # ฟิลเตอร์, อินเตอร์เซปเตอร์ที่ใช้ร่วมกัน
+├── 📂 database/    # ไฟล์ Seeder และ Migration
+├── 📂 scheduler/   # ระบบทำงานเบื้องหลัง (Background Tasks)
+├── 📂 users/       # โมดูลจัดการข้อมูลผู้ใช้
+└── 📂 waste/       # โมดูลจัดการข้อมูลขยะและ Carbon Footprint
 ```
-┌──────────┐     POST /auth/login      ┌──────────┐
-│  Client  │ ─────────────────────────▶│  Backend │
-└──────────┘     { email, password }   └────┬─────┘
-                                            │
-                           ┌────────────────┘
-                           ▼
-                    ┌─────────────┐
-                    │ Validate    │
-                    │ Credentials │
-                    └──────┬──────┘
-                           │
-                           ▼
-                    ┌─────────────┐
-                    │ Generate    │
-                    │ JWT Token   │
-                    └──────┬──────┘
-                           │
-┌──────────┐               │
-│  Client  │ ◀─────────────┘
-└──────────┘   { access_token }
-```
-
-### Google OAuth Flow
-
-```
-┌──────────┐   GET /auth/google   ┌──────────┐
-│  Client  │ ────────────────────▶│  Backend │
-└──────────┘                      └────┬─────┘
-                                       │
-                    ┌──────────────────┘
-                    ▼
-             ┌─────────────┐
-             │   Google    │
-             │   OAuth     │
-             └──────┬──────┘
-                    │ Authorization
-                    ▼
-             ┌─────────────┐
-             │  Callback   │
-             │  /callback  │
-             └──────┬──────┘
-                    │
-                    ▼
-             ┌─────────────┐
-             │ Create/Find │
-             │    User     │
-             └──────┬──────┘
-                    │
-┌──────────┐        │
-│  Client  │ ◀──────┘
-└──────────┘  Redirect with JWT
-```
-
----
-
-## 🔧 Environment Variables
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `NODE_ENV` | Environment mode | Yes |
-| `PORT` | Server port | Yes |
-| `DATABASE_HOST` | PostgreSQL host | Yes |
-| `DATABASE_PORT` | PostgreSQL port | Yes |
-| `DATABASE_USER` | Database username | Yes |
-| `DATABASE_PASSWORD` | Database password | Yes |
-| `DATABASE_NAME` | Database name | Yes |
-| `JWT_SECRET` | JWT signing secret | Yes |
-| `JWT_EXPIRES_IN_SECONDS` | JWT expiration time | Yes |
-| `GOOGLE_CLIENT_ID` | Google OAuth ID | No |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth Secret | No |
-| `GOOGLE_CALLBACK_URL` | OAuth callback URL | No |
-
----
-
-## 🧪 Testing
-
-### Run Tests
-
-```bash
-# Unit tests
-npm run test
-
-# E2E tests
-npm run test:e2e
-
-# Coverage report
-npm run test:cov
-```
-
-### Test File Naming
-
-| Type | Pattern | Location |
-|------|---------|----------|
-| Unit | `*.spec.ts` | Same folder as source |
-| E2E | `*.e2e-spec.ts` | `/test` folder |
-
----
-
-## 📚 Resources
-
-- [NestJS Documentation](https://docs.nestjs.com)
-- [TypeORM Documentation](https://typeorm.io)
-- [Passport.js Documentation](http://www.passportjs.org)
 
 ---
 
 <p align="center">
-  ดูเอกสารเพิ่มเติมที่ <a href="../README.md">README หลัก</a> หรือ <a href="../DEVELOPER_GUIDE.md">Developer Guide</a>
+  <a href="../README.md">กลับสู่หน้าหลัก</a>
 </p>

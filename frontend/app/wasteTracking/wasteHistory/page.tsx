@@ -27,14 +27,22 @@ export default function WasteHistoryPage() {
         });
     };
 
-    const getCategoryStyle = (category: string) => {
-        const cat = category.toLowerCase();
-        if (cat.includes('พลาสติก') || cat.includes('plastic')) return "bg-yellow-100 text-yellow-700";
-        if (cat.includes('แก้ว') || cat.includes('glass')) return "bg-blue-100 text-blue-700";
-        if (cat.includes('กระดาษ') || cat.includes('paper')) return "bg-gray-100 text-gray-700";
-        if (cat.includes('โลหะ') || cat.includes('metal')) return "bg-red-100 text-red-700";
-        return "bg-green-100 text-green-700";
+    const getCategoryColor = (categoryName: string): string => {
+        if (!categoryName) return 'bg-purple-50 text-purple-700';
+
+        const name = categoryName.toLowerCase();
+
+        if (name.includes('พลาสติก')) return 'bg-green-50 text-green-700';
+        if (name.includes('กระดาษ')) return 'bg-yellow-50 text-yellow-700';
+        if (name.includes('แก้ว')) return 'bg-blue-50 text-blue-700';
+        if (name.includes('เหล็ก')) return 'bg-red-50 text-red-700';
+        if (name.includes('โลหะ') || name.includes('อลูมิเนียม')) return 'bg-slate-50 text-slate-700';
+        if (name.includes('อินทรีย์') || name.includes('อาหาร')) return 'bg-lime-50 text-lime-700';
+        if (name.includes('อันตราย')) return 'bg-rose-50 text-rose-700';
+
+        return 'bg-purple-50 text-purple-700';
     };
+
 
     // Points are now calculated by the backend
 
@@ -123,7 +131,7 @@ export default function WasteHistoryPage() {
 
 
                                             <div className="flex flex-row gap-1   items-center text-lg text-green-600 font-bold">
-                                                {item.carbon_footprint ? (
+                                                {item.carbon_footprint !== null && item.carbon_footprint !== undefined ? (
                                                     <>
                                                         <p>+{item.carbon_footprint} kgCO2e</p>
                                                         <MoveUpRight size={16} strokeWidth={3} />
@@ -143,7 +151,7 @@ export default function WasteHistoryPage() {
 
                                         <div className="-mt-3">
                                             <p className="text-xl font-bold flex items-center justify-between text-slate-700">{item.meterial_name}
-                                                <span className={`${getCategoryStyle(item.waste_category)} text-sm font-bold px-3 ml-1 py-1 rounded-full`}>
+                                                <span className={`${getCategoryColor(item.waste_category)} text-sm font-bold px-3 ml-1 py-1 rounded-full`}>
                                                     {item.waste_category}
                                                 </span></p>
                                             <div className="flex items-center gap-2 mt-1">
@@ -160,11 +168,11 @@ export default function WasteHistoryPage() {
                             return (
                                 <Card key={item.id} className="p-4 w-full relative flex flex-col gap-3 border-none shadow-md ring-1 ring-gray-100">
                                     <div className="flex flex-row justify-between w-full items-start">
-                                        <span className={`${getCategoryStyle(item.waste_category)} text-sm font-bold px-3 py-1 rounded-full`}>
+                                        <span className={`${getCategoryColor(item.waste_category)} text-sm font-bold px-3 py-1 rounded-full`}>
                                             {item.waste_category}
                                         </span>
                                         <div className="flex flex-row gap-1 items-center text-lg text-green-600 font-bold">
-                                            {item.carbon_footprint ? (
+                                            {item.carbon_footprint !== null && item.carbon_footprint !== undefined ? (
                                                 <>
                                                     <p>+{item.carbon_footprint} kgCO2e</p>
                                                     <MoveUpRight size={16} strokeWidth={3} />
@@ -192,7 +200,7 @@ export default function WasteHistoryPage() {
                                         <div className="flex flex-row items-baseline gap-2">
                                             <p className="text-md text-gray-800">ปริมาณ</p>
                                             <p className="text-md font-bold text-gray-900">
-                                                {item.amount} กก. / ชิ้น
+                                                {Number(item.amount).toFixed(2)} กก. / ชิ้น
                                             </p>
                                         </div>
                                         <button

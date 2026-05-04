@@ -81,7 +81,7 @@ export default function AuthLoginForm({
   return (
     <div className="max-w-md w-full animate-in fade-in duration-500">
       <Image
-        src="/leaf.png"
+        src="/if-go-green/leaf.png"
         alt="Logo"
         width={64}
         height={64}

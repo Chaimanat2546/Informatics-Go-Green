@@ -3,7 +3,7 @@
 import { Card } from "@/components/ui/card";
 import MenuBar from "@/components/wasteTracking/MenuBar";
 import { useParams, useRouter } from "next/navigation";
-import { CheckCircle2, Leaf, Loader2, } from "lucide-react";
+import { Leaf, Loader2, } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { WasteData } from "@/interfaces/Waste";
@@ -77,7 +77,7 @@ export default function WasteHistoryDetail() {
                     </span>
                 </div>
 
-                <div className="relative pl-2">
+                {/* <div className="relative pl-2">
                     <h3 className="text-green-800 text-xl font-semibold mb-4 border-l-4 border-green-700 pl-3">
                         ขั้นตอนการทิ้ง
                     </h3>
@@ -93,7 +93,7 @@ export default function WasteHistoryDetail() {
                             </div>
                         ))}
                     </div>
-                </div>
+                </div> */}
             </Card>
             {waste.material_guides.length > 0 && (
                 <Card className="px-4 mx-6 mt-4 mb-24  rounded-[24px] shadow-sm  bg-white">

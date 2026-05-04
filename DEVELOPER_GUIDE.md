@@ -24,7 +24,7 @@
 - [ ] Clone repository และ setup environment
 - [ ] อ่าน README.md และ DOCKER.md
 - [ ] ติดตั้ง Docker Desktop
-- [ ] รัน `docker-compose -f docker-compose.dev.yml up --build -d`
+- [ ] รัน `docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d`
 - [ ] ทดสอบเข้า http://localhost:3000 และ http://localhost:3001/api
 - [ ] ติดตั้ง VS Code Extensions (ESLint, Prettier, Docker)
 - [ ] ทำความเข้าใจ folder structure
@@ -132,7 +132,7 @@ git pull origin develop
 git checkout -b feature/your-feature-name
 
 # 3. Start development environment
-docker-compose -f docker-compose.dev.yml up --build --watch
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build --watch
 ```
 
 ### 2. Adding Dependencies
@@ -141,7 +141,7 @@ docker-compose -f docker-compose.dev.yml up --build --watch
 |--------|---------|
 | **Frontend** | `cd frontend && npm install <package>` |
 | **Backend** | `cd backend && npm install <package>` |
-| **Rebuild Container** | `docker-compose -f docker-compose.dev.yml up --build -d <service>` |
+| **Rebuild Container** | `docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d <service>` |
 
 > **Note**: หลังเพิ่ม dependency ต้อง rebuild container ด้วย `--build`
 
@@ -170,18 +170,17 @@ docker-compose -f docker-compose.dev.yml up --build --watch
 | Rule | Description |
 |------|-------------|
 | **Use DTOs** | สร้าง DTO สำหรับทุก API ที่รับข้อมูล พร้อม `class-validator` |
+| **Lint Check** | รัน `npm run lint` ก่อน Commit เสมอ (ห้ามมี unused imports/vars) |
+| **Async/Await** | ใช้ `async/await` แทน Promise chains และต้องมี `void` หากไม่ต้องการ await |
 | **No Hardcode** | ใช้ `ConfigService` ดึงค่าจาก `.env` เสมอ |
-| **Async/Await** | ใช้ `async/await` แทน Promise chains |
-| **Error Handling** | ใช้ NestJS Exception Filters |
-| **Logging** | ใช้ NestJS Logger สำหรับ log |
 
 ### Frontend Best Practices
 
 | Rule | Description |
 |------|-------------|
 | **Server Components** | ใช้เป็น default, เติม `'use client'` เฉพาะเมื่อจำเป็น |
+| **JSX Entities** | หลีกเลี่ยงเครื่องหมาย " หรือ ' ตรงๆ ใน JSX ให้ใช้ `&quot;` หรือ `&apos;` แทน |
 | **Type Safety** | ใช้ TypeScript interfaces สำหรับ props และ API responses |
-| **Styling** | ใช้ CSS Modules หรือ Tailwind utility classes |
 | **API Calls** | Centralize API calls ในโฟลเดอร์ `lib/` หรือ `services/` |
 
 ---

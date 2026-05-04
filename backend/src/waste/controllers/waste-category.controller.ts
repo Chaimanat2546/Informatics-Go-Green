@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Body,
   Param,
   ParseIntPipe,
@@ -30,5 +31,10 @@ export class WasteCategoryController {
   @Post('waste-categories')
   async create(@Body() createDto: CreateWasteCategoryDto) {
     return this.wasteCategoryService.create(createDto);
+  }
+
+  @Delete('waste-categories/:id')
+  async delete(@Param('id', ParseIntPipe) id: number) {
+    return this.wasteCategoryService.delete(id);
   }
 }

@@ -503,9 +503,10 @@ export class CarbonFootprintCalculator {
       const wasteMaterial = wasteHistory.wasteMaterial;
 
       if (!wasteMaterial) {
-        throw new Error(
-          `No wasteMaterial found in wasteHistory for fallback calculation (waste_id: ${wasteId})`,
+        this.log(
+          `  ⚠️ Warning: No wasteMaterial found in wasteHistory for fallback calculation (waste_id: ${wasteId}). Material may have been deleted. Returning 0.`,
         );
+        return 0;
       }
 
       const emissionFactor = wasteMaterial.emissionFactor || 0;

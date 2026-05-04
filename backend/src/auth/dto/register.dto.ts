@@ -23,11 +23,13 @@ export class RegisterDto {
 
   @IsString()
   @IsNotEmpty({ message: 'กรุณากรอกชื่อ' })
+  @Matches(/^\S+$/, { message: 'ชื่อต้องไม่มีช่องว่าง' })
   @MaxLength(50, { message: 'ชื่อต้องไม่เกิน 50 ตัวอักษร' })
   firstName: string;
 
   @IsString()
   @IsNotEmpty({ message: 'กรุณากรอกนามสกุล' })
+  @Matches(/^\S+$/, { message: 'นามสกุลต้องไม่มีช่องว่าง' })
   @MaxLength(50, { message: 'นามสกุลต้องไม่เกิน 50 ตัวอักษร' })
   lastName: string;
 
