@@ -32,6 +32,7 @@ export class CreateSchedulerSettings1710000000000 implements MigrationInterface 
       ('cron_time', '02:00', 'เวลาคำนวณอัตโนมัติ', 'เวลาที่ระบบจะคำนวณ Carbon Footprint อัตโนมัติ (รูปแบบ HH:mm)', 'time'),
       ('auto_calculate_enabled', 'true', 'เปิดใช้งานการคำนวณอัตโนมัติ', 'เปิด/ปิดการคำนวณอัตโนมัติรายวัน', 'boolean'),
       ('default_management_method_id', '', 'วิธีการจัดการขยะที่ใช้คำนวณ', 'เลือกวิธีการจัดการขยะที่จะใช้คำนวณ Transport Emission', 'select')
+      ON CONFLICT (key) DO NOTHING
     `);
   }
 
